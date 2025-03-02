@@ -27,34 +27,29 @@ This parameter is used as the interpolation point and must lie within the table 
 
 ### 3. Interpolation of Wave-Height Ratios:
 
-    A predefined 25-row table is used:
-        tableX: Values ranging from 2.3 to 3.5 representing H̃_tr.
-        col1 to col7: The table columns contain characteristic ratios relative to Hrms (i.e. Hᵢ/Hrms).
-
-    Natural cubic spline interpolation is performed for each column at the value H̃_tr, thereby obtaining the dimensionless ratios Hᵢ/Hrms.
+  A predefined 25-row table is used:
+  tableX: Values ranging from 2.3 to 3.5 representing H̃_tr.
+  col1 to col7: The table columns contain characteristic ratios relative to Hrms (i.e. Hᵢ/Hrms).
+  
+  Natural cubic spline interpolation is performed for each column at the value H̃_tr, thereby obtaining the dimensionless ratios Hᵢ/Hrms.
 
 ### 4. Conversion to Dimensional Quantities:
 
-    The dimensional wave heights (in meters) are then calculated using:
-
-    plaintext
-
-    H = (Hᵢ/Hrms) * Hrms
-
-    where (Hᵢ/Hrms) are the interpolated values from the table.
+  The dimensional wave heights (in meters) are then calculated using: H = (Hᵢ/Hrms) * Hrms
+  where (Hᵢ/Hrms) are the interpolated values from the table.
 
 ### 5. Report Generation:
 
-    A detailed report is generated which includes:
-        The input parameters (Hm0 and d).
-        The computed intermediate values (m0, Hrms, Htr, H̃_tr).
-        The dimensionless wave heights (H/Hrms) as directly interpolated.
-        The dimensional wave heights (in meters) computed from Hrms.
-        Diagnostic ratios computed from the wave-height values.
+  A detailed report is generated which includes:
+  The input parameters (Hm0 and d).
+  The computed intermediate values (m0, Hrms, Htr, H̃_tr).
+  The dimensionless wave heights (H/Hrms) as directly interpolated.
+  The dimensional wave heights (in meters) computed from Hrms.
+  Diagnostic ratios computed from the wave-height values.
 
 ### Compilation Instructions:
 
-To compile this application using g++ on a Windows system, use a command similar to the following:
+  To compile this application using g++ on a Windows system, use a command similar to the following:
 
 bash
 
