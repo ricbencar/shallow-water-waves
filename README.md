@@ -1,7 +1,5 @@
 # Shallow Water Waves Calculator
 
-## Detailed Description
-
 This program computes local shallow-foreshore wave-height distribution parameters using a model based on the Composed Weibull distribution as described in:
 
 > "Shallow foreshore wave height statistics"  
@@ -20,27 +18,27 @@ The application is implemented as a Windows GUI application using only the nativ
 ### 2. Parameter Calculation
 - **Free-surface variance (\( m_0 \))** is computed as:
 
-  \[
+  $$
   m_0 = \left(\frac{H_{m0}}{4}\right)^2
-  \]
+  $$
   
 - **Mean square wave height (\( H_{rms} \))** is computed as:
 
-  \[
+  $$
   H_{rms} = 3 \sqrt{m_0}
-  \]
+  $$
   
 - **Dimensional transitional wave height (\( H_{tr} \))** is calculated using the corrected formula:
 
-  \[
+  $$
   H_{tr} = \left(\frac{0.12\, d}{\sqrt{m_0}}\right) H_{rms}
-  \]
+  $$
   
 - **Dimensionless transitional parameter (\( \tilde{H}_{tr} \))** is derived as:
 
-  \[
+  $$
   \tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
-  \]
+  $$
   
   This parameter is used as the interpolation point and must lie within the table range (2.3–3.5) for proper interpolation.
 
@@ -53,9 +51,9 @@ The application is implemented as a Windows GUI application using only the nativ
 ### 4. Conversion to Dimensional Quantities
 - The dimensional wave heights (in meters) are calculated using:
 
-  \[
+  $$
   H_i = \left(\frac{H_i}{H_{rms}}\right) H_{rms}
-  \]
+  $$
   
   where \( \frac{H_i}{H_{rms}} \) are the interpolated values from the table.
 
