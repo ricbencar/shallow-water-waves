@@ -6,12 +6,12 @@ This program computes local shallow-foreshore wave-height distribution parameter
 
 > "Shallow foreshore wave height statistics"  
 > by H. Groenendijk, Master's Thesis, Delft University of Technology, 1998.
-
+![shallow-water-waves](https://github.com/user-attachments/assets/31154777-4b6f-4c90-bb2d-13b83aafc7ba)
 The program is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
 
 1. **Hm0** (in meters) - The local significant spectral wave height.
 2. **d** (in meters) - The local water depth.
-![shallow-water-waves](https://github.com/user-attachments/assets/31154777-4b6f-4c90-bb2d-13b83aafc7ba)
+
 Based on these inputs, the program performs the following steps:
 
 ### 1. Parameter Calculation:
