@@ -44,7 +44,7 @@ The user enters the values for **Hm0** and **d** into two separate edit controls
 
 ### Compilation Instructions:
 
-  To compile this application using g++ on a Windows system, use a command similar to the following:
+  To compile this application using g++ on a Windows system, you can use this command:
 
 ```sh
 g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
