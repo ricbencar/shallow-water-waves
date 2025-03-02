@@ -51,10 +51,10 @@ This parameter is used as the interpolation point and must lie within the table 
 
   To compile this application using g++ on a Windows system, use a command similar to the following:
 
-bash
-
+```sh
 g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
     -mwindows -static -static-libgcc -static-libstdc++
+```
 
 Explanation of the flags:
 
