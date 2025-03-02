@@ -4,8 +4,7 @@
 
 This program computes local shallow-foreshore wave-height distribution parameters using a model based on the Composed Weibull distribution as described in:
 
-> "Shallow foreshore wave height statistics"  
-> by H. Groenendijk, Master's Thesis, Delft University of Technology, 1998.
+> H. Groenendijk, "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology, 1998. URL: (https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
 
 ![shallow-water-waves](https://github.com/user-attachments/assets/31154777-4b6f-4c90-bb2d-13b83aafc7ba)
 The program is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
