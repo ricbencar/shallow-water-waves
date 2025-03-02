@@ -5,12 +5,12 @@ This program computes local shallow-foreshore wave-height distribution parameter
 > "Shallow foreshore wave height statistics"  
 > by H. Groenendijk, Master's Thesis, Delft University of Technology, 1998.
 
-The application is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
+The program is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
 
 1. **\( H_{m0} \) (in meters):** The local significant spectral wave height.
 2. **\( d \) (in meters):** The local water depth.
 
-## Program Workflow
+Based on these inputs, the program performs the following steps:
 
 ### 1. Input Acquisition
 - The user enters the values for \( H_{m0} \) and \( d \) into two separate edit controls on the main window.
@@ -21,25 +21,25 @@ The application is implemented as a Windows GUI application using only the nativ
   $$
   m_0 = \left(\frac{H_{m0}}{4}\right)^2
   $$
-  
+
 - **Mean square wave height (\( H_{rms} \))** is computed as:
 
   $$
-  H_{rms} = 3 \sqrt{m_0}
+  H_{rms} = 3\sqrt{m_0}
   $$
-  
+
 - **Dimensional transitional wave height (\( H_{tr} \))** is calculated using the corrected formula:
 
   $$
   H_{tr} = \left(\frac{0.12\, d}{\sqrt{m_0}}\right) H_{rms}
   $$
-  
+
 - **Dimensionless transitional parameter (\( \tilde{H}_{tr} \))** is derived as:
 
   $$
   \tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
   $$
-  
+
   This parameter is used as the interpolation point and must lie within the table range (2.3–3.5) for proper interpolation.
 
 ### 3. Interpolation of Wave-Height Ratios
@@ -49,12 +49,12 @@ The application is implemented as a Windows GUI application using only the nativ
 - Natural cubic spline interpolation is performed for each column at the value \( \tilde{H}_{tr} \), thereby obtaining the dimensionless ratios \( \frac{H_i}{H_{rms}} \).
 
 ### 4. Conversion to Dimensional Quantities
-- The dimensional wave heights (in meters) are calculated using:
+- The dimensional wave heights (in meters) are then calculated using:
 
   $$
   H_i = \left(\frac{H_i}{H_{rms}}\right) H_{rms}
   $$
-  
+
   where \( \frac{H_i}{H_{rms}} \) are the interpolated values from the table.
 
 ### 5. Report Generation
@@ -72,6 +72,7 @@ The application is implemented as a Windows GUI application using only the nativ
   - A "Compute" button that triggers the parameter computations.
   - A multiline, read-only output control (using a 20-pt Courier New font) which displays the detailed report.
 - A helper routine ensures that Unix-style newline characters (`\n`) are converted to the Windows CR-LF (`\r\n`) format for proper display.
+
 
 ## Compilation Instructions (Detailed)
 To compile this application using `g++` on a Windows system, use a command similar to the following:
