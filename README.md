@@ -25,7 +25,7 @@ Based on these inputs, the program performs the following steps:
 
 This parameter is used as the interpolation point and must lie within the table range (2.3–3.5) for proper interpolation.
 
-3. Interpolation of Wave-Height Ratios:
+### 3. Interpolation of Wave-Height Ratios:
 
     A predefined 25-row table is used:
         tableX: Values ranging from 2.3 to 3.5 representing H̃_tr.
@@ -33,7 +33,7 @@ This parameter is used as the interpolation point and must lie within the table 
 
     Natural cubic spline interpolation is performed for each column at the value H̃_tr, thereby obtaining the dimensionless ratios Hᵢ/Hrms.
 
-4. Conversion to Dimensional Quantities:
+### 4. Conversion to Dimensional Quantities:
 
     The dimensional wave heights (in meters) are then calculated using:
 
@@ -43,7 +43,7 @@ This parameter is used as the interpolation point and must lie within the table 
 
     where (Hᵢ/Hrms) are the interpolated values from the table.
 
-5. Report Generation:
+### 5. Report Generation:
 
     A detailed report is generated which includes:
         The input parameters (Hm0 and d).
@@ -52,7 +52,7 @@ This parameter is used as the interpolation point and must lie within the table 
         The dimensional wave heights (in meters) computed from Hrms.
         Diagnostic ratios computed from the wave-height values.
 
-Compilation Instructions (Detailed):
+### Compilation Instructions:
 
 To compile this application using g++ on a Windows system, use a command similar to the following:
 
@@ -71,6 +71,6 @@ Explanation of the flags:
     -static-libgcc: Links the GCC runtime library statically.
     -static-libstdc++: Links the standard C++ library statically.
 
-References:
+### References:
 
 H. Groenendijk, "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology, 1998.
