@@ -56,16 +56,6 @@
  *             • The dimensional wave heights (in meters) computed from Hrms.
  *             • Diagnostic ratios computed from the wave-height values.
  *
- *   6. Graphical User Interface (GUI):
- *       - The main window is designed as a non-resizable window.
- *       - It contains:
- *             • Two edit controls for inputting Hm0 and d.
- *             • A "Compute" button that triggers the parameter computations.
- *             • A multiline, read-only output control (using a 20-pt Courier New font)
- *               which displays the detailed report.
- *       - A helper routine ensures that Unix-style newline characters ("\n")
- *         are converted to the Windows CR-LF ("\r\n") format for proper display.
- *
  *   Compilation Instructions (Detailed):
  *       To compile this application using g++ on a Windows system, use a command
  *       similar to the following:
@@ -359,8 +349,8 @@ static std::wstring buildReport(double Hm0, double d)
     ss << L"===============================================\n";
     ss << L"   DIMENSIONLESS WAVE HEIGHTS (H/Hrms) [Table]\n";
     ss << L"===============================================\n";
-    ss << L"H1/Hrms        : " << interp_Hrms[0] << L"\n";
-    ss << L"H2/Hrms        : " << interp_Hrms[1] << L"\n";
+    ss << L"H1/Hrms       : " << interp_Hrms[0] << L"\n";
+    ss << L"H2/Hrms       : " << interp_Hrms[1] << L"\n";
     ss << L"H1/3 / Hrms   : " << interp_Hrms[2] << L"\n";
     ss << L"H1/10 / Hrms  : " << interp_Hrms[3] << L"\n";
     ss << L"H1/50 / Hrms  : " << interp_Hrms[4] << L"\n";
