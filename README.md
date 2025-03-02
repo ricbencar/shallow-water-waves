@@ -1,6 +1,4 @@
-# Shallow Water Waves calculator
-
-# Program: `shallow-water-waves_gui.cpp`
+# Shallow Water Waves Calculator
 
 ## Detailed Description
 
