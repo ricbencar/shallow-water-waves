@@ -1,5 +1,7 @@
 # Shallow Water Waves Calculator
 
+## Detailed Description
+
 This program computes local shallow-foreshore wave-height distribution parameters using a model based on the Composed Weibull distribution as described in:
 
 > "Shallow foreshore wave height statistics"  
@@ -7,34 +9,34 @@ This program computes local shallow-foreshore wave-height distribution parameter
 
 The program is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
 
-1. **\( H_{m0} \) (in meters):** The local significant spectral wave height.
-2. **\( d \) (in meters):** The local water depth.
+1. **$H_{m0}$ (in meters):** The local significant spectral wave height.
+2. **$d$ (in meters):** The local water depth.
 
 Based on these inputs, the program performs the following steps:
 
 ### 1. Input Acquisition
-- The user enters the values for \( H_{m0} \) and \( d \) into two separate edit controls on the main window.
+- The user enters the values for $H_{m0}$ and $d$ into two separate edit controls on the main window.
 
 ### 2. Parameter Calculation
-- **Free-surface variance (\( m_0 \))** is computed as:
+- **Free-surface variance ($m_0$)** is computed as:
 
   $$
   m_0 = \left(\frac{H_{m0}}{4}\right)^2
   $$
 
-- **Mean square wave height (\( H_{rms} \))** is computed as:
+- **Mean square wave height ($H_{rms}$)** is computed as:
 
   $$
   H_{rms} = 3\sqrt{m_0}
   $$
 
-- **Dimensional transitional wave height (\( H_{tr} \))** is calculated using the corrected formula:
+- **Dimensional transitional wave height ($H_{tr}$)** is calculated using the corrected formula:
 
   $$
   H_{tr} = \left(\frac{0.12\, d}{\sqrt{m_0}}\right) H_{rms}
   $$
 
-- **Dimensionless transitional parameter (\( \tilde{H}_{tr} \))** is derived as:
+- **Dimensionless transitional parameter ($\tilde{H}_{tr}$)** is derived as:
 
   $$
   \tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
@@ -44,9 +46,9 @@ Based on these inputs, the program performs the following steps:
 
 ### 3. Interpolation of Wave-Height Ratios
 - A predefined 25-row table is used:
-  - **`tableX`:** Values ranging from 2.3 to 3.5 representing \( \tilde{H}_{tr} \).
-  - **`col1` to `col7`:** The table columns contain characteristic ratios relative to \( H_{rms} \) (i.e., \( \frac{H_i}{H_{rms}} \)).
-- Natural cubic spline interpolation is performed for each column at the value \( \tilde{H}_{tr} \), thereby obtaining the dimensionless ratios \( \frac{H_i}{H_{rms}} \).
+  - **`tableX`:** Values ranging from 2.3 to 3.5 representing $\tilde{H}_{tr}$.
+  - **`col1` to `col7`:** The table columns contain characteristic ratios relative to $H_{rms}$ (i.e., $\frac{H_i}{H_{rms}}$).
+- Natural cubic spline interpolation is performed for each column at the value $\tilde{H}_{tr}$, thereby obtaining the dimensionless ratios $\frac{H_i}{H_{rms}}$.
 
 ### 4. Conversion to Dimensional Quantities
 - The dimensional wave heights (in meters) are then calculated using:
@@ -55,26 +57,25 @@ Based on these inputs, the program performs the following steps:
   H_i = \left(\frac{H_i}{H_{rms}}\right) H_{rms}
   $$
 
-  where \( \frac{H_i}{H_{rms}} \) are the interpolated values from the table.
+  where $\frac{H_i}{H_{rms}}$ are the interpolated values from the table.
 
 ### 5. Report Generation
 - A detailed report is generated which includes:
-  - The input parameters (\( H_{m0} \) and \( d \)).
-  - The computed intermediate values (\( m_0 \), \( H_{rms} \), \( H_{tr} \), \( \tilde{H}_{tr} \)).
-  - The dimensionless wave heights (\( \frac{H_i}{H_{rms}} \)) as directly interpolated.
-  - The dimensional wave heights (in meters) computed from \( H_{rms} \).
+  - The input parameters ($H_{m0}$ and $d$).
+  - The computed intermediate values ($m_0$, $H_{rms}$, $H_{tr}$, $\tilde{H}_{tr}$).
+  - The dimensionless wave heights ($\frac{H_i}{H_{rms}}$) as directly interpolated.
+  - The dimensional wave heights (in meters) computed from $H_{rms}$.
   - Diagnostic ratios computed from the wave-height values.
 
 ### 6. Graphical User Interface (GUI)
 - The main window is designed as a non-resizable window.
 - It contains:
-  - Two edit controls for inputting \( H_{m0} \) and \( d \).
+  - Two edit controls for inputting $H_{m0}$ and $d$.
   - A "Compute" button that triggers the parameter computations.
   - A multiline, read-only output control (using a 20-pt Courier New font) which displays the detailed report.
 - A helper routine ensures that Unix-style newline characters (`\n`) are converted to the Windows CR-LF (`\r\n`) format for proper display.
 
-
-## Compilation Instructions (Detailed)
+## Compilation Instructions
 To compile this application using `g++` on a Windows system, use a command similar to the following:
 
 ```bash
