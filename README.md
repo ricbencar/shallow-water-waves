@@ -11,7 +11,7 @@ The program is implemented as a Windows GUI application using only the native Wi
 
 1. **Hm0** (in meters) - The local significant spectral wave height.
 2. **d** (in meters) - The local water depth.
-
+![shallow-water-waves](https://github.com/user-attachments/assets/708f70e8-6366-4e17-9354-90bbcd16fcce)
 Based on these inputs, the program performs the following steps:
 
 ### 1. Input Acquisition:
