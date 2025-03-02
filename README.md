@@ -58,13 +58,13 @@ g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
 
 Explanation of the flags:
 
-    -O2: Enables level 2 optimization for improved performance.
-    -Wall: Enables all compiler's warning messages to help with debugging.
-    -municode: Ensures Unicode support.
-    -mwindows: Links against the Windows subsystem rather than the console.
-    -static: Links statically to reduce dependency on DLLs.
-    -static-libgcc: Links the GCC runtime library statically.
-    -static-libstdc++: Links the standard C++ library statically.
+  -O2: Enables level 2 optimization for improved performance.
+  -Wall: Enables all compiler's warning messages to help with debugging.
+  -municode: Ensures Unicode support.
+  -mwindows: Links against the Windows subsystem rather than the console.
+  -static: Links statically to reduce dependency on DLLs.
+  -static-libgcc: Links the GCC runtime library statically.
+  -static-libstdc++: Links the standard C++ library statically.
 
 ### References:
 
