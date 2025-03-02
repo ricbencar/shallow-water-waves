@@ -15,7 +15,7 @@ The program is implemented as a Windows GUI application using only the native Wi
 Based on these inputs, the program performs the following steps:
 
 ### 1. Input Acquisition:
-- The user enters the values for **Hm0** and **d** into two separate edit controls on the main window.
+The user enters the values for **Hm0** and **d** into two separate edit controls on the main window.
 
 ### 2. Parameter Calculation:
   Free-surface variance (**m0**) is computed as: m0 = (Hm0 / 4)²
@@ -40,12 +40,12 @@ This parameter is used as the interpolation point and must lie within the table 
 
 ### 5. Report Generation:
 
-  A detailed report is generated which includes:
-  The input parameters (Hm0 and d).
-  The computed intermediate values (m0, Hrms, Htr, H̃_tr).
-  The dimensionless wave heights (H/Hrms) as directly interpolated.
-  The dimensional wave heights (in meters) computed from Hrms.
-  Diagnostic ratios computed from the wave-height values.
+- A detailed report is generated which includes:
+- The input parameters (Hm0 and d).
+- The computed intermediate values (m0, Hrms, Htr, H̃_tr).
+- The dimensionless wave heights (H/Hrms) as directly interpolated.
+- The dimensional wave heights (in meters) computed from Hrms.
+- Diagnostic ratios computed from the wave-height values.
 
 ### Compilation Instructions:
 
@@ -58,13 +58,13 @@ g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
 
 Explanation of the flags:
 
-  -O2: Enables level 2 optimization for improved performance.
-  -Wall: Enables all compiler's warning messages to help with debugging.
-  -municode: Ensures Unicode support.
-  -mwindows: Links against the Windows subsystem rather than the console.
-  -static: Links statically to reduce dependency on DLLs.
-  -static-libgcc: Links the GCC runtime library statically.
-  -static-libstdc++: Links the standard C++ library statically.
+- -O2: Enables level 2 optimization for improved performance.
+- -Wall: Enables all compiler's warning messages to help with debugging.
+- -municode: Ensures Unicode support.
+- -mwindows: Links against the Windows subsystem rather than the console.
+- -static: Links statically to reduce dependency on DLLs.
+- -static-libgcc: Links the GCC runtime library statically.
+- -static-libstdc++: Links the standard C++ library statically.
 
 ### References:
 
