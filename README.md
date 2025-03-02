@@ -70,15 +70,6 @@ plaintext
         The dimensional wave heights (in meters) computed from Hrms.
         Diagnostic ratios computed from the wave-height values.
 
-6. Graphical User Interface (GUI):
-
-    The main window is designed as a non-resizable window.
-    It contains:
-        Two edit controls for inputting Hm0 and d.
-        A "Compute" button that triggers the parameter computations.
-        A multiline, read-only output control (using a 20-pt Courier New font) which displays the detailed report.
-    A helper routine ensures that Unix-style newline characters (\n) are converted to the Windows CR-LF (\r\n) format for proper display.
-
 Compilation Instructions (Detailed):
 
 To compile this application using g++ on a Windows system, use a command similar to the following:
