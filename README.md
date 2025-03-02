@@ -18,30 +18,12 @@ Based on these inputs, the program performs the following steps:
 - The user enters the values for **Hm0** and **d** into two separate edit controls on the main window.
 
 ### 2. Parameter Calculation:
-- Free-surface variance (**m0**) is computed as:
-  
-  ```plaintext
-  m0 = (Hm0 / 4)²
+Free-surface variance (**m0**) is computed as: m0 = (Hm0 / 4)²
+The mean square wave height (Hrms) is computed as: Hrms = 3 * sqrt(m0)
+A dimensional transitional wave height (Htr) is then calculated using the corrected formula: Htr = (0.12 * d / sqrt(m0)) * Hrms
+A dimensionless transitional parameter (H̃_tr) is then derived: H̃_tr = Htr / Hrms
 
-    The mean square wave height (Hrms) is computed as:
-
-    plaintext
-
-Hrms = 3 * sqrt(m0)
-
-A dimensional transitional wave height (Htr) is then calculated using the corrected formula:
-
-plaintext
-
-Htr = (0.12 * d / sqrt(m0)) * Hrms
-
-A dimensionless transitional parameter (H̃_tr) is derived:
-
-plaintext
-
-    H̃_tr = Htr / Hrms
-
-    This parameter is used as the interpolation point and must lie within the table range (2.3–3.5) for proper interpolation.
+This parameter is used as the interpolation point and must lie within the table range (2.3–3.5) for proper interpolation.
 
 3. Interpolation of Wave-Height Ratios:
 
