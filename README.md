@@ -1,4 +1,4 @@
-# Shallow Water Waves calculator
+# Shallow Water Waves Calculator
 
 ## Description:
 
@@ -7,6 +7,7 @@ This program computes local shallow-foreshore wave-height distribution parameter
 > H. Groenendijk, "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology, 1998. URL: (https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
 
 ![shallow-water-waves](https://github.com/user-attachments/assets/31154777-4b6f-4c90-bb2d-13b83aafc7ba)
+
 The program is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
 
 1. **Hm0** (in meters) - The local significant spectral wave height.
@@ -15,49 +16,62 @@ The program is implemented as a Windows GUI application using only the native Wi
 Based on these inputs, the program performs the following steps:
 
 ### 1. Parameter Calculation:
-- Free-surface variance (**m0**) is computed as: m0 = (Hm0 / 4)²
-- The mean square wave height (Hrms) is computed as: Hrms = 3 * sqrt(m0)
-- A dimensional transitional wave height (Htr) is then calculated using the corrected formula: Htr = (0.12 * d / sqrt(m0)) * Hrms
-- A dimensionless transitional parameter (H̃_tr) is then derived: H̃_tr = Htr / Hrms. This parameter is used as the interpolation point and must lie within the table range (2.3–3.5) for proper interpolation.
+- **Free-Surface Variance (m₀):**  
+  Computed as:  
+  `m₀ = (Hm0 / 4)²`
+- **Mean Square Wave Height (H<sub>rms</sub>):**  
+  Calculated using the formula:  
+  `H₍rms₎ = (2.69 + 3.24 * sqrt(m₀) / d) * sqrt(m₀)`
+- **Dimensional Transitional Wave Height (H<sub>tr</sub>):**  
+  Determined as:  
+  `H₍tr₎ = (0.12 * d / sqrt(m₀)) * H₍rms₎`
+- **Dimensionless Transitional Parameter (H̃<sub>tr</sub>):**  
+  Derived from:  
+  `H̃₍tr₎ = H₍tr₎ / H₍rms₎`  
+  This parameter is used as the interpolation point.
 
 ### 2. Interpolation of Wave-Height Ratios:
-
-  - A predefined 25-row table is used, tableX: values ranging from 2.3 to 3.5 representing H̃_tr.
-  - col1 to col7: The table columns contain characteristic ratios relative to Hrms (i.e. Hᵢ/Hrms);
-  - Natural cubic spline interpolation is performed for each column at the value H̃_tr, thereby obtaining the dimensionless ratios Hᵢ/Hrms.
+- A predefined **70-row table** is used with values ranging from **0.05 to 3.50** (in increments of 0.05) representing H̃<sub>tr</sub>.
+- The table contains **7 columns** (col1 to col7) with characteristic dimensionless wave-height ratios relative to H<sub>rms</sub> (i.e. Hᵢ/H<sub>rms</sub>).
+- **Natural cubic spline interpolation** is performed on each column at the computed H̃<sub>tr</sub> to obtain the interpolated dimensionless ratios.
 
 ### 3. Conversion to Dimensional Quantities:
-
-  The dimensional wave heights (in meters) are then calculated using: H = (Hᵢ/Hrms) * Hrms, where (Hᵢ/Hrms) are the interpolated values from the table.
+- The dimensional wave heights (in meters) are then calculated by:
+  
+  `H = (Hᵢ/H₍rms₎) * H₍rms₎`
+  
+  where **Hᵢ/H₍rms₎** are the interpolated values from the table.
 
 ### 4. Report Generation:
-
 - A detailed report is generated which includes:
-- The input parameters (Hm0 and d).
-- The computed intermediate values (m0, Hrms, Htr, H̃_tr).
-- The dimensionless wave heights (H/Hrms) as directly interpolated.
-- The dimensional wave heights (in meters) computed from Hrms.
-- Diagnostic ratios computed from the wave-height values.
+  - The input parameters (**Hm0** and **d**).
+  - The computed intermediate values (**m₀**, **H<sub>rms</sub>**, **H<sub>tr</sub>**, **H̃<sub>tr</sub>**).
+  - The dimensionless wave heights (H/H<sub>rms</sub>) as directly interpolated.
+  - The dimensional wave heights (in meters) computed from H<sub>rms</sub>.
+  - Diagnostic ratios computed from the wave-height values.
 
 ### Compilation Instructions:
-
-  To compile this application using g++ on a Windows system, you can use this command:
+To compile this application using g++ on a Windows system, you can use the following command:
 
 ```sh
 g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
     -mwindows -static -static-libgcc -static-libstdc++
-```
 
 Explanation of the flags:
 
-- O2: Enables level 2 optimization for improved performance.
-- Wall: Enables all compiler's warning messages to help with debugging.
-- municode: Ensures Unicode support.
-- mwindows: Links against the Windows subsystem rather than the console.
-- static: Links statically to reduce dependency on DLLs.
-- static-libgcc: Links the GCC runtime library statically.
-- static-libstdc++: Links the standard C++ library statically.
+    -O2: Enables level 2 optimization for improved performance.
+    -Wall: Activates all compiler warning messages to help with debugging.
+    -municode: Ensures Unicode support.
+    -mwindows: Links against the Windows subsystem rather than the console.
+    -static, -static-libgcc, -static-libstdc++: Link statically to reduce dependency on DLLs.
 
-### References:
+References:
 
-> H. Groenendijk, "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology, 1998. URL: (https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
+    Goda, Y. (1975, 2010). "Deformation of Irregular Waves due to Depth-Controlled Wave Breaking" and Random Seas and Design of Maritime Structures, World Scientific.
+    World Scientific – Random Seas and Design of Maritime Structures
+
+    Battjes, J. A. and Groenendijk, H. W. (2000). "Wave Height Distributions on Shallow Foreshores," Coastal Engineering, 40, 161–182.
+    DOI: https://doi.org/10.1016/S0378-3839(00)00019-2
+
+    Groenendijk, H. (1998). "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology.
+    TU Delft Repository
