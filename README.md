@@ -67,11 +67,6 @@ Explanation of the flags:
 
 ### References:
 
-    Goda, Y. (1975, 2010). "Deformation of Irregular Waves due to Depth-Controlled Wave Breaking" and Random Seas and Design of Maritime Structures, World Scientific.
-    World Scientific – Random Seas and Design of Maritime Structures
-
-    Battjes, J. A. and Groenendijk, H. W. (2000). "Wave Height Distributions on Shallow Foreshores," Coastal Engineering, 40, 161–182.
-    DOI: https://doi.org/10.1016/S0378-3839(00)00019-2
-
-    Groenendijk, H. (1998). "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology.
-    TU Delft Repository
+- Battjes, J. A. and Groenendijk, H. W. (2000). "Wave Height Distributions on Shallow Foreshores," Coastal Engineering, 40, 161–182. DOI: https://doi.org/10.1016/S0378-3839(00)00019-2
+- Groenendijk, H. (1998). "Shallow foreshore wave height statistics", Master's Thesis, Delft University of Technology. TU Delft Repository
+- Goda, Y. (1975, 2010). "Deformation of Irregular Waves due to Depth-Controlled Wave Breaking" and Random Seas and Design of Maritime Structures, World Scientific – Random Seas and Design of Maritime Structures
