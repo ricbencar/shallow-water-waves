@@ -8,7 +8,7 @@ This program computes local shallow-foreshore wave-height distribution parameter
 
 ![shallow-water-waves](https://github.com/user-attachments/assets/31154777-4b6f-4c90-bb2d-13b83aafc7ba)
 
-The program is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
+It is implemented as a Windows GUI application using only the native Win32 API (without any external libraries). It allows the user to input two key parameters:
 
 1. **Hm0** (in meters) - The local significant spectral wave height.
 2. **d** (in meters) - The local water depth.
@@ -18,7 +18,7 @@ Based on these inputs, the program performs the following steps:
 ### 1. Parameter Calculation:
 - **Free-Surface Variance (m₀):**  
   Computed as:  
-  `m₀ = (Hm0 / 4)²`
+  `m₀ = (0.75 * Hm0 / 4)²`
 - **Mean Square Wave Height (H<sub>rms</sub>):**  
   Calculated using the formula:  
   `H₍rms₎ = (2.69 + 3.24 * sqrt(m₀) / d) * sqrt(m₀)`
@@ -65,7 +65,7 @@ Explanation of the flags:
     -mwindows: Links against the Windows subsystem rather than the console.
     -static, -static-libgcc, -static-libstdc++: Link statically to reduce dependency on DLLs.
 
-References:
+### References:
 
     Goda, Y. (1975, 2010). "Deformation of Irregular Waves due to Depth-Controlled Wave Breaking" and Random Seas and Design of Maritime Structures, World Scientific.
     World Scientific – Random Seas and Design of Maritime Structures
