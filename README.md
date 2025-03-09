@@ -43,12 +43,12 @@ Based on these inputs, the program performs the following steps:
   where **Hᵢ/H₍rms₎** are the interpolated values from the table.
 
 ### 4. Report Generation:
-- A detailed report is generated which includes:
-  - The input parameters (**Hm0** and **d**).
-  - The computed intermediate values (**m₀**, **H<sub>rms</sub>**, **H<sub>tr</sub>**, **H̃<sub>tr</sub>**).
-  - The dimensionless wave heights (H/H<sub>rms</sub>) as directly interpolated.
-  - The dimensional wave heights (in meters) computed from H<sub>rms</sub>.
-  - Diagnostic ratios computed from the wave-height values.
+A detailed report is generated which includes:
+- The input parameters (**Hm0** and **d**).
+- The computed intermediate values (**m₀**, **H<sub>rms</sub>**, **H<sub>tr</sub>**, **H̃<sub>tr</sub>**).
+- The dimensionless wave heights (H/H<sub>rms</sub>) as directly interpolated.
+- The dimensional wave heights (in meters) computed from H<sub>rms</sub>.
+- Diagnostic ratios computed from the wave-height values.
 
 ### Compilation Instructions:
 To compile this application using g++ on a Windows system, you can use the following command:
