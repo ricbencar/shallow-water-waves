@@ -56,7 +56,7 @@ To compile this application using g++ on a Windows system, you can use the follo
 ```sh
 g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
     -mwindows -static -static-libgcc -static-libstdc++
-
+```
 Explanation of the flags:
 
     -O2: Enables level 2 optimization for improved performance.
