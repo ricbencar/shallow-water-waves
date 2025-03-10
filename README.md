@@ -57,10 +57,10 @@ g++ -O3 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
 
 ## References
 
-1. Groenendijk, H.W. (1998). “Shallow foreshore wave height statistics.” M.Sc. thesis, Delft University of Technology (also Delft Hydraulics Rep. H3245).
-2. Groenendijk, H.W. & Van Gent, M.R.A. (1998/1999). “Shallow foreshore wave height statistics: predictive model for probability of exceedance of wave heights.” Delft Hydraulics Rep. H3351. [vliz.be](http://vliz.be).
-3. Battjes, J.A. & Groenendijk, H.W. (2000). “Wave height distributions on shallow foreshores.” Coastal Engineering, 40(3):161–182. (Composite Rayleigh–Weibull distribution development) [ygraigarw.github.io](http://ygraigarw.github.io).
-4. Van Gent, M.R.A. (2001). “Wave runup on dikes with shallow foreshores.” J. Waterway, Port, Coastal, Ocean Eng., 127(5):254–262. (Notes shallow foreshore effects on wave spectra & distribution) [ascelibrary.org](http://ascelibrary.org).
+1. Groenendijk, H.W. (1998). “Shallow foreshore wave height statistics.” M.Sc. thesis, Delft University of Technology (also Delft Hydraulics Rep. H3245). (https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
+2. Groenendijk, H.W. & Van Gent, M.R.A. (1998/1999). “Shallow foreshore wave height statistics: predictive model for probability of exceedance of wave heights.” Delft Hydraulics Rep. H3351. (http://dx.doi.org/10.13140/RG.2.2.14180.68486)
+3. Battjes, J.A. & Groenendijk, H.W. (2000). “Wave height distributions on shallow foreshores.” Coastal Engineering, 40(3):161–182. (http://dx.doi.org/10.1016/S0378-3839(00)00007-7)
+4. Van Gent, M.R.A. (2001). “Wave runup on dikes with shallow foreshores.” J. Waterway, Port, Coastal, Ocean Eng., 127(5):254–262. [ascelibrary.org](http://ascelibrary.org).
 5. Forristall, G.Z. (2007). “Wave height distribution in shallow water.” Ocean Engineering, 34(11–12):1516–1525. (Weibull distribution with Ursell-dependent parameters) [ygraigarw.github.io](http://ygraigarw.github.io).
 6. Mai, S. et al. (2011). “Wave height distributions in shallow waters.” Coastal Engineering Proceedings 1(32), paper 57. (Field validation of BG model; recommends coefficient recalibration) [researchgate.net](http://researchgate.net); [pdfs.semanticscholar.org](http://pdfs.semanticscholar.org).
 7. Verhagen, H.J. et al. (2008). “A practical method for the design of coastal structures in shallow water.” (Conference paper; emphasizes using Tm-1,0 and H2% for shallow-water design).
