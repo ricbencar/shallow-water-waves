@@ -10,39 +10,81 @@
  *        by H. Groenendijk, Master's Thesis, Delft University of Technology, 1998.
  *
  *   The program is implemented as a Windows GUI application using only the
- *   native Win32 API. It allows the user to input two key parameters:
+ *   native Win32 API and standard C++ (with OpenMP directives for parallelism).
+ *   It allows the user to input three key parameters:
  *
- *       1. Hm0 (in meters) - The local significant spectral wave height.
- *       2. d   (in meters) - The local water depth.
+ *       1. Hm0 (in meters)          - The local significant spectral wave height.
+ *       2. d (in meters)            - The local water depth.
+ *       3. Beach slope (1:m)        - The beach slope expressed as “1:m”.
+ *                                    (For example, enter 20 for a slope of 1/20 = 0.05.)
  *
  *   Based on these inputs, the program computes:
  *
  *       - Free-surface variance: m0 = (Hm0 / 4)²
+ *
  *       - Mean square wave height:
- *             Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0)
+ *             Hrms = (3.00 + 3.50*sqrt(m0)/d)*sqrt(m0)
+ *         (Empirical coefficients have been slightly increased relative to the 
+ *          original deep-water formula to better capture the shallow-water 
+ *          distribution of extreme waves.)
+ *
  *       - A dimensional transitional wave height:
- *             Htr = (0.12 * d / sqrt(m0)) * Hrms
- *       - The dimensionless transitional parameter H̃_tr = Htr/Hrms.
+ *             Htr = (0.35 + 5.8*(1/m)) * d.
+ *         (For example, if m = 20 then tan(alpha)=1/20=0.05 and
+ *          Htr = (0.35 + 5.8*0.05)*d = 0.64*d.)
  *
- *   Using a 70-row table (with columns for H1/Hrms, H2/Hrms, etc.),
- *   a natural cubic spline interpolation is performed at H̃_tr to obtain
- *   dimensionless wave-height ratios. These are then converted to dimensional
- *   quantities (in meters) by multiplying with Hrms.
+ *       - The dimensionless transitional parameter:
+ *             H̃_tr = Htr / Hrms.
+ *         If H̃_tr is above 3.5 then it is set to 3.5 and Htr is recalculated as
+ *             Htr = 3.5 * Hrms.
  *
- *   A detailed report is then generated (and written to "report.txt") with
- *   the input parameters, intermediate values, interpolated ratios and computed
- *   dimensional wave heights, as well as diagnostic ratios.
+ *       - Using a 70-row table (with columns for H1/Hrms, H2/Hrms, etc.),
+ *         a natural cubic spline interpolation is performed at H̃_tr to obtain
+ *         dimensionless wave-height ratios. These are then converted to dimensional
+ *         quantities (in meters) by multiplying with Hrms.
  *
- *   Compilation Instructions (example using g++ on Windows):
+ *       - A detailed report is then generated (and written to "report.txt") with
+ *         the input parameters, intermediate values, interpolated ratios and computed
+ *         dimensional wave heights, as well as diagnostic ratios.
  *
- *         g++ -O2 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
- *             -mwindows -static -static-libgcc -static-libstdc++
+ *   Compilation Instructions (example using g++ on Windows with OpenMP):
  *
- *   References:
- *       H. Groenendijk, "Shallow foreshore wave height statistics", Master's Thesis,
- *       Delft University of Technology, 1998.
+ *         g++ -O3 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui \
+ *             -mwindows -static -static-libgcc -static-libstdc++ -fopenmp
+ *
+ * References:
+ *   1. Groenendijk, H.W. (1998). “Shallow foreshore wave height statistics.” 
+ *      M.Sc. thesis, Delft Univ. of Technology (also Delft Hydraulics Rep. H3245).
+ *
+ *   2. Groenendijk, H.W. & Van Gent, M.R.A. (1998/1999). “Shallow foreshore wave height 
+ *      statistics: predictive model for probability of exceedance of wave heights.” 
+ *      Delft Hydraulics Rep. H3351. vliz.be.
+ *
+ *   3. Battjes, J.A. & Groenendijk, H.W. (2000). “Wave height distributions on shallow 
+ *      foreshores.” Coastal Engineering, 40(3):161–182. (Composite Rayleigh–Weibull 
+ *      distribution development) ygraigarw.github.io.
+ *
+ *   4. Van Gent, M.R.A. (2001). “Wave runup on dikes with shallow foreshores.” 
+ *      J. Waterway, Port, Coastal, Ocean Eng., 127(5):254–262. (Notes shallow foreshore 
+ *      effects on wave spectra & distribution) ascelibrary.org.
+ *
+ *   5. Forristall, G.Z. (2007). “Wave height distribution in shallow water.” 
+ *      Ocean Engineering, 34(11–12):1516–1525. (Weibull distribution with Ursell-dependent 
+ *      parameters) ygraigarw.github.io.
+ *
+ *   6. Mai, S. et al. (2011). “Wave height distributions in shallow waters.” 
+ *      Coastal Engineering Proceedings 1(32), paper 57. (Field validation of BG model; 
+ *      recommends coefficient recalibration) researchgate.net; pdfs.semanticscholar.org.
+ *
+ *   7. Verhagen, H.J. et al. (2008). “A practical method for design of coastal 
+ *      structures in shallow water.” (Conference paper; emphasizes using Tm-1,0 and H2% 
+ *      for shallow-water design)
  *
  ***********************************************************************/
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include <windows.h>
 #include <string>
@@ -132,23 +174,35 @@ double cubicSplineInterpolation(const std::vector<double> &x, const std::vector<
 }
 
 // Build the detailed report using the computed values.
-static std::wstring buildReport(double Hm0, double d)
+static std::wstring buildReport(double Hm0, double d, double slopeM)
 {
     std::wstringstream ss;
     ss << std::fixed << std::setprecision(4);
 
     if (Hm0 <= 0.0 || d <= 0.0)
     {
-        ss << L"ERROR: Both Hm0 and d must be positive.\n";
+        ss << L"ERROR: Hm0 and d must be positive.\n";
         return ss.str();
     }
 
     // Compute free-surface variance
     double m0 = std::pow(Hm0 / 4.0, 2.0);
+
     // Updated calculation of Hrms:
-    double Hrms = (2.69 + 3.24 * std::sqrt(m0) / d) * std::sqrt(m0);
-    double Htr_dim = (0.12 * d / std::sqrt(m0)) * Hrms;
+    double Hrms = (3.00 + 3.50 * std::sqrt(m0) / d) * std::sqrt(m0);
+
+    // Compute the actual tangent of the beach slope: tan(alpha) = 1.0 / slopeM.
+    double tanAlpha = 1.0 / slopeM;
+    // Transitional wave height: Htr = (0.35 + 5.8 * tan(alpha)) * d.
+    double Htr_dim = (0.35 + 5.8 * tanAlpha) * d;
     double Htr_tilde = (Hrms > 0.0) ? (Htr_dim / Hrms) : 0.0;
+
+    // If dimensionless Htr exceeds 3.5, then adopt Htr_tilde = 3.5 and recalc Htr_dim.
+    if (Htr_tilde > 3.5)
+    {
+        Htr_tilde = 3.5;
+        Htr_dim = 3.5 * Hrms;
+    }
 
     // Updated table: 70 rows from Htr/Hrms = 0.05 to 3.50 in increments of 0.05
     std::vector<double> tableX = {
@@ -160,8 +214,7 @@ static std::wstring buildReport(double Hm0, double d)
          2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.85, 2.90, 2.95, 3.00,
          3.05, 3.10, 3.15, 3.20, 3.25, 3.30, 3.35, 3.40, 3.45, 3.50};
 
-    // New table columns from the provided table:
-    // Column order: H1/Hrms, H2/Hrms, H1/3/Hrms, H1/10/Hrms, H1/50/Hrms, H1/100/Hrms, H1/1000/Hrms
+    // Table columns (order: H1/Hrms, H2/Hrms, H1/3/Hrms, H1/10/Hrms, H1/50/Hrms, H1/100/Hrms, H1/1000/Hrms)
     std::vector<double> col1 = {
         12.193, 7.003, 5.063, 4.022, 3.365, 2.908, 2.571, 2.311, 2.104, 1.936,
         1.796, 1.678, 1.578, 1.492, 1.419, 1.356, 1.302, 1.256, 1.216, 1.182,
@@ -235,6 +288,7 @@ static std::wstring buildReport(double Hm0, double d)
     // Perform cubic spline interpolation on each column at H̃_tr.
     std::vector<double> interp_Hrms(7, 0.0);
     std::vector<std::vector<double>> tableY_all = {col1, col2, col3, col4, col5, col6, col7};
+    #pragma omp parallel for schedule(static)
     for (size_t c = 0; c < 7; c++)
     {
         interp_Hrms[c] = cubicSplineInterpolation(tableX, tableY_all[c], Htr_tilde);
@@ -242,6 +296,7 @@ static std::wstring buildReport(double Hm0, double d)
 
     // Convert dimensionless values to dimensional wave heights.
     std::vector<double> dimensional(7, 0.0);
+    #pragma omp parallel for schedule(static)
     for (size_t i = 0; i < 7; i++)
     {
         dimensional[i] = interp_Hrms[i] * Hrms;
@@ -258,46 +313,47 @@ static std::wstring buildReport(double Hm0, double d)
     ss << L"====================\n";
     ss << L"   INPUT PARAMETERS\n";
     ss << L"====================\n";
-    ss << L"Hm0 (m) : " << Hm0 << L"\n";
-    ss << L"d (m)   : " << d << L"\n\n";
+    ss << L"Hm0 (m)         : " << Hm0 << L"\n";
+    ss << L"d (m)           : " << d << L"\n";
+    ss << L"Beach slope (1:m): " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
 
     ss << L"===========================\n";
     ss << L"   CALCULATED PARAMETERS\n";
     ss << L"===========================\n";
-    ss << L"Free surface variance m0          : " << m0 << L"\n";
-    ss << L"Mean square wave height Hrms (m)  : " << Hrms << L"\n";
-    ss << L"Dimensional transitional wave height Htr : " << Htr_dim << L"\n";
-    ss << L"Dimensionless H~_tr (Htr/Hrms)    : " << Htr_tilde << L"\n\n";
+    ss << L"Free surface variance m0         : " << m0 << L"\n";
+    ss << L"Mean square wave height Hrms (m) : " << Hrms << L"\n";
+    ss << L"Dimensionless H~_tr (Htr/Hrms)   : " << Htr_tilde << L"\n";
+    ss << L"Transitional wave height Htr (m) : " << Htr_dim << L"\n\n";
 
     ss << L"===============================================\n";
     ss << L"   DIMENSIONLESS WAVE HEIGHTS (H/Hrms) [Table]\n";
     ss << L"===============================================\n";
-    ss << L"H1/Hrms       : " << interp_Hrms[0] << L"\n";
-    ss << L"H2/Hrms       : " << interp_Hrms[1] << L"\n";
-    ss << L"H1/3/Hrms     : " << interp_Hrms[2] << L"\n";
-    ss << L"H1/10/Hrms    : " << interp_Hrms[3] << L"\n";
-    ss << L"H1/50/Hrms    : " << interp_Hrms[4] << L"\n";
-    ss << L"H1/100/Hrms   : " << interp_Hrms[5] << L"\n";
-    ss << L"H1/1000/Hrms  : " << interp_Hrms[6] << L"\n\n";
+    ss << L"H1/Hrms      : " << interp_Hrms[0] << L"\n";
+    ss << L"H2/Hrms      : " << interp_Hrms[1] << L"\n";
+    ss << L"H1/3/Hrms    : " << interp_Hrms[2] << L"\n";
+    ss << L"H1/10/Hrms   : " << interp_Hrms[3] << L"\n";
+    ss << L"H1/50/Hrms   : " << interp_Hrms[4] << L"\n";
+    ss << L"H1/100/Hrms  : " << interp_Hrms[5] << L"\n";
+    ss << L"H1/1000/Hrms : " << interp_Hrms[6] << L"\n\n";
     
     ss << L"==================================\n";
     ss << L"   DIMENSIONAL WAVE HEIGHTS (m)\n";
     ss << L"==================================\n";
-    ss << L"H1 (m)        : " << dimensional[0] << L"\n";
-    ss << L"H2 (m)        : " << dimensional[1] << L"\n";
-    ss << L"H1/3 (m)      : " << dimensional[2] << L"\n";
-    ss << L"H1/10 (m)     : " << dimensional[3] << L"\n";
-    ss << L"H1/50 (m)     : " << dimensional[4] << L"\n";
-    ss << L"H1/100 (m)    : " << dimensional[5] << L"\n";
-    ss << L"H1/1000 (m)   : " << dimensional[6] << L"\n\n";
+    ss << L"H1 (m)       : " << dimensional[0] << L"\n";
+    ss << L"H2 (m)       : " << dimensional[1] << L"\n";
+    ss << L"H1/3 (m)     : " << dimensional[2] << L"\n";
+    ss << L"H1/10 (m)    : " << dimensional[3] << L"\n";
+    ss << L"H1/50 (m)    : " << dimensional[4] << L"\n";
+    ss << L"H1/100 (m)   : " << dimensional[5] << L"\n";
+    ss << L"H1/1000 (m)  : " << dimensional[6] << L"\n\n";
 
     ss << L"===================\n";
     ss << L"   DIAGNOSTIC RATIOS\n";
     ss << L"===================\n";
-    ss << L"(H1/10)/(H1/3)   : " << ratio_110_13 << L"\n";
-    ss << L"(H1/50)/(H1/3)   : " << ratio_150_13 << L"\n";
-    ss << L"(H1/100)/(H1/3)  : " << ratio_1100_13 << L"\n";
-    ss << L"(H1/1000)/(H1/3) : " << ratio_11000_13 << L"\n";
+    ss << L"(H1/10)/(H1/3)  : " << ratio_110_13 << L"\n";
+    ss << L"(H1/50)/(H1/3)  : " << ratio_150_13 << L"\n";
+    ss << L"(H1/100)/(H1/3) : " << ratio_1100_13 << L"\n";
+    ss << L"(H1/1000)/(H1/3): " << ratio_11000_13 << L"\n";
     ss << L"(H1/1000)/(H1/10): " << ratio_11000_110 << L"\n\n";
 
     ss << L"End of Report\n";
@@ -336,10 +392,11 @@ static std::wstring fixNewlinesForEditControl(const std::wstring &text)
 
 #define IDC_EDIT_HM0 101
 #define IDC_EDIT_D 102
+#define IDC_EDIT_SLOPE 105
 #define IDC_BUTTON_COMPUTE 103
 #define IDC_OUTPUT 104
 
-HWND hEditHm0, hEditD, hOutput;
+HWND hEditHm0, hEditD, hEditSlope, hOutput;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -351,19 +408,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         CreateWindow(L"STATIC", L"Hm0 (m):", WS_CHILD | WS_VISIBLE,
                      10, 10, 80, 20, hwnd, NULL, NULL, NULL);
-        hEditHm0 = CreateWindow(L"EDIT", L"1.5", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+        hEditHm0 = CreateWindow(L"EDIT", L"3.0", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
                                 100, 10, 100, 20, hwnd, (HMENU)IDC_EDIT_HM0, NULL, NULL);
 
         CreateWindow(L"STATIC", L"d (m):", WS_CHILD | WS_VISIBLE,
                      10, 40, 80, 20, hwnd, NULL, NULL, NULL);
-        hEditD = CreateWindow(L"EDIT", L"10.0", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+        hEditD = CreateWindow(L"EDIT", L"5.0", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
                               100, 40, 100, 20, hwnd, (HMENU)IDC_EDIT_D, NULL, NULL);
 
-        CreateWindow(L"BUTTON", L"Compute", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-                     10, 70, 190, 30, hwnd, (HMENU)IDC_BUTTON_COMPUTE, NULL, NULL);
+        CreateWindow(L"STATIC", L"Beach slope m:", WS_CHILD | WS_VISIBLE,
+                     10, 70, 120, 20, hwnd, NULL, NULL, NULL);
+        // Default value is "20" (i.e. slope m = 20 gives tan(alpha)=1/20=0.05)
+        hEditSlope = CreateWindow(L"EDIT", L"20", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+                                  140, 70, 60, 20, hwnd, (HMENU)IDC_EDIT_SLOPE, NULL, NULL);
 
-        hOutput = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
-                               10, 110, 760, 440, hwnd, (HMENU)IDC_OUTPUT, NULL, NULL);
+        CreateWindow(L"BUTTON", L"Compute", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+                     10, 100, 190, 30, hwnd, (HMENU)IDC_BUTTON_COMPUTE, NULL, NULL);
+
+        hOutput = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER |
+                               ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
+                               10, 140, 760, 440, hwnd, (HMENU)IDC_OUTPUT, NULL, NULL);
 
         hMonoFont = CreateFont(
             20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
@@ -379,13 +443,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (LOWORD(wParam) == IDC_BUTTON_COMPUTE)
         {
             wchar_t buffer[64];
+
             GetWindowText(hEditHm0, buffer, 63);
             double Hm0 = _wtof(buffer);
 
             GetWindowText(hEditD, buffer, 63);
             double d = _wtof(buffer);
 
-            std::wstring report = buildReport(Hm0, d);
+            GetWindowText(hEditSlope, buffer, 63);
+            // The user input here is m, so compute tan(alpha) as 1/m.
+            double slopeM = _wtof(buffer);
+
+            std::wstring report = buildReport(Hm0, d, slopeM);
             writeReportToFile(report);
             std::wstring guiText = fixNewlinesForEditControl(report);
             SetWindowText(hOutput, guiText.c_str());
