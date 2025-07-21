@@ -75,7 +75,7 @@ The dimensionless wave-height ratios, $\tilde{H}_N$ and $\tilde{H}_{1/N}$, are c
 
 The core of this calculation is finding the root of a residual function, which is defined as:
 
-$$f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1$$
+f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1
 
 where $k_1=2.0$ (representing a Rayleigh-shaped first part of the distribution) and $k_2=3.6$ (an empirically determined exponent for the second part) are global exponents for the Composite Weibull distribution. $H_{2\_Hrms}$ is related to $H_{1\_Hrms}$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
 
