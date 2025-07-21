@@ -83,11 +83,15 @@ The dimensionless wave-height ratios are critical outputs of the model. The calc
 
 The core of this calculation is finding the root of a residual function, which is defined as:
 
-$$f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1$$
+$$
+f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1
+$$
 
 where $k_1=2.0$ (representing a Rayleigh-shaped first part of the distribution) and $k_2=3.6$ (an empirically determined exponent for the second part) are global exponents for the Composite Weibull distribution. $H_{2\_Hrms}$ is related to $H_{1\_Hrms}$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
 
-$$H_{2\_Hrms} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1/k_2}$$
+$$
+H_{2\_Hrms} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1/k_2}
+$$
 
 Here, $P(a,x)$ and $Q(a,x)$ are the normalized lower and upper incomplete gamma functions, respectively.
 
@@ -102,14 +106,13 @@ Once $H_{1\_Hrms}$ (the normalized scale parameter of the first Weibull distribu
 * $\tilde{H}_{1/N}$ **(Mean of the Highest** $1/N$**-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
 
   * **Case 1:** $\tilde{H}_N < \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.15):
-    
+
     $$\tilde{H}_{1/N} = N \cdot \tilde{H}_1 \cdot \left[\Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right)\right] + N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)$$
 
-    
     where $\Gamma(a,x)$ is the unnormalized upper incomplete gamma function.
 
   * **Case 2:** $\tilde{H}_N \ge \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.20):
-    
+
     $$\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)$$
 
 ### 6. Dimensional Wave Heights ($H$)
