@@ -40,32 +40,24 @@ Based on the provided inputs, the program performs a series of calculations to d
 
 The free-surface variance, denoted as $m_0$, is a measure of the total wave energy. It is calculated from the local significant spectral wave height ($H_{m0}$) using the following formula:
 
-$$
-m_0 = \left(\frac{H_{m0}}{4}\right)^2
-$$
+$$m_0 = \left(\frac{H_{m0}}{4}\right)^2$$
 
 ### 2. Mean Square Wave Height ($H_{rms}$)
 
 The mean square wave height ($H_{rms}$) is an important characteristic of the wave field. Its calculation incorporates empirical coefficients to better capture the shallow-water distribution of extreme waves, deviating from the original deep-water formulas. This formula is derived from Groenendijk (1998), with slightly increased empirical coefficients:
 
-$$
-H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
-$$
+$$H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}$$
 
 ### 3. Dimensional Transitional Wave Height ($H_{tr\_dim}$)
 
 The dimensional transitional wave height ($H_{tr\_dim}$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($d$) and the beach slope ($m$):
 The tangent of the beach slope ($\tan(\alpha)$) is derived from the input $m$:
 
-$$
-\tan(\alpha) = \frac{1}{m}
-$$
+$$\tan(\alpha) = \frac{1}{m}$$
 
 Then, $H_{tr\_dim}$ is computed as:
 
-$$
-H_{tr\_dim} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
-$$
+$$H_{tr\_dim} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d$$
 
 For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H_{tr\_dim}=(0.35+5.8 \cdot 0.05) \cdot d=0.64 \cdot d$.
 
@@ -73,9 +65,7 @@ For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H_{tr\_dim}=(0.35+5.
 
 The dimensionless transitional parameter ($\tilde{H}_{tr}$) normalizes the dimensional transitional wave height by the mean square wave height:
 
-$$
-\tilde{H}_{tr} = \frac{H_{tr\_dim}}{H_{rms}}$$A critical adjustment is applied: if $\tilde{H}_{tr}$ exceeds 3.5, it is capped at 3.5, and $H_{tr\_dim}$ is recalculated to maintain consistency, as the model's empirical basis is limited beyond this value:$$\text{If } \tilde{H}_{tr} > 3.5, \text{ then } \tilde{H}_{tr} = 3.5 \text{ and } H_{tr\_dim} = 3.5 \cdot H_{rms}
-$$
+$$\tilde{H}_{tr} = \frac{H_{tr\_dim}}{H_{rms}}$$A critical adjustment is applied: if $\tilde{H}_{tr}$ exceeds 3.5, it is capped at 3.5, and $H_{tr\_dim}$ is recalculated to maintain consistency, as the model's empirical basis is limited beyond this value:$$\text{If } \tilde{H}_{tr} > 3.5, \text{ then } \tilde{H}_{tr} = 3.5 \text{ and } H_{tr\_dim} = 3.5 \cdot H_{rms}$$
 
 ### 5. Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
 
@@ -83,15 +73,11 @@ The dimensionless wave-height ratios are critical outputs of the model. The calc
 
 The core of this calculation is finding the root of a residual function, which is defined as:
 
-$$
-f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1
-$$
+$$f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1$$
 
 where $k_1=2.0$ (representing a Rayleigh-shaped first part of the distribution) and $k_2=3.6$ (an empirically determined exponent for the second part) are global exponents for the Composite Weibull distribution. $H_{2\_Hrms}$ is related to $H_{1\_Hrms}$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
 
-$$
-H_{2\_Hrms} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1/k_2}
-$$
+$$H_{2\_Hrms} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1/k_2}$$
 
 Here, $P(a,x)$ and $Q(a,x)$ are the normalized lower and upper incomplete gamma functions, respectively.
 
@@ -130,6 +116,8 @@ Finally, the program computes several diagnostic ratios, which provide insights 
 * $(H_{1/50})/(H_{1/3})$
 
 * $(H_{1/100})/(H_{1/3})$
+
+* $(H_{1/250})/(H_{1/3})$
 
 * $(H_{1/1000})/(H_{1/3})$
 
