@@ -1,21 +1,16 @@
 /***********************************************************************
- * Program: shallow-water-waves_gui.cpp
+ * Program: shallow-water-waves_cli.cpp
  *
  * Detailed Description:
  * This program computes local shallow-foreshore wave-height distribution
  * parameters using a model based on the Composed Weibull distribution.
  *
- * The program is implemented as a Windows GUI application using only the
- * native Win32 API and standard C++ (with OpenMP directives for parallelism).
- * It allows the user to input three key parameters:
- *
- * 1. Hm0 (in meters)          - The local significant spectral wave height.
- * 2. d (in meters)            - The local water depth.
- * 3. Beach slope (1:m)        - The beach slope expressed as “1:m”.
- * (For example, enter 20 for a slope of 1/20 = 0.05.)
- *
- * Based on these inputs, the program computes:
- *
+ * The command-line application performs the following:
+ * 1. If three command-line arguments are provided, they are used as
+ * Hm0 (local significant spectral wave height), d (local water depth),
+ * and slopeM (beach slope 1:m). Otherwise, the program prompts the user
+ * for these values.
+ * 2. Computes the following intermediate values:
  * - Free-surface variance: m0 = (Hm0 / 4)²
  *
  * - Mean square wave height:
@@ -34,41 +29,40 @@
  * If H̃_tr is above 3.5 then it is set to 3.5 and Htr is recalculated as
  * Htr = 3.5 * Hrms.
  *
- * - The dimensionless wave-height ratios (Hᵢ/Hrms) are calculated
+ * 3. Calculates the dimensionless wave-height ratios (Hᵢ/Hrms)
  * by solving a nonlinear equation derived from the Composite Weibull
  * distribution, ensuring the normalized Hrms of the distribution equals one.
  * This involves using numerical methods such as Newton-Raphson with a bisection fallback for root-finding
  * and functions for incomplete gamma calculations. These ratios are then
  * converted to dimensional quantities (in meters) by multiplying with Hrms.
  *
- * - A detailed report is then generated (and written to "report.txt") with
+ * 4. A detailed report is then generated (and written to "report.txt") with
  * the input parameters, intermediate values, calculated ratios and computed
  * dimensional wave heights, as well as diagnostic ratios.
  *
  * Compilation Instructions (example using g++ on Windows with OpenMP):
  *
- * g++ -O3 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui ^
- * -mwindows -static -static-libgcc -static-libstdc++ -fopenmp
+ * g++ -O3 -Wall shallow-water-waves_cli.cpp -o shallow-water-waves_cli ^
+ * -static -static-libgcc -static-libstdc++
  *
+ * To run with command-line arguments (e.g., Hm0=2.5, d=10, slopeM=20):
+ * shallow-water-waves_cli 2.5 10 20
  ***********************************************************************/
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #define _USE_MATH_DEFINES // Required on some systems (e.g., Windows with MSVC) for M_PI
 
-#include <windows.h>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <iomanip>
-#include <cmath>
-#include <stdexcept>
-#include <fstream>
-#include <locale>
-#include <codecvt>
+#include <iostream>     // For input/output operations (e.g., std::cout, std::cerr)
+#include <sstream>      // For string stream operations (e.g., std::wstringstream)
+#include <vector>       // For dynamic array (std::vector)
+#include <cmath>        // For mathematical functions (e.g., std::sqrt, std::log, std::pow, std::sin, std::lgamma, std::nan)
 #include <limits>       // For numeric_limits (e.g., std::numeric_limits<double>::min())
+#include <iomanip>      // For output formatting (e.g., std::fixed, std::setprecision)
+#include <stdexcept>    // For std::invalid_argument
+#include <fstream>      // For file output (std::wofstream)
+#include <locale>       // For std::locale
+#include <codecvt>      // For std::codecvt_utf8 (C++11, for UTF-8 file output)
+#include <cstdlib>      // For std::stod (string to double)
+#include <string>       // For std::string, std::wstring
 #include <algorithm>    // For std::swap
 #include <iterator>     // For std::size (C++17)
 
@@ -527,22 +521,26 @@ bool highAccuracySolver(double Htr_Hrms, double &H1_Hrms)
                 }
             }
         }
-        // If neither Newton-Raphson nor the bisection fallback converges, print an error message
-        // to the standard error stream, indicating the failure for the specific Htr_Hrms value.
-        // In a GUI, this would ideally be a message box.
-        // MessageBox(NULL, L"Solver: Failed to converge for Htr_Hrms after Newton-Raphson and fallback.", L"Error", MB_ICONERROR | MB_OK);
+        // In a CLI, print error to cerr. In a GUI, this would be a message box.
+        std::wcerr << L"Solver: Failed to converge for Htr_Hrms after Newton-Raphson and fallback." << std::endl;
         return false; // Indicate that the solver failed to converge.
     }
     return true; // Indicate that Newton-Raphson successfully converged.
 }
 
-
-// Build the detailed report using the computed values.
+//---------------------------------------------------------------------
+// Function: buildReport
+// Purpose:
+//   Computes all wave parameters using the same formulas as in the GUI
+//   version, performs calculations based on the Composed Weibull model,
+//   and builds a detailed report as a formatted wide string.
+//---------------------------------------------------------------------
 static std::wstring buildReport(double Hm0, double d, double slopeM)
 {
     std::wstringstream ss;
     ss << std::fixed << std::setprecision(4);
 
+    // Input validation for physical parameters
     if (Hm0 <= 0.0 || d <= 0.0)
     {
         ss << L"ERROR: Hm0 and d must be positive.\n";
@@ -554,61 +552,69 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
         return ss.str();
     }
 
-    // Compute free-surface variance
+    // Compute free-surface variance: m0 = (Hm0 / 4)^2
     double m0 = std::pow(Hm0 / 4.0, 2.0);
 
-    // Mean square wave height (using formula that incorporates 'd' and 'm0')
+    // Mean square wave height: Hrms = (3.00 + 3.50*sqrt(m0)/d)*sqrt(m0)
+    // Empirical coefficients are slightly adjusted for shallow-water conditions.
     double Hrms = (3.00 + 3.50 * std::sqrt(m0) / d) * std::sqrt(m0);
 
     // Compute the actual tangent of the beach slope: tan(alpha) = 1.0 / slopeM.
     double tanAlpha = 1.0 / slopeM;
-    // Dimensional transitional wave height (using formula that incorporates 'tanAlpha' and 'd')
+    // Dimensional transitional wave height: Htr = (0.35 + 5.8*(1/m)) * d.
     double Htr_dim = (0.35 + 5.8 * tanAlpha) * d;
+    // Dimensionless transitional parameter: H̃_tr = Htr / Hrms.
     double Htr_tilde = (Hrms > 0.0) ? (Htr_dim / Hrms) : 0.0;
 
-    // If dimensionless Htr exceeds 3.5, then adopt Htr_tilde = 3.5 and recalc Htr_dim.
+    // If dimensionless Htr exceeds 3.5, it is capped at 3.5 and Htr_dim is recalculated
+    // to maintain consistency with the capped dimensionless value.
     if (Htr_tilde > 3.5)
     {
         Htr_tilde = 3.5;
         Htr_dim = 3.5 * Hrms;
     }
 
-    // Solve for H1_Hrms using the high accuracy solver
+    // Solve for H1_Hrms (normalized scale parameter of the first Weibull distribution)
+    // using a high-accuracy numerical solver.
     double H1_Hrms;
     if (!highAccuracySolver(Htr_tilde, H1_Hrms)) {
         ss << L"ERROR: Solver failed to converge for Htr_tilde = " << Htr_tilde << L". Cannot generate full report.\n";
         return ss.str();
     }
 
-    // Calculate H2_Hrms based on the derived H1_Hrms and the relationship
+    // Calculate H2_Hrms (normalized scale parameter of the second Weibull distribution)
+    // based on the continuity condition between the two Weibull distributions.
     double H2_Hrms = Htr_tilde * std::pow(H1_Hrms / Htr_tilde, k1 / k2);
 
     // Define the N values for which H(1/N)/Hrms quantiles are calculated.
-    // H1/Hrms and H2/Hrms are directly computed, not H1/N quantiles.
+    // These include H1/3, H1/10, H1/50, H1/100, H1/250, H1/1000.
     const int N_values_for_H1N[] = {3, 10, 50, 100, 250, 1000};
     const size_t num_H1N_values = std::size(N_values_for_H1N);
-    std::vector<double> interp_Hrms(2 + num_H1N_values); // For H1/Hrms, H2/Hrms, and H1/N values
+    // Vector to store normalized wave heights (H1/Hrms, H2/Hrms, and H1/N values)
+    std::vector<double> interp_Hrms(2 + num_H1N_values); 
 
-    // Store H1/Hrms and H2/Hrms directly
+    // Store H1/Hrms and H2/Hrms directly at the beginning of the vector.
     interp_Hrms[0] = H1_Hrms;
     interp_Hrms[1] = H2_Hrms;
 
-    // Calculate H1/N values using the new function
+    // Calculate H1/N values using the `calculate_H1N` function.
+    // The loop starts at index 2 because indices 0 and 1 are for H1/Hrms and H2/Hrms.
     for (size_t j = 0; j < num_H1N_values; ++j) {
         int N = N_values_for_H1N[j];
-        // Note: H1_Hrms and H2_Hrms are already normalized by Hrms.
-        // The calculate_H1N function expects H1 and H2 as scale parameters, so we pass the normalized ones.
+        // Pass the normalized H1 and H2 values to the calculation function.
         interp_Hrms[j + 2] = calculate_H1N(static_cast<double>(N), H1_Hrms, H2_Hrms, k1, k2, Htr_tilde);
     }
 
-    // Convert dimensionless values to dimensional wave heights.
+    // Convert dimensionless values to dimensional wave heights (in meters)
+    // by multiplying with the calculated Hrms.
     std::vector<double> dimensional(interp_Hrms.size(), 0.0);
     for (size_t i = 0; i < interp_Hrms.size(); i++)
     {
         dimensional[i] = interp_Hrms[i] * Hrms;
     }
 
-    // Calculate diagnostic ratios.
+    // Calculate diagnostic ratios. These ratios provide insights into the shape
+    // of the wave height distribution.
     // Indices for the specific ratios:
     // H1/3 is at index 2 (N=3)
     // H1/10 is at index 3 (N=10)
@@ -619,11 +625,11 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     double ratio_110_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[3] / interp_Hrms[2]) : 0.0;
     double ratio_150_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[4] / interp_Hrms[2]) : 0.0;
     double ratio_1100_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[5] / interp_Hrms[2]) : 0.0;
-    double ratio_1250_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[6] / interp_Hrms[2]) : 0.0;
+    double ratio_1250_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[6] / interp_Hrms[2]) : 0.0; // Added H1/250 ratio
     double ratio_11000_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[7] / interp_Hrms[2]) : 0.0;
 
 
-    // Build the report string.
+    // Build the report string with formatted output.
     ss << L"======================\n";
     ss << L"   INPUT PARAMETERS\n";
     ss << L"======================\n";
@@ -676,168 +682,76 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     return ss.str();
 }
 
-// Write the report to a file (UTF-8 encoded).
+//---------------------------------------------------------------------
+// Function: writeReportToFile
+// Purpose:
+//   Writes the generated report string to a file named "report.txt".
+//   The file is encoded in UTF-8 to support wide characters.
+//---------------------------------------------------------------------
 static void writeReportToFile(const std::wstring &report)
 {
+    // Open the file in wide character output mode.
     std::wofstream ofs("report.txt");
+    // Imbue the file stream with a UTF-8 locale to ensure correct encoding.
     ofs.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>));
-    if (!ofs)
+    // Check if the file was opened successfully.
+    if (!ofs) {
+        std::wcerr << L"Error: Could not open report.txt for writing.\n";
         return;
+    }
+    // Write the report content to the file.
     ofs << report;
+    // Close the file (handled automatically when ofs goes out of scope, but explicit is fine).
+    ofs.close();
 }
 
-// Convert newline characters for proper display in the edit control.
-static std::wstring fixNewlinesForEditControl(const std::wstring &text)
-{
-    std::wstring out;
-    out.reserve(text.size() + 100);
-    for (wchar_t c : text)
-    {
-        if (c == L'\n')
-        {
-            out.push_back(L'\r');
-            out.push_back(L'\n');
+//---------------------------------------------------------------------
+// Main: Command-line interface entry point.
+//---------------------------------------------------------------------
+int main(int argc, char* argv[]) {
+    // Set locale for proper wide-character output to console.
+    // This is important for displaying the report correctly, especially on Windows.
+    std::wcout.imbue(std::locale(""));
+    
+    double Hm0 = 0.0;    // Local significant spectral wave height (meters)
+    double d = 0.0;      // Local water depth (meters)
+    double slopeM = 0.0; // Beach slope expressed as "1:m" (e.g., 20 for 1:20)
+
+    // Check if command-line arguments are provided.
+    // Expects 3 arguments: Hm0, d, slopeM.
+    if (argc >= 4) {
+        // Parse command-line arguments to double values.
+        try {
+            Hm0 = std::stod(argv[1]);
+            d = std::stod(argv[2]);
+            slopeM = std::stod(argv[3]);
+        } catch (const std::invalid_argument& ia) {
+            std::wcerr << L"Invalid argument: " << ia.what() << L". Please enter numeric values.\n";
+            return 1; // Exit with error code
+        } catch (const std::out_of_range& oor) {
+            std::wcerr << L"Argument out of range: " << oor.what() << L". Value too large or too small.\n";
+            return 1; // Exit with error code
         }
-        else
-        {
-            out.push_back(c);
-        }
-    }
-    return out;
-}
-
-#define IDC_EDIT_HM0 101
-#define IDC_EDIT_D 102
-#define IDC_EDIT_SLOPE 105
-#define IDC_BUTTON_COMPUTE 103
-#define IDC_OUTPUT 104
-
-HWND hEditHm0, hEditD, hEditSlope, hOutput;
-
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    static HFONT hMonoFont = NULL;
-
-    switch (msg)
-    {
-    case WM_CREATE:
-    {
-        CreateWindow(L"STATIC", L"Hm0 (m):", WS_CHILD | WS_VISIBLE,
-                     10, 10, 80, 20, hwnd, NULL, NULL, NULL);
-        hEditHm0 = CreateWindow(L"EDIT", L"2.5", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                                100, 10, 100, 20, hwnd, (HMENU)IDC_EDIT_HM0, NULL, NULL);
-
-        CreateWindow(L"STATIC", L"d (m):", WS_CHILD | WS_VISIBLE,
-                     10, 40, 80, 20, hwnd, NULL, NULL, NULL);
-        hEditD = CreateWindow(L"EDIT", L"10.0", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                              100, 40, 100, 20, hwnd, (HMENU)IDC_EDIT_D, NULL, NULL);
-
-        CreateWindow(L"STATIC", L"Beach slope m:", WS_CHILD | WS_VISIBLE,
-                     10, 70, 120, 20, hwnd, NULL, NULL, NULL);
-        // Default value is "20" (i.e. slope m = 20 gives tan(alpha)=1/20=0.05)
-        hEditSlope = CreateWindow(L"EDIT", L"20", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                                  140, 70, 60, 20, hwnd, (HMENU)IDC_EDIT_SLOPE, NULL, NULL);
-
-        CreateWindow(L"BUTTON", L"Compute", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-                     10, 100, 190, 30, hwnd, (HMENU)IDC_BUTTON_COMPUTE, NULL, NULL);
-
-        hOutput = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER |
-                               ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
-                               10, 140, 760, 440, hwnd, (HMENU)IDC_OUTPUT, NULL, NULL);
-
-        hMonoFont = CreateFont(
-            20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-            DEFAULT_CHARSET,
-            OUT_DEFAULT_PRECIS,
-            CLIP_DEFAULT_PRECIS,
-            DEFAULT_QUALITY, FIXED_PITCH | FF_DONTCARE, L"Courier New");
-        SendMessage(hOutput, WM_SETFONT, (WPARAM)hMonoFont, TRUE);
-    }
-    break;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDC_BUTTON_COMPUTE)
-        {
-            wchar_t buffer[64];
-
-            GetWindowText(hEditHm0, buffer, 63);
-            double Hm0 = _wtof(buffer);
-
-            GetWindowText(hEditD, buffer, 63);
-            double d = _wtof(buffer);
-
-            GetWindowText(hEditSlope, buffer, 63);
-            double slopeM = _wtof(buffer);
-
-            std::wstring report = buildReport(Hm0, d, slopeM);
-            writeReportToFile(report);
-            std::wstring guiText = fixNewlinesForEditControl(report);
-            SetWindowText(hOutput, guiText.c_str());
-        }
-        break;
-
-    case WM_DESTROY:
-        if (hMonoFont)
-        {
-            DeleteObject(hMonoFont);
-            hMonoFont = NULL;
-        }
-        PostQuitMessage(0);
-        break;
-
-    default:
-        return DefWindowProc(hwnd, msg, wParam, lParam);
-    }
-    return 0;
-}
-
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
-{
-    const wchar_t CLASS_NAME[] = L"MyWindowClass";
-
-    WNDCLASSEX wc;
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = 0;
-    wc.lpfnWndProc = WndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = CLASS_NAME;
-    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-
-    if (!RegisterClassEx(&wc))
-    {
-        MessageBox(NULL, L"Window Registration Failed!", L"Error!", MB_ICONEXCLAMATION | MB_OK);
-        return 0;
+    } else {
+        // If no or insufficient arguments, prompt the user for input.
+        std::wcout << L"Enter Hm0 (m): ";
+        std::wcin >> Hm0;
+        
+        std::wcout << L"Enter water depth d (m): ";
+        std::wcin >> d;
+        
+        std::wcout << L"Enter beach slope (1:m): ";
+        std::wcin >> slopeM;
     }
 
-    DWORD style = (WS_OVERLAPPEDWINDOW & ~(WS_THICKFRAME | WS_MAXIMIZEBOX));
-    HWND hwnd = CreateWindowEx(
-        WS_EX_CLIENTEDGE,
-        CLASS_NAME,
-        L"Shallow Wave Heights GUI",
-        style,
-        CW_USEDEFAULT, CW_USEDEFAULT, 820, 640,
-        NULL, NULL, hInstance, NULL);
+    // Build the detailed report using the input parameters.
+    std::wstring report = buildReport(Hm0, d, slopeM);
+    
+    // Write the report to a file named "report.txt".
+    writeReportToFile(report);
 
-    if (!hwnd)
-    {
-        MessageBox(NULL, L"Window Creation Failed!", L"Error!", MB_ICONEXCLAMATION | MB_OK);
-        return 0;
-    }
+    // Display the report on the console.
+    std::wcout << L"\n" << report << std::endl;
 
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
-
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0) > 0)
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    return (int)msg.wParam;
+    return 0; // Indicate successful execution.
 }
