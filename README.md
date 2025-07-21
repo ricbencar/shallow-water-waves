@@ -36,19 +36,19 @@ Both the CLI and GUI applications require the following three input parameters:
 
 Based on the provided inputs, the program performs a series of calculations to determine various wave height parameters and distribution characteristics:
 
-### 1. Free-Surface Variance ($m_0$)
+### 1. Free-Surface Variance
 
 The free-surface variance, denoted as $m_0$, is a measure of the total wave energy. It is calculated from the local significant spectral wave height ($H_{m0}$) using the following formula:
 
 $$m_0 = \left(\frac{H_{m0}}{4}\right)^2$$
 
-### 2. Mean Square Wave Height ($H_{rms}$)
+### 2. Mean Square Wave Height
 
 The mean square wave height ($H_{rms}$) is an important characteristic of the wave field. Its calculation incorporates empirical coefficients to better capture the shallow-water distribution of extreme waves, deviating from the original deep-water formulas. This formula is derived from Groenendijk (1998), with slightly increased empirical coefficients:
 
 $$H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}$$
 
-### 3. Dimensional Transitional Wave Height ($H_{tr\_dim}$)
+### 3. Dimensional Transitional Wave Height
 
 The dimensional transitional wave height ($H_{tr\_dim}$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($d$) and the beach slope ($m$):
 The tangent of the beach slope ($\tan(\alpha)$) is derived from the input $m$:
@@ -61,17 +61,17 @@ $$H_{tr\_dim} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d$$
 
 For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H_{tr\_dim}=(0.35+5.8 \cdot 0.05) \cdot d=0.64 \cdot d$.
 
-### 4. Dimensionless Transitional Parameter ($\tilde{H}_{tr}$)
+### 4. Dimensionless Transitional Parameter
 
-The dimensionless transitional parameter ($\tilde{H}_{tr}$) normalizes the dimensional transitional wave height by the mean square wave height:
+The dimensionless transitional parameter, $\tilde{H}_{tr}$, normalizes the dimensional transitional wave height by the mean square wave height:
 
 $$\tilde{H}_{tr} = \frac{H_{tr\_dim}}{H_{rms}}$$
 A critical adjustment is applied: if $\tilde{H}_{tr}$ exceeds 3.5, it is capped at 3.5, and $H_{tr\_dim}$ is recalculated to maintain consistency, as the model's empirical basis is limited beyond this value:
 $$\text{If } \tilde{H}_{tr} > 3.5, \text{ then } \tilde{H}_{tr} = 3.5 \text{ and } H_{tr\_dim} = 3.5 \cdot H_{rms}$$
 
-### 5. Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
+### 5. Dimensionless Wave-Height Ratios
 
-The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a nonlinear equation derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using Newton-Raphson with a bisection fallback method for root-finding.
+The dimensionless wave-height ratios, $\tilde{H}_N$ and $\tilde{H}_{1/N}$, are critical outputs of the model. The calculation involves solving a nonlinear equation derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using Newton-Raphson with a bisection fallback method for root-finding.
 
 The core of this calculation is finding the root of a residual function, which is defined as:
 
@@ -103,7 +103,7 @@ Once $H_{1\_Hrms}$ (the normalized scale parameter of the first Weibull distribu
 
         $$\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)$$
 
-### 6. Dimensional Wave Heights ($H$)
+### 6. Dimensional Wave Heights
 
 The calculated dimensionless wave-height ratios ($\tilde{H}_N$ or $\tilde{H}_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H_{rms}$):
 
