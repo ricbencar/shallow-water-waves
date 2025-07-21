@@ -14,7 +14,7 @@ The applications allow users to input key wave and bathymetric parameters, perfo
 
 * **Key Parameter Calculation**: Computes free-surface variance (\(m_0\)), mean square wave height (\(H_{rms}\)), and dimensional/dimensionless transitional wave heights (\(H_{tr\_dim}\), \(\tilde{H}_{tr}\)).
 
-* **Dimensionless Wave-Height Ratios**: Calculates \(\tilde{H}_N\) (wave height with \(1/N\) exceedance probability) and \(\tilde{H}_{1/N}\) (mean of the highest \(1/N\)-part of wave heights) for various characteristic wave heights (\(H_1, H_2, H_{1/3}, H_{1/10}, H_{1/50}, H_{1/100}, H_{1/1000}\)). These are determined by solving a nonlinear equation derived from the Composite Weibull distribution, ensuring the normalized \(H_{rms}\) of the distribution equals one. The solution employs a robust numerical strategy using Brent's method for root-finding and precise implementations of incomplete gamma functions.
+* **Dimensionless Wave-Height Ratios**: Calculates \(\tilde{H}_N\) (wave height with \(1/N\) exceedance probability) and \(\tilde{H}_{1/N}\) (mean of the highest \(1/N\)-part of wave heights) for various characteristic wave heights (\(H_1, H_2, H_{1/3}, H_{1/10}, H_{1/50}, H_{1/100}, H_{1/250}, H_{1/1000}\)). These are determined by solving a nonlinear equation derived from the Composite Weibull distribution, ensuring the normalized \(H_{rms}\) of the distribution equals one. The solution employs a robust numerical strategy using Brent's method for root-finding and precise implementations of incomplete gamma functions.
 
 * **Dimensional Wave Heights**: Converts dimensionless ratios to actual wave heights in meters.
 
@@ -112,16 +112,10 @@ $$H = \tilde{H} \cdot H_{rms}$$
 Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include:
 
 * \((H_{1/10})/(H_{1/3})\)
-
 * \((H_{1/50})/(H_{1/3})\)
-
 * \((H_{1/100})/(H_{1/3})\)
-
 * \((H_{1/250})/(H_{1/3})\)
-
 * \((H_{1/1000})/(H_{1/3})\)
-
-* \((H_{1/1000})/(H_{1/10})\)
 
 ## Supporting Mathematical Functions
 
