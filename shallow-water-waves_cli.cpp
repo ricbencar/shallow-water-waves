@@ -625,7 +625,7 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     double ratio_110_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[3] / interp_Hrms[2]) : 0.0;
     double ratio_150_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[4] / interp_Hrms[2]) : 0.0;
     double ratio_1100_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[5] / interp_Hrms[2]) : 0.0;
-    double ratio_1250_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[6] / interp_Hrms[2]) : 0.0; // Added H1/250 ratio
+    double ratio_1250_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[6] / interp_Hrms[2]) : 0.0;
     double ratio_11000_13 = (interp_Hrms[2] != 0.0) ? (interp_Hrms[7] / interp_Hrms[2]) : 0.0;
 
 
@@ -654,8 +654,8 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"H1/10 / Hrms  : " << interp_Hrms[3] << L"\n";
     ss << L"H1/50 / Hrms  : " << interp_Hrms[4] << L"\n";
     ss << L"H1/100 / Hrms : " << interp_Hrms[5] << L"\n";
-    ss << L"H1/250 / Hrms : " << interp_Hrms[6] << L"\n"; // Added H1/250
-    ss << L"H1/1000 /Hrms : " << interp_Hrms[7] << L"\n\n"; // Index adjusted
+    ss << L"H1/250 / Hrms : " << interp_Hrms[6] << L"\n";
+    ss << L"H1/1000 /Hrms : " << interp_Hrms[7] << L"\n\n";
 
     ss << L"==================================\n";
     ss << L"   DIMENSIONAL WAVE HEIGHTS (m)\n";
@@ -666,8 +666,8 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"H1/10 (m)     : " << dimensional[3] << L"\n";
     ss << L"H1/50 (m)     : " << dimensional[4] << L"\n";
     ss << L"H1/100 (m)    : " << dimensional[5] << L"\n";
-    ss << L"H1/250 (m)    : " << dimensional[6] << L"\n"; // Added H1/250
-    ss << L"H1/1000 (m)   : " << dimensional[7] << L"\n\n"; // Index adjusted
+    ss << L"H1/250 (m)    : " << dimensional[6] << L"\n";
+    ss << L"H1/1000 (m)   : " << dimensional[7] << L"\n\n";
 
     ss << L"=======================\n";
     ss << L"   DIAGNOSTIC RATIOS\n";
@@ -675,7 +675,7 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"(H1/10)/(H1/3)   : " << ratio_110_13 << L"\n";
     ss << L"(H1/50)/(H1/3)   : " << ratio_150_13 << L"\n";
     ss << L"(H1/100)/(H1/3)  : " << ratio_1100_13 << L"\n";
-    ss << L"(H1/250)/(H1/3)  : " << ratio_1250_13 << L"\n"; // Added H1/250 ratio
+    ss << L"(H1/250)/(H1/3)  : " << ratio_1250_13 << L"\n";
     ss << L"(H1/1000)/(H1/3) : " << ratio_11000_13 << L"\n";
 
     ss << L"End of Report\n";
