@@ -51,7 +51,7 @@ $$H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
 ### 3. Dimensional Transitional Wave Height ($$H_{tr\_dim}$$)
 
 The dimensional transitional wave height ($$H_{tr\_dim}$$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($$d$$) and the beach slope ($$m$$):
-The tangent of the beach slope ($\tan(\alpha)$) is derived from the input $$m$$:
+The tangent of the beach slope ($$\tan(\alpha)$$) is derived from the input $$m$$:
 
 $$\tan(\alpha) = \frac{1}{m}$$
 
@@ -74,15 +74,15 @@ The dimensionless wave-height ratios are critical outputs of the model. The calc
 
 The core of this calculation is finding the root of a residual function, which is defined as:
 
-$$f(H_{1\_Hrms}) = \sqrt{H_{1\_Hrms}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1}\right) + H_{2\_Hrms}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_Hrms}}\right)^{k_2}\right)} - 1$$
+$$f(H_{1\_{Hrms}}) = \sqrt{H_{1\_{Hrms}}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1}\right) + H_{2\_{Hrms}}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_{Hrms}}}\right)^{k_2}\right)} - 1$$
 
-where $$k_1=2.0$$ (representing a Rayleigh-shaped first part of the distribution) and $$k_2=3.6$$ (an empirically determined exponent for the second part) are global exponents for the Composite Weibull distribution. $$H_{2\_Hrms}$$ is related to $$H_{1\_Hrms}$$ and $$\tilde{H}_{tr}$$ by the continuity condition between the two Weibull distributions:
+where $$k_1=2.0$$ (representing a Rayleigh-shaped first part of the distribution) and $$k_2=3.6$$ (an empirically determined exponent for the second part) are global exponents for the Composite Weibull distribution. $$H_{2\_{Hrms}}$$ is related to $$H_{1\_{Hrms}}$$ and $$\tilde{H}_{tr}$$ by the continuity condition between the two Weibull distributions:
 
-$$H_{2\_Hrms} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_Hrms}}\right)^{k_1/k_2}$$
+$$H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}$$
 
 Here, $$P(a,x)$$ and $$Q(a,x)$$ are the normalized lower and upper incomplete gamma functions, respectively.
 
-Once $$H_{1\_Hrms}$$ (the normalized scale parameter of the first Weibull distribution) is determined, the model calculates two types of dimensionless wave heights:
+Once $$H_{1\_{Hrms}}$$ (the normalized scale parameter of the first Weibull distribution) is determined, the model calculates two types of dimensionless wave heights:
 
 * $$\tilde{H}_N$$ **(Wave Height with** $$1/N$$ **Exceedance Probability):** This is the wave height ($$H$$) such that the probability of a wave exceeding it is $$1/N$$. It is calculated by first determining a candidate $$\tilde{H}_N$$ from the first part of the distribution. If this candidate is less than $$\tilde{H}_{tr}$$, then $$\tilde{H}_N$$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
 
