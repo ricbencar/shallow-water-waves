@@ -143,3 +143,49 @@ The core calculations rely on precise implementations of fundamental mathematica
 The CLI application (`shallow-water-waves_cli.cpp`) can be compiled using g++ on Windows (or similar compilers on other systems).
 
 **Compilation Instructions (Windows example with g++):**
+
+```
+g++ -O2 -Wall shallow-water-waves_cli.cpp -o shallow-water-waves_cli ^
+-static -static-libgcc -static-libstdc++
+
+```
+
+**Usage:**
+You can run the CLI application by providing the parameters as command-line arguments or by entering them interactively.
+
+* **With command-line arguments (e.g., Hm0=1.5, d=10, slopeM=20):**
+
+  ```
+  shallow-water-waves_cli 1.5 10 20
+
+  ```
+
+* **Interactive input:**
+
+  ```
+  shallow-water-waves_cli
+
+  ```
+
+  (The program will then prompt you for `Hm0`, `d`, and `beach slope m`.)
+
+### Graphical User Interface (GUI)
+
+The GUI application (`shallow-water-waves_gui.cpp`) is implemented using the native Win32 API and standard C++. It can be compiled using g++ on Windows.
+
+**Compilation Instructions (Windows example with g++ and OpenMP):**
+
+```
+g++ -O3 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui ^
+-mwindows -static -static-libgcc -static-libstdc++ -fopenmp
+
+```
+
+**Usage:**
+Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the `Hm0`, `d`, and `Beach slope m` values in the respective text fields and click "Compute" to see the results. The report will also be saved to `report.txt` in the same directory as the executable.
+
+## Credits
+
+This project's underlying model is based on:
+
+* **Groenendijk, H. (1998).** *Shallow foreshore wave height statistics.* Master's Thesis, Delft University of Technology.
