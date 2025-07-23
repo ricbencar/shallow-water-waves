@@ -121,15 +121,10 @@ $$H = \tilde{H} \cdot H_{rms}$$
 Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include:
 
 * `(H_{1/10})/(H_{1/3})`
-
 * `(H_{1/50})/(H_{1/3})`
-
 * `(H_{1/100})/(H_{1/3})`
-
 * `(H_{1/250})/(H_{1/3})`
-
 * `(H_{1/1000})/(H_{1/3})`
-
 * `(H_{1/1000})/(H_{1/10})`
 
 ## Supporting Mathematical Functions
