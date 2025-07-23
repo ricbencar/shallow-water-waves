@@ -57,7 +57,7 @@ The mean square wave height (`$H_{rms}$`) is an important characteristic of the 
 
 $$H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}$$
 
-### 3. Dimensional Transitional Wave Height (`$$H_{tr\_dim}$$`)
+### 3. Dimensional Transitional Wave Height (`$H_{tr\_dim}$`)
 
 The dimensional transitional wave height (`$H_{tr\_dim}$`) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth (`$d$`) and the beach slope (`$m$`):
 The tangent of the beach slope (`$\tan(\alpha)$`) is derived from the input `$m$`:
