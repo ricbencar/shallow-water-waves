@@ -188,4 +188,4 @@ Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appea
 
 This project's underlying model is based on:
 
-* **Groenendijk, H. (1998).** *Shallow foreshore wave height statistics.* Master's Thesis, Delft University of Technology.
+* **Groenendijk, H. (1998).** *Shallow foreshore wave height statistics.* Master's Thesis, Delft University of Technology. [https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3]
