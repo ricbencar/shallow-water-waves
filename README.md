@@ -122,13 +122,17 @@ Once $H\_{1\_{Hrms}}$ (the normalized scale parameter of the first Weibull distr
 
     * **Case 1:** $\tilde{H}\_N < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}\_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.15):
 
-        $$\tilde{H}_{1/N} = N \cdot \tilde{H}_1 \cdot \left[\Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right)\right] + N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)$$
+        ```math
+        \tilde{H}_{1/N} = N \cdot \tilde{H}_1 \cdot \left[\Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right)\right] + N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
+        ```
 
         where $\Gamma(a,x)$ is the unnormalized upper incomplete gamma function.
 
     * **Case 2:** $\tilde{H}\_N \ge \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}\_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.20):
 
-        $$\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)$$
+        ```math
+        \tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
+        ```
 
 ### 6. Dimensional Wave Heights ($H$)
 
@@ -170,10 +174,10 @@ g++ -O2 -Wall shallow-water-waves_cli.cpp -o shallow-water-waves_cli ^
 **Usage:**
 You can run the CLI application by providing the parameters as command-line arguments or by entering them interactively.
 
-* **With command-line arguments (e.g., Hm0=1.5, d=10, slopeM=20):**
+* **With command-line arguments (e.g., Hm0=2.5, d=10, slopeM=20):**
 
     ```
-    shallow-water-waves_cli 1.5 10 20
+    shallow-water-waves_cli 2.5 10 20
     ```
 
 * **Interactive input:**
