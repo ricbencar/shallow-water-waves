@@ -144,7 +144,7 @@ H = \tilde{H} \cdot H_{rms}
 
 ### 7. Diagnostic Ratios
 
-Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include ratios characteristic wave heigth rations `(H_{1/n})/(H_{1/3})` with n = 10, 50, 100, 250 and 1000.
+Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include ratios characteristic wave height ratios `$``(H_{1/n})/(H_{1/3})``$` with `$``n = 10, 50, 100, 250, \text{ and } 1000``$`.
 
 ## Supporting Mathematical Functions
 
