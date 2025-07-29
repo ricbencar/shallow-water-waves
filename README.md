@@ -59,7 +59,7 @@ This relationship demonstrates an increase with the degree of saturation ($\Psi 
 ### 3. Dimensional Transitional Wave Height ($H\_{tr\_dim}$)
 
 The dimensional transitional wave height ($H\_{tr\_dim}$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($d$) and the beach slope ($m$):
-The tangent of the beach slope ($\tan(\alpha)$) is derived from the input $m$:
+The tangent of the beach slope (tan(α)) is derived from the input $m$:
 
 ```math
 \tan(\alpha) = \frac{1}{m}
@@ -91,7 +91,7 @@ A critical adjustment is applied: if $\tilde{H}\_{tr}$ exceeds 3.5, it is capped
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H\_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
+The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
 
 ```math
 f(H_{1\_{Hrms}}) = \sqrt{H_{1\_{Hrms}}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1}\right) + H_{2\_{Hrms}}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_{Hrms}}}\right)^{k_2}\right)} - 1
