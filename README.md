@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project provides both a **Command-Line Interface (CLI)** and a **Graphical User Interface (GUI)** application for computing local shallow-foreshore wave-height distribution parameters. The underlying model is based on the **Composed Weibull distribution**, as detailed in "Shallow foreshore wave height statistics" by H. Groenendijk (Master's Thesis, Delft University of Technology, 1998).
+This project provides both a **Command-Line Interface (CLI)** and a **Graphical User Interface (GUI)** application for computing local shallow-foreshore wave-height distribution parameters. The underlying model is based on the **Composite Weibull distribution**, as detailed in "Shallow foreshore wave height statistics" by H. Groenendijk (Master's Thesis, Delft University of Technology, 1998). This model is particularly suited for shallow foreshore environments, where wave behavior deviates significantly from deep-water conditions due to phenomena like depth-induced breaking and non-linear wave-wave interactions.
 
 The applications allow users to input key wave and bathymetric parameters, perform complex wave height distribution calculations, and generate a detailed report of the results.
 
@@ -10,7 +10,7 @@ The applications allow users to input key wave and bathymetric parameters, perfo
 
 * **Dual Interface**: Offers both a command-line interface for quick calculations and scripting, and a graphical user interface for ease of use.
 
-* **Composed Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k\_1=2.0$, $k\_2=3.6$).
+* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k\_1=2.0$, $k\_2=3.6$). This two-part distribution is designed to reflect the different physical regimes governing smaller (unbroken) and larger (breaking) waves.
 
 * **Key Parameter Calculation**: Computes free-surface variance ($m\_0$), mean square wave height ($H\_{rms}$), and dimensional/dimensionless transitional wave heights ($H\_{tr\_dim}$, $\tilde{H}\_{tr}$).
 
@@ -30,7 +30,7 @@ Both the CLI and GUI applications require the following three input parameters:
 
 * $d$ (in meters): The local water depth.
 
-* Beach slope ($1:m$): The beach slope expressed as "1:m". For example, entering 20 signifies a slope of $1/20=0.05$.
+* Beach slope ($1:m$): The beach slope expressed as "1:m". For example, entering 20 signifies a slope of $1/20=0.05$. This parameter influences the transitional wave height.
 
 ## Computational Process
 
@@ -38,7 +38,7 @@ Based on the provided inputs, the program performs a series of calculations to d
 
 ### 1. Free-Surface Variance ($m\_0$)
 
-The free-surface variance, denoted as $m\_0$, is a measure of the total wave energy. It is calculated from the local significant spectral wave height ($H\_{m0}$) using the following formula:
+The free-surface variance, denoted as $m\_0$, is a measure of the total wave energy or the variance of the water surface elevation. It is calculated from the local significant spectral wave height ($H\_{m0}$) using the following formula:
 
 ```math
 m_0 = \left(\frac{H_{m0}}{4}\right)^2
@@ -51,6 +51,8 @@ The mean square wave height ($H\_{rms}$) is an important characteristic of the w
 ```math
 H_{rms} = \left(2.69 + 3.24 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
 ```
+
+This relationship demonstrates an increase with the degree of saturation ($\Psi = \sqrt{m_0}/d$), counteracting the bandwidth effect observed in deep water.
 
 ### 3. Dimensional Transitional Wave Height ($H\_{tr\_dim}$)
 
@@ -67,7 +69,7 @@ Then, $H\_{tr\_dim}$ is computed as:
 H_{tr\_dim} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
 ```
 
-For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H\_{tr\_dim}=(0.35+5.8 \cdot 0.05) \cdot d=0.64 \cdot d$.
+For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H\_{tr\_dim}=(0.35+5.8 \cdot 0.05) \cdot d=0.64 \cdot d$. This relationship indicates that steeper slopes tend to result in higher $H\_{tr}$ values, implying that fewer waves deviate from the Rayleigh distribution on steeper foreshores.
 
 ### 4. Dimensionless Transitional Parameter ($\tilde{H}\_{tr}$)
 
@@ -93,7 +95,7 @@ The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{
 f(H_{1\_{Hrms}}) = \sqrt{H_{1\_{Hrms}}^2 \cdot P\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1}\right) + H_{2\_{Hrms}}^2 \cdot Q\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_{Hrms}}}\right)^{k_2}\right)} - 1
 ```
 
-where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution) and $k\_2=3.6$ (an empirically determined exponent for the second part) are global exponents for the Composite Weibull distribution. $H\_{2\_{Hrms}}$ is related to $H\_{1\_{Hrms}}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
+where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k\_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $H\_{2\_{Hrms}}$ is related to $H\_{1\_{Hrms}}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
 
 ```math
 H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}
@@ -191,4 +193,25 @@ Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appea
 
 This project's underlying model is based on:
 
-* **Groenendijk, H. (1998).** *Shallow foreshore wave height statistics.* Master's Thesis, Delft University of Technology. [[https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3](https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)]
+* **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics.* M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands. [https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3](https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
+
+## References
+
+* **Battjes, J. A., & Groenendijk, H. W. (2000).** Wave height distributions on shallow foreshores. *Coastal Engineering*, 40(3), 161-182. [https://www.sciencedirect.com/science/article/pii/S0378383900000077](https://www.sciencedirect.com/science/article/pii/S0378383900000077)
+* **Boccotti, P. (1989).** On mechanics of irregular gravity waves. *Atti della Accademia Nazionale dei Lincei, Memorie*, 19, 110-170.
+* **Caires, S., & Van Gent, M. R. A. (2012).** Wave height distribution in constant and finite depths. *Coastal Engineering Proceedings*, 1(33), 15. [https://journals.tdl.org/icce/index.php/icce/article/view/14740](https://journals.tdl.org/icce/index.php/icce/article/view/14740)
+* **DNV (2010).** *DNV-RP-C205 Environmental Conditions and Environmental Loads*. Technical Report.
+* **Glukhovskiy, B. (1966).** *Investigation of sea wind waves* (in Russian). Leningrad, Gidrometeoizdat.
+* **Goda, Y. (1979).** A review on statistical interpretation of wave data. *Report of the Port and Harbour Research Institute, Japan*, 18(1), 5-32.
+* **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics*. M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands. [https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3](https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
+* **Groenendijk, H. W., & Van Gent, M. R. A. (1998).** *Shallow foreshore wave height statistics; A predictive model for the probability of exceedance of wave heights*. Technical Report H3351, WL | delft hydraulics, The Netherlands.
+* **Hasselmann, K., Barnett, T. P., Bouws, E., Carlson, H., Cartwright, D. E., Enke, K.,... & Walden, H. (1973).** *Measurements of Wind-Wave Growth and Swell Decay during the Joint North Sea Wave Project (JONSWAP)*. Ergnzungsheft zur Deutschen Hydrographischen Zeitschrift Reihe, A (8), 95.
+* **Karmpadakis, I., Swan, C., & Christou, M. (2020).** Assessment of wave height distributions using an extensive field database. *Coastal Engineering*, 157, 103630. [https://doi.org/10.1016/j.coastaleng.2019.103630](https://doi.org/10.1016/j.coastaleng.2019.103630)
+* **Karmpadakis, I., Swan, C., & Christou, M. (2022).** A new wave height distribution for intermediate and shallow water depths. *Coastal Engineering*, 175, 104130. [https://doi.org/10.1016/j.coastaleng.2022.104130](https://doi.org/10.1016/j.coastaleng.2022.104130)
+* **Klopman, G. (1996).** *Extreme wave heights in shallow water*. WL | delft hydraulics, Report H2486, The Netherlands.
+* **Klopman, G., & Stive, M. J. F. (1989).** *Extreme waves and wave loading in shallow water*. Paper presented at the E&P Forum Workshop in Paris, Delft Hydraulics, The Netherlands.
+* **Longuet-Higgins, M. S. (1952).** On the statistical distribution of heights of sea waves. *Journal of Marine Research*, 11(3), 245-266.
+* **Longuet-Higgins, M. S. (1980).** On the distribution of the heights of sea waves: Some effects of nonlinearity and finite band width. *Journal of Geophysical Research*, 85(C3), 1519-1523. [https://doi.org/10.1029/JC085iC03p01519](https://doi.org/10.1029/JC085iC03p01519)
+* **Naess, A. (1985).** On the distribution of crest to trough wave heights. *Ocean Engineering*, 12(3), 221-234. [https://doi.org/10.1016/0029-8018(85)90014-9](https://doi.org/10.1016/0029-8018(85)90014-9)
+* **Rice, S. O. (1944).** Mathematical analysis of random noise. *Bell System Technical Journal*, 23(3), 282-332. [https://doi.org/10.1002/j.1538-7305.1944.tb00874.x](https://doi.org/10.1002/j.1538-7305.1944.tb00874.x)
+* **Tayfun, M. A. (1990).** Distribution of large wave heights. *Journal of Waterway, Port, Coastal, and Ocean Engineering*, 116(6), 686-707. [https://doi.org/10.1061/(ASCE)0733-950X(1990)116:6(686)](https://doi.org/10.1061/(ASCE)0733-950X(1990)116:6(686))
