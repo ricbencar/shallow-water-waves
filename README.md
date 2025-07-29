@@ -113,16 +113,10 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 
     * **Case 1:** $\tilde{H}\_N < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}\_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
 
-        $$\[ 
-		\tilde{H}_{1/N} = N \cdot \tilde{H}_1 \cdot 
-		\left[
-		\text{Codecogs: } \text{Gamma}\left(\frac{1}{k_1}+1, \ln(N)\right)
-		- 
-		\text{Codecogs: } \text{Gamma}\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{\text{tr}}}{\tilde{H}_1}\right)^{k_1}\right)
-		\right]
-		+ N \cdot \tilde{H}_2 \cdot 
-		\text{Codecogs: } \text{Gamma}\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{\text{tr}}}{\tilde{H}_2}\right)^{k_2}\right]
-		\]$$
+
+    $ \tilde{H}_{1/N} = N \cdot \tilde{H}_1 \cdot \left[ \text{Codecogs: } \text{Gamma}\left(\frac{1}{k_1}+1, \ln(N)\right) \\
+    \text{Codecogs: } \text{Gamma}\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{\text{tr}}}{\tilde{H}_1}\right)^{k_1}\right) \right] \\
+    N \cdot \tilde{H}_2 \cdot \text{Codecogs: } \text{Gamma}\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{\text{tr}}}{\tilde{H}_2}\right)^{k_2}\right] $
 
         where Γ(a,x) is the unnormalized upper incomplete gamma function.
 
