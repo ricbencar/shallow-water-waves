@@ -9,7 +9,8 @@
  * shallow foreshore conditions where wave breaking significantly alters traditional
  * wave height distributions (e.g., Rayleigh distribution).
  *
- * The core functionality of this program involves an iterative numerical solution:
+ * The core functionality of this program involves a robust numerical solution using
+ * the Newton-Raphson method for a system of two non-linear equations:
  *
  * 1.  **Iterating through Normalized Transitional Wave Height (Htr/Hrms)**:
  * The program systematically varies the normalized transitional wave height (Htr_Hrms)
@@ -18,31 +19,28 @@
  * the wave height distribution transitions from a Rayleigh-like behavior (for smaller waves)
  * to a different, more complex behavior influenced by wave breaking (for larger waves).
  *
- * 2.  **Solving for Normalized Scale Parameter (H1/Hrms)**:
- * For each Htr_Hrms value, the program solves a non-linear equation to determine
- * H1_Hrms, which is the normalized scale parameter of the first part of the
- * Composite Weibull distribution. This non-linear equation is derived from the
- * fundamental constraint that the overall normalized Hrms of the Composite Weibull
- * distribution must precisely equal one. This ensures consistency and proper normalization
- * of the distribution. The solution employs a robust numerical root-finding method,
- * specifically Newton-Raphson with a bisection fallback for enhanced accuracy and stability.
+ * 2.  **Solving for Normalized Scale Parameters (H1/Hrms and H2/Hrms) Simultaneously**:
+ * For each Htr_Hrms value, the program solves a system of two non-linear equations
+ * to determine H1_Hrms and H2_Hrms simultaneously. This is a significant improvement
+ * over sequential solving, ensuring consistency and accuracy in the relationship
+ * between the two Weibull components.
+ * The two equations are:
+ * a) The normalized Hrms equation (Equation 7.11 from Groenendijk, 1998), which
+ * states that the overall normalized Hrms of the Composite Weibull distribution
+ * must precisely equal one.
+ * b) The continuity condition (Equation 3.4 from Groenendijk, 1998), which ensures
+ * a smooth transition between the two Weibull components at Htr.
+ * The Newton-Raphson method for systems of equations is employed, which involves
+ * calculating the Jacobian matrix (matrix of partial derivatives) at each iteration.
  *
- * 3.  **Calculating Normalized Second Scale Parameter (H2/Hrms)**:
- * Once H1_Hrms is successfully determined, the program calculates H2_Hrms, the
- * normalized scale parameter for the second part of the Composite Weibull distribution.
- * This calculation is based on the continuity condition of the Composite Weibull
- * distribution at the transitional wave height (Htr). This condition ensures a smooth
- * transition between the two Weibull components of the distribution.
- *
- * 4.  **Computing Normalized Quantile Wave Heights (H(1/N)/Hrms)**:
- * Finally, for a predefined set of exceedance probabilities (represented by N values,
- * e.g., N=3 for H1/3, N=10 for H1/10, N=50 for H1/50, N=100 for H1/100, N=250 for H1/250,
- * and N=1000 for H1/1000), the program computes the corresponding normalized
- * quantile wave heights. These calculations utilize specific formulas (Equations A.15 or A.20)
- * from Groenendijk (1998), depending on the relationship between Htr_Hrms and the
- * specific quantile being calculated. These quantiles represent the mean of the highest
- * 1/N-part of the wave heights, providing crucial insights into the statistical properties
- * of extreme waves.
+ * 3.  **Computing Normalized Quantile Wave Heights (H(1/N)/Hrms)**:
+ * Once H1_Hrms and H2_Hrms are successfully determined, the program computes the
+ * corresponding normalized quantile wave heights for a predefined set of exceedance
+ * probabilities (represented by N values, e.g., N=3 for H1/3, N=10 for H1/10, etc.).
+ * These calculations utilize specific formulas (Equations A.15 or A.20) from Groenendijk (1998),
+ * depending on the relationship between Htr_Hrms and the specific quantile being calculated.
+ * These quantiles represent the mean of the highest 1/N-part of the wave heights,
+ * providing crucial insights into the statistical properties of extreme waves.
  *
  * Output:
  * The program generates a formatted text file named "carvalho2025_table.txt". This file
@@ -51,11 +49,9 @@
  * shallow-water coastal engineering applications.
  *
  * Compilation Instructions:
- * To compile this program with high optimization levels and OpenMP support (though OpenMP
- * is not explicitly used in this single-threaded version, the flags are retained for consistency
- * with typical scientific computing setups), you can use a g++ command similar to this:
+ * To compile this program with high optimization levels, you can use a g++ command similar to this:
  *
- * g++ -O3 -fopenmp -march=native -std=c++17 -Wall -Wextra -pedantic \
+ * g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic \
  * -Wconversion -Wsign-conversion -static -static-libgcc -static-libstdc++ \
  * -o carvalho2025_table.exe carvalho2025_table.cpp
  *
@@ -64,19 +60,18 @@
 // This preprocessor directive is crucial for ensuring that the M_PI constant (representing the mathematical constant Pi)
 // is defined and available for use within the <cmath> header. This is particularly relevant when compiling
 // on certain systems, such as Windows with Microsoft Visual C++ (MSVC), where it might not be defined by default.
-#define _USE_MATH_DEFINES 
+#define _USE_MATH_DEFINES
 
 // Standard C++ Library Includes:
 // These lines import necessary functionalities from the C++ Standard Library, providing tools
 // for input/output, file handling, mathematical operations, data structures, and formatting.
 #include <iostream>     // Provides standard input/output streams (e.g., `std::cout` for console output, `std::cerr` for error messages).
 #include <fstream>      // Enables file stream operations, allowing the program to read from and write to files (e.g., `std::ofstream` for output files).
-#include <sstream>      // Offers string stream capabilities (e.g., `std::ostringstream`), useful for in-memory string manipulation, though not directly used in the main logic of this specific version.
-#include <vector>       // Provides the `std::vector` container, a dynamic array that can resize itself, used here to store calculated H1/N values efficiently.
-#include <cmath>        // Contains a wide range of mathematical functions (e.g., `std::sqrt` for square root, `std::log` for natural logarithm, `std::pow` for exponentiation, `std::sin` for sine, `std::lgamma` for the natural logarithm of the gamma function, `std::tgamma` for the true gamma function, and `M_PI` if `_USE_MATH_DEFINES` is effective).
-#include <limits>       // Provides `std::numeric_limits`, which allows querying properties of numeric types, such as the smallest representable double (`std::numeric_limits<double>::min()`), crucial for handling very small numbers and avoiding division by zero in numerical algorithms.
+#include <vector>       // Provides the `std::vector` container, a dynamic array that can resize itself.
+#include <cmath>        // Contains a wide range of mathematical functions (e.g., `std::sqrt` for square root, `std::log` for natural logarithm, `std::pow` for exponentiation, `std::lgamma` for the natural logarithm of the gamma function, `std::tgamma` for the true gamma function).
+#include <limits>       // Provides `std::numeric_limits`, which allows querying properties of numeric types, suchs as the smallest representable double (`std::numeric_limits<double>::min()`), crucial for handling very small numbers and avoiding division by zero in numerical algorithms.
 #include <iomanip>      // Offers manipulators for output formatting (e.g., `std::fixed` for fixed-point notation, `std::setprecision` to control decimal places, `std::setw` to set field width for formatted output).
-#include <algorithm>    // Includes general-purpose algorithms (e.g., `std::max`, `std::swap`, `std::round`), although not explicitly called in the main execution path of this version, they are commonly useful.
+#include <algorithm>    // Includes general-purpose algorithms (e.g., `std::max`, `std::swap`), useful for various operations.
 
 // Using Namespace:
 // This directive brings all identifiers (like `cout`, `endl`, `vector`, `sqrt`, etc.) from the
@@ -102,8 +97,9 @@ const double k2 = 3.6;    // Exponent for the second part of the Composite Weibu
 // Precision for Numerical Solver Convergence:
 // This constant defines the tolerance level used in numerical methods (like Newton-Raphson)
 // to determine when an iterative solution has converged to an acceptable accuracy.
-const double EPSILON = 1e-9; // A small value (10^-9) indicating the maximum allowable error or difference
+const double EPSILON = 1e-12; // A small value (10^-12) indicating the maximum allowable error or difference
                              // between successive iterations for a solution to be considered converged.
+const double JACOBIAN_DX = 1e-8; // Small step size for finite difference approximation of Jacobian derivatives.
 
 // Forward Declarations of Functions:
 // These declarations inform the C++ compiler about the existence and signature (return type, name, and parameters)
@@ -115,24 +111,29 @@ double incomplete_gamma_p(double a, double x);
 // Declares a function to compute the normalized upper incomplete gamma function Q(a, x) = Γ(a, x)/Γ(a).
 double incomplete_gamma_q(double a, double x);
 // Declares a function to compute the unnormalized upper incomplete gamma function Γ(a, x).
-double incomplete_gamma(double a, double x); 
+double incomplete_gamma(double a, double x);
 // Declares a function to calculate HN (the wave height with a 1/N exceedance probability).
 double calculate_HN(double N, double H1, double H2, double k1, double k2, double Htr);
 // Declares a function to calculate H1/N (the mean of the highest 1/N-th part of wave heights).
 double calculate_H1N(double N_val, double H1, double H2, double k1, double k2, double Htr);
-// Declares a function that represents the residual (error) in the non-linear equation
-// whose root needs to be found by the solver.
-double residual(double H1_Hrms, double Htr_Hrms);
-// Declares a function to compute the derivative of the residual function, essential for
-// the Newton-Raphson numerical method.
-double derivative_of_residual(double H1_Hrms, double Htr_Hrms); 
-// Declares the Newton-Raphson solver function, an iterative method for finding roots of functions.
-double newtonRaphsonSolver(double Htr_Hrms, double initial_guess, double tol, int maxit);
-// Declares a function to provide an initial guess for the numerical solver,
-// typically based on an empirical regression to speed up convergence.
-double regression_initial_guess(double Htr_Hrms);
-// Declares a wrapper function that orchestrates the high-accuracy root-finding process for H1/Hrms.
-bool highAccuracySolver(double Htr_Hrms, double &H1_Hrms);
+
+// Functions for the system of non-linear equations
+// F1 represents the normalized Hrms equation: sqrt(H1^2 * P(...) + H2^2 * Q(...)) - 1 = 0
+double F1(double H1_Hrms, double H2_Hrms, double Htr_Hrms);
+// F2 represents the continuity condition: (Htr/H1)^k1 - (Htr/H2)^k2 = 0
+double F2(double H1_Hrms, double H2_Hrms, double Htr_Hrms);
+
+// Function to solve the 2x2 linear system Ax = b using Cramer's rule (or simple substitution)
+// for the Newton-Raphson update.
+void solve_linear_system_2x2(double J11, double J12, double J21, double J22,
+                             double b1, double b2, double &dx1, double &dx2);
+
+// Declares the Newton-Raphson solver for a system of two equations.
+bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms,
+                               double tol, int maxit);
+// Declares a function to provide initial guesses for the numerical solver.
+void get_initial_guesses(double Htr_Hrms, double &H1_initial, double &H2_initial);
+
 
 /**
  * @brief Computes the normalized lower incomplete gamma function P(a, x) = γ(a, x)/Γ(a).
@@ -152,7 +153,7 @@ bool highAccuracySolver(double Htr_Hrms, double &H1_Hrms);
 double incomplete_gamma_p(double a, double x)
 {
     const int MAXIT = 500;      // Maximum number of iterations allowed for either the series expansion or the continued fraction.
-    const double LOCAL_EPS = 1e-14;   // A very small tolerance value (10^-14) used for checking convergence
+    const double LOCAL_EPS = 1e-16;   // A very small tolerance value (10^-16) used for checking convergence
                                       // within the gamma function calculations, ensuring high numerical precision.
 
     // Input validation: Essential for preventing mathematical errors and ensuring function robustness.
@@ -164,8 +165,8 @@ double incomplete_gamma_p(double a, double x)
     // Compute the natural logarithm of the complete gamma function, ln(Γ(a)).
     // `std::lgamma` is used instead of `std::tgamma` followed by `log` for improved numerical stability,
     // especially when 'a' is large, as `lgamma` avoids potential overflow/underflow issues with very large/small gamma values.
-    double gln = lgamma(a); 
-    
+    double gln = lgamma(a);
+
     // Conditional logic to select the appropriate numerical method (series or continued fraction).
     // This choice is based on the relationship between 'x' and 'a', a common heuristic for optimal performance and accuracy.
     if(x < a + 1.0) {  // Use series expansion for x < a+1 (often referred to as the "gamma series" method).
@@ -189,7 +190,7 @@ double incomplete_gamma_p(double a, double x)
         // Initialize 'c' and 'd' to extremely large/small values. This is a common technique
         // to prevent division by zero or underflow during the initial steps of the continued fraction
         // algorithm, where denominators might otherwise be zero or very close to zero.
-        double c = 1.0 / numeric_limits<double>::min(); 
+        double c = 1.0 / numeric_limits<double>::min();
         double d = 1.0 / b;
         double h = d; // `h` accumulates the value of the continued fraction.
         for (int i = 1; i <= MAXIT; ++i) { // Iterate up to MAXIT to compute continued fraction terms.
@@ -218,7 +219,7 @@ double incomplete_gamma_p(double a, double x)
         // The normalized lower incomplete gamma function P(a,x) is 1 - Q(a,x).
         // It's clamped to 0.0 to prevent very small negative floating-point results due to precision issues.
         double Pval = 1.0 - Qval;
-        return (Pval < 0.0) ? 0.0 : Pval; 
+        return (Pval < 0.0) ? 0.0 : Pval;
     }
 }
 
@@ -260,7 +261,7 @@ double incomplete_gamma(double a, double x) {
     }
     // Calculation: Γ(a,x) = Q(a,x) * Γ(a).
     // `std::tgamma` computes the complete gamma function Γ(a).
-    return incomplete_gamma_q(a, x) * tgamma(a); 
+    return incomplete_gamma_q(a, x) * tgamma(a);
 }
 
 /**
@@ -321,7 +322,7 @@ double calculate_HN(double N, double H1, double H2, double k1, double k2, double
  * whether the relevant wave heights fall into the first or second part of the Composite Weibull distribution.
  * The implementation follows the detailed derivations in Appendix A.2.2 of Groenendijk (1998).
  *
- * @param N_val The N parameter for H1/N (e.g., 3.0 for H1/3, 10.0 for H1/10). Must be strictly greater than 1.
+ * @param N_val The N parameter for H1/N (e.g., 3 for H1/3, 10 for H1/10). Must be strictly greater than 1.
  * @param H1 The scale parameter of the first Weibull distribution. Must be positive.
  * @param H2 The scale parameter of the second Weibull distribution. Must be positive.
  * @param k1 The exponent (shape parameter) of the first Weibull distribution. Must be positive.
@@ -388,211 +389,187 @@ double calculate_H1N(double N_val, double H1, double H2, double k1, double k2, d
     }
 }
 
-// --- Numerical Solver for H1/Hrms and H2/Hrms ---
-// The following functions implement the numerical methods required to solve the non-linear
-// equation that ensures the normalized Hrms of the Composite Weibull distribution equals one.
+// --- Functions for the System of Non-Linear Equations (Newton-Raphson Matrix Method) ---
 
 /**
- * @brief Computes the residual function f(H1_Hrms) for the root-finding problem.
+ * @brief Defines the first non-linear equation F1(H1_Hrms, H2_Hrms, Htr_Hrms) = 0.
  *
- * The objective of the numerical solver is to find the value of H1_Hrms that makes this
- * residual function equal to zero. This function embodies the core constraint of the
- * Composite Weibull distribution: that its overall root-mean-square wave height (Hrms),
- * when normalized by itself, must equal 1.0.
+ * This equation represents the normalized Hrms constraint for the Composite Weibull distribution.
+ * It is derived from Equation 7.11 in Groenendijk (1998) and states that the square root
+ * of the weighted sum of incomplete gamma functions (related to H1 and H2) must equal 1.
  *
- * The function is formulated as `sqrt(sum_of_terms) - 1.0`. Finding the root means
- * `sqrt(sum_of_terms) = 1.0`, which implies `sum_of_terms = 1.0`.
- * This corresponds to Equation 1.7 in Groenendijk & Van Gent (1998) or Equation A.26
- * in Appendix A.2.3 of Groenendijk (1998) (the normalized version of Hrms).
- *
- * @param H1_Hrms The normalized scale parameter of the first Weibull distribution (H1/Hrms).
- * This is the variable for which the root is being sought.
- * @param Htr_Hrms The normalized transitional wave height (Htr/Hrms). This value is constant
- * for a given iteration of the main program loop.
- * @return The calculated value of the residual function.
+ * @param H1_Hrms The normalized scale parameter of the first Weibull distribution.
+ * @param H2_Hrms The normalized scale parameter of the second Weibull distribution.
+ * @param Htr_Hrms The normalized transitional wave height (constant for a given solve).
+ * @return The value of the first function, which should be driven to zero.
  */
-double residual(double H1_Hrms, double Htr_Hrms)
-{
-    // Calculate H2_Hrms (normalized) based on the continuity condition between the two Weibull distributions.
-    // The continuity condition states that F1(Htr) = F2(Htr), which simplifies to (Htr/H1)^k1 = (Htr/H2)^k2.
-    // Rearranging this equation to solve for H2_Hrms: H2_Hrms = Htr_Hrms * (H1_Hrms / Htr_Hrms)^(k1 / k2).
-    double H2_Hrms = Htr_Hrms * pow(H1_Hrms / Htr_Hrms, k1 / k2);
-    
-    // Calculate the arguments for the incomplete gamma functions. These arguments are derived
-    // from the integration limits (0 to Htr_Hrms for the first part, Htr_Hrms to infinity for the second)
-    // and the specific form of the Weibull probability density function when calculating moments.
-    double arg1 = pow(Htr_Hrms / H1_Hrms, k1); // Argument for the incomplete gamma function related to the first Weibull part.
-    double arg2 = pow(Htr_Hrms / H2_Hrms, k2); // Argument for the incomplete gamma function related to the second Weibull part.
-    
-    // Compute the normalized lower incomplete gamma function P(a,x) for the first term.
-    // The 'a' parameter for the Hrms calculation integral (integral of H^2 * f(H)) is (2/k + 1).
-    // P(a,x) is used here because the integral for the first part of the Hrms calculation goes from 0 to Htr_Hrms.
-    double g1_val = incomplete_gamma_p(2.0 / k1 + 1.0, arg1); 
-    
-    // Compute the normalized upper incomplete gamma function Q(a,x) for the second term.
-    // Q(a,x) is used here because the integral for the second part of the Hrms calculation goes from Htr_Hrms to infinity.
-    double g2_val = incomplete_gamma_q(2.0 / k2 + 1.0, arg2); 
-    
-    // Calculate the sum of terms inside the square root from the Hrms equation.
-    // This effectively represents (Hrms_calculated / Hrms_actual)^2, where Hrms_actual is the true Hrms
-    // of the distribution, which is normalized to 1.0 in this context.
-    double sum_terms = H1_Hrms * H1_Hrms * g1_val + H2_Hrms * H2_Hrms * g2_val;
-    
-    // The residual is the difference between the calculated normalized Hrms and 1.0.
-    // The goal of the solver is to make this value as close to zero as possible.
+double F1(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
+    // Input validation for H1_Hrms and H2_Hrms to prevent issues like log(0) or sqrt(negative).
+    // While the solver should ideally keep values positive, these checks add robustness.
+    if (H1_Hrms <= 0.0 || H2_Hrms <= 0.0) {
+        // Return a large value to push the solver away from invalid regions.
+        return numeric_limits<double>::max();
+    }
+
+    double arg1 = pow(Htr_Hrms / H1_Hrms, k1);
+    double arg2 = pow(Htr_Hrms / H2_Hrms, k2);
+
+    double term1 = H1_Hrms * H1_Hrms * incomplete_gamma_p(2.0 / k1 + 1.0, arg1);
+    double term2 = H2_Hrms * H2_Hrms * incomplete_gamma_q(2.0 / k2 + 1.0, arg2);
+
+    // Ensure the argument to sqrt is non-negative, though theoretically it should be.
+    double sum_terms = term1 + term2;
+    if (sum_terms < 0.0) sum_terms = 0.0; // Clamp to zero to avoid NaN from sqrt of negative.
+
     return sqrt(sum_terms) - 1.0;
 }
 
 /**
- * @brief Computes the derivative of the residual function using a central finite difference approximation.
+ * @brief Defines the second non-linear equation F2(H1_Hrms, H2_Hrms, Htr_Hrms) = 0.
  *
- * The derivative of the residual function is a crucial input for the Newton-Raphson method.
- * Newton-Raphson uses the function's value and its slope (derivative) at the current guess
- * to estimate a better next guess for the root. A central finite difference is preferred
- * over a forward or backward difference for its improved accuracy.
+ * This equation represents the continuity condition between the two Weibull distributions
+ * at the transitional wave height Htr. It is derived from Equation 3.4 in Groenendijk (1998):
+ * `(Htr/H1)^k1 = (Htr/H2)^k2`. Rearranging this gives `(Htr/H1)^k1 - (Htr/H2)^k2 = 0`.
  *
- * @param H1_Hrms The normalized H1 parameter at which the derivative is to be calculated.
- * @param Htr_Hrms The normalized transitional wave height (constant for this calculation).
- * @return The approximate value of the derivative of the residual function at H1_Hrms.
+ * @param H1_Hrms The normalized scale parameter of the first Weibull distribution.
+ * @param H2_Hrms The normalized scale parameter of the second Weibull distribution.
+ * @param Htr_Hrms The normalized transitional wave height (constant for a given solve).
+ * @return The value of the second function, which should be driven to zero.
  */
-double derivative_of_residual(double H1_Hrms, double Htr_Hrms) {
-    const double dx = 1e-6; // A small step size used for the finite difference approximation.
-                            // This value balances accuracy (smaller dx is more accurate) with
-                            // numerical stability (too small dx can lead to precision issues).
-    // Apply the central finite difference formula: f'(x) ≈ (f(x + dx) - f(x - dx)) / (2 * dx).
-    return (residual(H1_Hrms + dx, Htr_Hrms) - residual(H1_Hrms - dx, Htr_Hrms)) / (2.0 * dx);
-}
-
-/**
- * @brief Solves for the root of the function f(H1_Hrms)=0 using the Newton-Raphson method.
- *
- * The Newton-Raphson method is an efficient iterative numerical technique for finding
- * the roots (or zeros) of a real-valued function. It starts with an initial guess and
- * iteratively refines it by moving along the tangent line of the function at the current guess.
- *
- * @param Htr_Hrms The normalized transitional wave height, which remains constant during a single solve.
- * @param initial_guess The starting point for the iterative process. A good initial guess can
- * significantly improve convergence speed and robustness.
- * @param tol The desired tolerance for convergence. The iteration stops when the absolute
- * difference between successive guesses is less than this tolerance.
- * @param maxit The maximum number of iterations allowed. This prevents infinite loops
- * in cases where the solver might not converge or converges very slowly.
- * @return The estimated root of the function (H1_Hrms) if convergence is achieved within `maxit`.
- * If the derivative becomes too small (indicating a flat region or local extremum),
- * it returns the current best guess to prevent division by zero.
- */
-double newtonRaphsonSolver(double Htr_Hrms, double initial_guess, double tol, int maxit) {
-    double x_old = initial_guess; // Stores the current approximation of the root.
-    double x_new = initial_guess; // Stores the next, refined approximation of the root.
-
-    for (int iter = 0; iter < maxit; ++iter) { // Loop for a maximum of `maxit` iterations.
-        double fx = residual(x_old, Htr_Hrms); // Calculate the value of the function (residual) at the current guess.
-        double f_prime_x = derivative_of_residual(x_old, Htr_Hrms); // Calculate the derivative of the function at the current guess.
-
-        // Critical check: If the absolute value of the derivative is extremely small, it indicates
-        // that the function is very flat around `x_old`, or `x_old` is near a local extremum.
-        // In such cases, the Newton-Raphson formula (division by `f_prime_x`) becomes unstable.
-        if (abs(f_prime_x) < numeric_limits<double>::min()) { 
-            return x_old; // Return the current best guess as the solver cannot proceed reliably.
-        }
-
-        // Newton-Raphson iteration formula: x_{n+1} = x_n - f(x_n) / f'(x_n).
-        x_new = x_old - fx / f_prime_x;
-
-        // Check for convergence: If the absolute difference between the new and old guesses
-        // is less than the specified tolerance, the solution has converged.
-        if (abs(x_new - x_old) < tol) {
-            return x_new; // Return the converged root.
-        }
-        x_old = x_new; // Update the old guess to the new guess for the next iteration.
+double F2(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
+    // Input validation for H1_Hrms and H2_Hrms to prevent division by zero or log(0).
+    if (H1_Hrms <= 0.0 || H2_Hrms <= 0.0) {
+        // Return a large value to push the solver away from invalid regions.
+        return numeric_limits<double>::max();
     }
-    return x_new; // If the loop completes without converging (i.e., `maxit` iterations are reached),
-                  // return the last computed `x_new` as the best approximation found.
+    return pow(Htr_Hrms / H1_Hrms, k1) - pow(Htr_Hrms / H2_Hrms, k2);
 }
 
 /**
- * @brief Provides an initial guess for H1_Hrms based on Htr_Hrms using an empirical regression formula.
+ * @brief Solves a 2x2 linear system Ax = b for x using Cramer's rule.
  *
- * Supplying a good initial guess is crucial for the efficiency and reliability of iterative
- * numerical solvers like Newton-Raphson. This empirical formula is derived from a pre-analysis
- * or regression fit of the relationship between Htr_Hrms and H1_Hrms, allowing the solver
- * to start very close to the actual root.
+ * This function is a helper for the Newton-Raphson method for systems.
+ * It takes the Jacobian matrix elements (J11, J12, J21, J22) and the negative
+ * function values (-F1, -F2) as the right-hand side, and computes the updates
+ * (dx1, dx2) for H1_Hrms and H2_Hrms.
  *
- * @param Htr_Hrms The normalized transitional wave height, used as input for the regression.
- * @return An empirically derived initial guess for H1_Hrms.
+ * @param J11 Element (1,1) of the Jacobian matrix (dF1/dH1).
+ * @param J12 Element (1,2) of the Jacobian matrix (dF1/dH2).
+ * @param J21 Element (2,1) of the Jacobian matrix (dF2/dH1).
+ * @param J22 Element (2,2) of the Jacobian matrix (dF2/dH2).
+ * @param b1 Right-hand side for the first equation (-F1).
+ * @param b2 Right-hand side for the second equation (-F2).
+ * @param dx1 Output: The calculated change for H1_Hrms.
+ * @param dx2 Output: The calculated change for H2_Hrms.
  */
-double regression_initial_guess(double Htr_Hrms)
-{
-    double logHtr = log(Htr_Hrms); // Calculate the natural logarithm of Htr_Hrms.
-                                   // Logarithmic transformations are common in empirical fits.
-    // This is the empirical regression formula. The coefficients (-1.705, -2.329, -0.313)
-    // are specific to this model and were likely determined through curve fitting to data.
-    return 1.0 + exp(-1.705 - 2.329 * logHtr - 0.313 * logHtr * logHtr);
-}
+void solve_linear_system_2x2(double J11, double J12, double J21, double J22,
+                             double b1, double b2, double &dx1, double &dx2) {
+    double determinant = J11 * J22 - J12 * J21;
 
-/**
- * @brief Computes H1_Hrms with high accuracy, employing a robust numerical strategy.
- *
- * This function orchestrates the root-finding process for H1_Hrms. It first attempts to use
- * the fast and efficient Newton-Raphson method. If Newton-Raphson fails to converge
- * (e.g., due to a poor initial guess or problematic function behavior), it falls back to
- * the bisection method, which is slower but guaranteed to converge if a root is successfully
- * bracketed. This hybrid approach significantly enhances the overall robustness of the solver.
- *
- * @param Htr_Hrms The normalized transitional wave height, which is a fixed input for this solve.
- * @param H1_Hrms A reference to a double variable where the computed H1_Hrms value will be stored.
- * @return `true` if the solver successfully finds a root within the specified tolerance, `false` otherwise.
- */
-bool highAccuracySolver(double Htr_Hrms, double &H1_Hrms)
-{
-    // Obtain an initial guess for H1_Hrms using the empirical regression model.
-    double initial_guess = regression_initial_guess(Htr_Hrms);
-    const double tol = 1e-14; // The very high desired tolerance for the root, indicating extreme precision.
-    const int maxit = 200;    // The maximum number of iterations allowed for both Newton-Raphson and bisection.
-
-    // Attempt to solve for H1_Hrms using the Newton-Raphson method.
-    H1_Hrms = newtonRaphsonSolver(Htr_Hrms, initial_guess, tol, maxit);
-
-    // After attempting Newton-Raphson, check if the residual at the found H1_Hrms is sufficiently close to zero.
-    // A slightly relaxed tolerance (tol * 100) is used for this initial check to avoid overly strict failure.
-    if (abs(residual(H1_Hrms, Htr_Hrms)) > tol * 100) { 
-        // If Newton-Raphson did not converge satisfactorily, initiate the bisection fallback.
-        // Bisection is a robust but slower method that guarantees convergence if a root is bracketed.
-        double a = 0.01, b = 50.0; // Define a wide initial bracket [a, b] for the possible range of H1_Hrms.
-                                   // This bracket must contain the root.
-        double fa = residual(a, Htr_Hrms); // Calculate the residual at the lower bound 'a'.
-        double fb = residual(b, Htr_Hrms); // Calculate the residual at the upper bound 'b'.
-
-        // Check if a root is successfully bracketed (i.e., the function values at the bounds have opposite signs).
-        if (fa * fb < 0) { 
-            for (int i = 0; i < maxit; ++i) { // Iterate for bisection up to `maxit`.
-                double c = (a + b) / 2.0; // Calculate the midpoint of the current interval.
-                double fc = residual(c, Htr_Hrms); // Calculate the residual at the midpoint.
-
-                // Check for convergence: if the residual at 'c' is very close to zero, or if the interval
-                // [a, b] has become extremely small, the root has been found.
-                if (abs(fc) < tol || abs(b - a) < tol) {
-                    H1_Hrms = c; // Assign the midpoint as the found root.
-                    return true; // Indicate successful convergence.
-                }
-
-                // Narrow the bracket: If the product `fa * fc` is negative, the root is in [a, c].
-                // Otherwise, the root is in [c, b].
-                if (fa * fc < 0) { 
-                    b = c; // The new upper bound is 'c'.
-                } else { 
-                    a = c;   // The new lower bound is 'c'.
-                    fa = fc; // Update `fa` to `fc` for the next iteration (important for bisection logic).
-                }
-            }
-        }
-        // If neither Newton-Raphson nor the bisection fallback converges, print an error message
-        // to the standard error stream, indicating the failure for the specific Htr_Hrms value.
-        cerr << "Solver: Failed to converge for Htr_Hrms = " << Htr_Hrms << " after Newton-Raphson and fallback.\n";
-        return false; // Indicate that the solver failed to converge.
+    // Check for a singular or nearly singular Jacobian matrix.
+    if (abs(determinant) < numeric_limits<double>::epsilon() * 100) {
+        // If determinant is too small, the matrix is singular or ill-conditioned.
+        // In this case, we cannot reliably solve the system.
+        // Set dx1 and dx2 to zero to prevent large, unstable steps.
+        // A more robust solver might use a pseudo-inverse or a different fallback.
+        dx1 = 0.0;
+        dx2 = 0.0;
+        return;
     }
-    return true; // Indicate that Newton-Raphson successfully converged.
+
+    // Apply Cramer's rule:
+    dx1 = (b1 * J22 - b2 * J12) / determinant;
+    dx2 = (J11 * b2 - J21 * b1) / determinant;
 }
+
+/**
+ * @brief Provides initial guesses for H1_Hrms and H2_Hrms based on Htr_Hrms.
+ *
+ * A good initial guess is crucial for the efficiency and robustness of the Newton-Raphson method.
+ * This function uses an empirical regression for H1_Hrms, and then derives H2_Hrms from the
+ * continuity condition, assuming an initial relationship.
+ * The regression for H1_Hrms is based on Groenendijk's findings.
+ *
+ * @param Htr_Hrms The normalized transitional wave height.
+ * @param H1_initial Output: The initial guess for H1_Hrms.
+ * @param H2_initial Output: The initial guess for H2_Hrms.
+ */
+void get_initial_guesses(double Htr_Hrms, double &H1_initial, double &H2_initial) {
+    // Empirical regression for H1/Hrms based on Groenendijk (1998) or similar studies.
+    // This formula provides a good starting point for the solver.
+    double logHtr = log(Htr_Hrms);
+    H1_initial = 1.0 + exp(-1.705 - 2.329 * logHtr - 0.313 * logHtr * logHtr);
+
+    // Calculate initial H2_Hrms from the continuity condition, assuming H1_initial is correct.
+    // F2 = (Htr/H1)^k1 - (Htr/H2)^k2 = 0  => (Htr/H1)^k1 = (Htr/H2)^k2
+    // => H2^k2 = Htr^k2 / (Htr/H1)^k1 = Htr^k2 * (H1/Htr)^k1
+    // => H2 = (Htr^k2 * (H1/Htr)^k1)^(1/k2) = Htr * (H1/Htr)^(k1/k2)
+    H2_initial = Htr_Hrms * pow(H1_initial / Htr_Hrms, k1 / k2);
+
+    // Ensure initial guesses are positive, as physical parameters cannot be zero or negative.
+    if (H1_initial <= 0.0) H1_initial = 0.01; // Small positive value
+    if (H2_initial <= 0.0) H2_initial = 0.01; // Small positive value
+}
+
+/**
+ * @brief Solves for H1_Hrms and H2_Hrms simultaneously using the Newton-Raphson method for systems.
+ *
+ * This function implements the multi-dimensional Newton-Raphson algorithm to find the roots
+ * of the system of non-linear equations F1 and F2. It iteratively refines the guesses
+ * for H1_Hrms and H2_Hrms until the functions F1 and F2 are sufficiently close to zero.
+ *
+ * @param Htr_Hrms The normalized transitional wave height (constant for this solve).
+ * @param H1_Hrms Output: The converged normalized scale parameter of the first Weibull distribution.
+ * @param H2_Hrms Output: The converged normalized scale parameter of the second Weibull distribution.
+ * @param tol The desired tolerance for convergence (maximum absolute value of F1 and F2).
+ * @param maxit The maximum number of iterations allowed.
+ * @return `true` if the solver successfully converges, `false` otherwise.
+ */
+bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms,
+                               double tol, int maxit) {
+    // Get initial guesses for H1_Hrms and H2_Hrms.
+    get_initial_guesses(Htr_Hrms, H1_Hrms, H2_Hrms);
+
+    for (int iter = 0; iter < maxit; ++iter) {
+        // Evaluate the functions at the current guesses.
+        double f1_val = F1(H1_Hrms, H2_Hrms, Htr_Hrms);
+        double f2_val = F2(H1_Hrms, H2_Hrms, Htr_Hrms);
+
+        // Check for convergence. If both function values are close to zero, we've converged.
+        if (abs(f1_val) < tol && abs(f2_val) < tol) {
+            return true;
+        }
+
+        // Calculate the Jacobian matrix elements using central finite differences.
+        // J11 = dF1/dH1
+        double J11 = (F1(H1_Hrms + JACOBIAN_DX, H2_Hrms, Htr_Hrms) - F1(H1_Hrms - JACOBIAN_DX, H2_Hrms, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+        // J12 = dF1/dH2
+        double J12 = (F1(H1_Hrms, H2_Hrms + JACOBIAN_DX, Htr_Hrms) - F1(H1_Hrms, H2_Hrms - JACOBIAN_DX, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+        // J21 = dF2/dH1
+        double J21 = (F2(H1_Hrms + JACOBIAN_DX, H2_Hrms, Htr_Hrms) - F2(H1_Hrms - JACOBIAN_DX, H2_Hrms, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+        // J22 = dF2/dH2
+        double J22 = (F2(H1_Hrms, H2_Hrms + JACOBIAN_DX, Htr_Hrms) - F2(H1_Hrms, H2_Hrms - JACOBIAN_DX, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+
+        // Solve the linear system J * dx = -F for dx.
+        // Here, dx = [dH1, dH2]^T and F = [f1_val, f2_val]^T.
+        double dH1, dH2;
+        solve_linear_system_2x2(J11, J12, J21, J22, -f1_val, -f2_val, dH1, dH2);
+
+        // Update the guesses.
+        H1_Hrms += dH1;
+        H2_Hrms += dH2;
+
+        // Ensure H1_Hrms and H2_Hrms remain positive. If they become non-positive,
+        // clamp them to a small positive value to prevent mathematical errors in subsequent iterations.
+        if (H1_Hrms <= 0.0) H1_Hrms = numeric_limits<double>::min();
+        if (H2_Hrms <= 0.0) H2_Hrms = numeric_limits<double>::min();
+    }
+
+    // If the loop finishes without converging, print a warning.
+    cerr << "Newton-Raphson system solver failed to converge for Htr_Hrms = " << Htr_Hrms << " after " << maxit << " iterations.\n";
+    return false; // Indicate failure to converge.
+}
+
 
 /**
  * @brief Main function of the program.
@@ -623,11 +600,11 @@ int main()
     const double Htr_Hrms_start = 0.01; // The starting value for Htr/Hrms.
     const double Htr_Hrms_end = 3.50;   // The ending value for Htr/Hrms.
     const double Htr_Hrms_step = 0.01;  // The increment step size for Htr/Hrms.
-    
+
     // Define an array of integer N values for which the H(1/N)/Hrms quantiles will be calculated.
     // These N values correspond to specific exceedance probabilities or mean-of-highest-N-part values.
     // For example, N=3 corresponds to H1/3 (significant wave height).
-    const int N_values[] = {3, 10, 50, 100, 250, 1000}; 
+    const int N_values[] = {3, 10, 50, 100, 250, 1000};
 
     // Write the header row to the output file.
     // `std::setw(X)` is a manipulator that sets the field width for the *next* output item to X characters.
@@ -650,22 +627,17 @@ int main()
         try { // Begin a try-catch block to gracefully handle potential runtime errors during calculations.
             double H1_normalized; // Declare a variable to store the computed normalized H1 (H1/Hrms).
             double H2_normalized; // Declare a variable to store the computed normalized H2 (H2/Hrms).
-            
-            // Call the `highAccuracySolver` function to find the value of H1_normalized.
-            // This function attempts to solve the non-linear equation for H1/Hrms.
-            if (!highAccuracySolver(Htr_Hrms, H1_normalized)) {
+
+            // Call the `newtonRaphsonSystemSolver` function to find H1_normalized and H2_normalized simultaneously.
+            if (!newtonRaphsonSystemSolver(Htr_Hrms, H1_normalized, H2_normalized, EPSILON, 100)) {
                 // If the solver returns `false`, it indicates a failure to converge, so throw a runtime_error.
-                throw runtime_error("Solver failed to find H1_Hrms.");
+                throw runtime_error("Newton-Raphson system solver failed to find H1_Hrms and H2_Hrms.");
             }
 
-            // Calculate H2_normalized based on the computed H1_normalized and the continuity condition.
-            // The formula used is derived from `(Htr/H1)^k1 = (Htr/H2)^k2`, rearranged for H2_Hrms.
-            H2_normalized = Htr_Hrms * pow(H1_normalized / Htr_Hrms, k1 / k2);
-
             // Create a dynamic array (vector) to store the calculated H1/N values for the current Htr_Hrms.
-            vector<double> h1n_values; 
+            vector<double> h1n_values;
             // Iterate through each predefined N value.
-            for (int N_val : N_values) { 
+            for (int N_val : N_values) {
                 // Calculate the H1/N value using the `calculate_H1N` function and add it to the vector.
                 // `static_cast<double>(N_val)` ensures that N_val is treated as a double in the function call.
                 h1n_values.push_back(calculate_H1N(static_cast<double>(N_val), H1_normalized, H2_normalized, k1, k2, Htr_Hrms));
@@ -674,13 +646,13 @@ int main()
             // Set output formatting for the current row in the file.
             // `std::fixed` ensures floating-point numbers are printed in fixed-point notation (not scientific).
             // `std::setprecision(5)` sets the number of digits after the decimal point to 5.
-            fout << fixed << setprecision(5); 
+            fout << fixed << setprecision(5);
             // Write the primary normalized parameters (Htr/Hrms, H1/Hrms, H2/Hrms) to the file,
             // formatted with specified widths.
             fout << setw(9) << Htr_Hrms
                  << setw(9) << H1_normalized
                  << setw(9) << H2_normalized;
-            
+
             // Output each calculated H1/N value from the vector to the file,
             // also formatted with specified widths.
             fout << setw(11) << h1n_values[0]  // H1/3/Hrms
@@ -702,7 +674,7 @@ int main()
                  << setw(11) << "ERROR"
                  << setw(11) << "ERROR"
                  << setw(12) << "ERROR"
-                 << setw(12) << "ERROR" 
+                 << setw(12) << "ERROR"
                  << setw(13) << "ERROR"
                  << endl;
         } catch (const runtime_error& e) { // Catch `std::runtime_error` exceptions.
@@ -716,7 +688,7 @@ int main()
                  << setw(11) << "ERROR"
                  << setw(11) << "ERROR"
                  << setw(12) << "ERROR"
-                 << setw(12) << "ERROR" 
+                 << setw(12) << "ERROR"
                  << setw(13) << "ERROR"
                  << endl;
         } catch (const exception& e) { // Catch any other standard C++ exceptions.
@@ -730,7 +702,7 @@ int main()
                  << setw(11) << "ERROR"
                  << setw(11) << "ERROR"
                  << setw(12) << "ERROR"
-                 << setw(12) << "ERROR" 
+                 << setw(12) << "ERROR"
                  << setw(13) << "ERROR"
                  << endl;
         }
