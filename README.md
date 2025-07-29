@@ -40,16 +40,16 @@ Based on the provided inputs, the program performs a series of calculations to d
 
 The free-surface variance, denoted as $m\_0$, is a measure of the total wave energy. It is calculated from the local significant spectral wave height ($H\_{m0}$) using the following formula:
 
-```
+```math
 m_0 = \left(\frac{H_{m0}}{4}\right)^2
 ```
 
 ### 2. Mean Square Wave Height ($H\_{rms}$)
 
-The mean square wave height ($H\_{rms}$) is an important characteristic of the wave field. Its calculation incorporates empirical coefficients to better capture the shallow-water distribution of extreme waves, deviating from the original deep-water formulas. This formula is derived from Groenendijk (1998), with slightly updated empirical coefficients:
+The mean square wave height ($H\_{rms}$) is an important characteristic of the wave field. Its calculation incorporates empirical coefficients to better capture the shallow-water distribution of extreme waves, deviating from the original deep-water formulas. This formula is derived from Groenendijk (1998), with slightly increased empirical coefficients:
 
-```
-H_{rms} = \left(2.69 + 3.24 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
+```math
+H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
 ```
 
 ### 3. Dimensional Transitional Wave Height ($H\_{tr\_dim}$)
@@ -57,13 +57,13 @@ H_{rms} = \left(2.69 + 3.24 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
 The dimensional transitional wave height ($H\_{tr\_dim}$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($d$) and the beach slope ($m$):
 The tangent of the beach slope ($\tan(\alpha)$) is derived from the input $m$:
 
-```
+```math
 \tan(\alpha) = \frac{1}{m}
 ```
 
 Then, $H\_{tr\_dim}$ is computed as:
 
-```
+```math
 H_{tr\_dim} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
 ```
 
@@ -73,13 +73,13 @@ For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H\_{tr\_dim}=(0.35+5
 
 The dimensionless transitional parameter ($\tilde{H}\_{tr}$) normalizes the dimensional transitional wave height by the mean square wave height:
 
-```
+```math
 \tilde{H}_{tr} = \frac{H_{tr\_dim}}{H_{rms}}
 ```
 
 A critical adjustment is applied: if $\tilde{H}\_{tr}$ exceeds 3.5, it is capped at 3.5, and $H\_{tr\_dim}$ is recalculated to maintain consistency, as the model's empirical basis is limited beyond this value:
 
-```
+```math
 \text{If } \tilde{H}_{tr} > 3.5, \text{ then } \tilde{H}_{tr} = 3.5 \text{ and } H_{tr\_dim} = 3.5 \cdot H_{rms}
 ```
 
@@ -113,7 +113,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 
 The calculated dimensionless wave-height ratios ($\tilde{H}\_N$ or $\tilde{H}\_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H\_{rms}$):
 
-```
+```math
 H = \tilde{H} \cdot H_{rms}
 ```
 
