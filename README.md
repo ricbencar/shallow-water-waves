@@ -137,13 +137,13 @@ Finally, the program computes several diagnostic ratios, which provide insights 
 
 The core calculations rely on precise implementations of fundamental mathematical functions:
 
-* **Complete Gamma Function ($Γ(z)$):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function ($\ln(Γ(a))$), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
+* **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
-* **Normalized Lower Incomplete Gamma Function ($P(a,x)$ or $Γ(a,x)/Γ(a)$):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
+* **Normalized Lower Incomplete Gamma Function ($P(a,x)$ or Γ(a,x)/Γ(a)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
-* **Normalized Upper Incomplete Gamma Function ($Q(a,x)$ or $Γ(a,x)/Γ(a)$):** This is directly derived as $1 - P(a,x)$.
+* **Normalized Upper Incomplete Gamma Function ($Q(a,x)$ or Γ(a,x)/Γ(a)):** This is directly derived as $1 - P(a,x)$.
 
-* **Unnormalized Upper Incomplete Gamma Function ($Γ(a,x)$):** This is calculated as $Q(a,x) \cdot Γ(a)$.
+* **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as $Q(a,x) \cdot Γ(a)$.
 
 ## Building and Running
 
