@@ -2,9 +2,12 @@
 
 ## Overview
 
-This project provides both a **Command-Line Interface (CLI)** and a **Graphical User Interface (GUI)** application for computing local shallow-foreshore wave-height distribution parameters. The underlying model is based on the **Composite Weibull distribution**, as detailed in "Shallow foreshore wave height statistics" by H. Groenendijk (Master's Thesis, Delft University of Technology, 1998). This model is particularly suited for shallow foreshore environments, where wave behavior deviates significantly from deep-water conditions due to phenomena like depth-induced breaking and non-linear wave-wave interactions.
+This project presents a robust solution for accurately computing local shallow-foreshore wave-height distribution parameters, critical for coastal engineering applications. It offers both a **Command-Line Interface (CLI)** and a **Graphical User Interface (GUI)**, providing flexibility for users to interact with the model. The core of this project lies in its implementation of the **Composite Weibull distribution**, a sophisticated model specifically designed for shallow water environments.
 
-The applications allow users to input key wave and bathymetric parameters, perform complex wave height distribution calculations, and generate a detailed report of the results.
+Unlike deep-water conditions where wave behavior is often well-described by simpler distributions like Rayleigh, shallow foreshores introduce complex phenomena such as depth-induced breaking, non-linear wave-wave interactions, and bottom friction. These processes significantly alter wave height distributions, making accurate prediction challenging (Groenendijk, 1998; Battjes & Groenendijk, 2000). The Composite Weibull distribution addresses these complexities by employing a two-part structure that effectively captures the distinct physical regimes of unbroken and breaking waves.
+
+Through these applications, users can input essential wave parameters to perform local wave heights distribution calculations. The output includes a detailed report of the computed values, offering insights for the design of marine structures, coastal protection systems, and the assessment of wave-related phenomena like overtopping.
+
 
 ## Features
 
@@ -189,22 +192,16 @@ g++ -O3 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui -
 **Usage:**
 Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the `Hm0`, `d`, and `Beach slope m` values in the respective text fields and click "Compute" to see the results. The report will also be saved to `report.txt` in the same directory as the executable.
 
-## Credits
-
-This project's underlying model is based on:
-
-* **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics.* M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands. [https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3](https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
-
 ## References
 
-* **Battjes, J. A., & Groenendijk, H. W. (2000).** Wave height distributions on shallow foreshores. *Coastal Engineering*, 40(3), 161-182. [https://www.sciencedirect.com/science/article/pii/S0378383900000077](https://www.sciencedirect.com/science/article/pii/S0378383900000077)
+* **Battjes, J. A., & Groenendijk, H. W. (2000).** Wave height distributions on shallow foreshores. *Coastal Engineering*, 40(3), 161-182. [https://data-ww3.ifremer.fr/BIB/Battjes_Groenendijk_CE2000.pdf](https://data-ww3.ifremer.fr/BIB/Battjes_Groenendijk_CE2000.pdf)
 * **Boccotti, P. (1989).** On mechanics of irregular gravity waves. *Atti della Accademia Nazionale dei Lincei, Memorie*, 19, 110-170.
 * **Caires, S., & Van Gent, M. R. A. (2012).** Wave height distribution in constant and finite depths. *Coastal Engineering Proceedings*, 1(33), 15. [https://journals.tdl.org/icce/index.php/icce/article/view/14740](https://journals.tdl.org/icce/index.php/icce/article/view/14740)
 * **DNV (2010).** *DNV-RP-C205 Environmental Conditions and Environmental Loads*. Technical Report.
 * **Glukhovskiy, B. (1966).** *Investigation of sea wind waves* (in Russian). Leningrad, Gidrometeoizdat.
 * **Goda, Y. (1979).** A review on statistical interpretation of wave data. *Report of the Port and Harbour Research Institute, Japan*, 18(1), 5-32.
 * **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics*. M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands. [https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3](https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
-* **Groenendijk, H. W., & Van Gent, M. R. A. (1998).** *Shallow foreshore wave height statistics; A predictive model for the probability of exceedance of wave heights*. Technical Report H3351, WL | delft hydraulics, The Netherlands.
+* **Groenendijk, H. W., & Van Gent, M. R. A. (1998).** *Shallow foreshore wave height statistics; A predictive model for the probability of exceedance of wave heights*. Technical Report H3351, WL | delft hydraulics, The Netherlands. [http://dx.doi.org/10.13140/RG.2.2.14180.68486](http://dx.doi.org/10.13140/RG.2.2.14180.68486)
 * **Hasselmann, K., Barnett, T. P., Bouws, E., Carlson, H., Cartwright, D. E., Enke, K.,... & Walden, H. (1973).** *Measurements of Wind-Wave Growth and Swell Decay during the Joint North Sea Wave Project (JONSWAP)*. Ergnzungsheft zur Deutschen Hydrographischen Zeitschrift Reihe, A (8), 95.
 * **Karmpadakis, I., Swan, C., & Christou, M. (2020).** Assessment of wave height distributions using an extensive field database. *Coastal Engineering*, 157, 103630. [https://doi.org/10.1016/j.coastaleng.2019.103630](https://doi.org/10.1016/j.coastaleng.2019.103630)
 * **Karmpadakis, I., Swan, C., & Christou, M. (2022).** A new wave height distribution for intermediate and shallow water depths. *Coastal Engineering*, 175, 104130. [https://doi.org/10.1016/j.coastaleng.2022.104130](https://doi.org/10.1016/j.coastaleng.2022.104130)
