@@ -194,10 +194,7 @@ Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appea
 ## References
 
 * **Battjes, J. A., & Groenendijk, H. W. (2000).** Wave height distributions on shallow foreshores. *Coastal Engineering*, 40(3), 161-182. [https://data-ww3.ifremer.fr/BIB/Battjes_Groenendijk_CE2000.pdf](https://data-ww3.ifremer.fr/BIB/Battjes_Groenendijk_CE2000.pdf)
-* **Boccotti, P. (1989).** On mechanics of irregular gravity waves. *Atti della Accademia Nazionale dei Lincei, Memorie*, 19, 110-170.
 * **Caires, S., & Van Gent, M. R. A. (2012).** Wave height distribution in constant and finite depths. *Coastal Engineering Proceedings*, 1(33), 15. [https://journals.tdl.org/icce/index.php/icce/article/view/14740](https://journals.tdl.org/icce/index.php/icce/article/view/14740)
-* **DNV (2010).** *DNV-RP-C205 Environmental Conditions and Environmental Loads*. Technical Report.
-* **Glukhovskiy, B. (1966).** *Investigation of sea wind waves* (in Russian). Leningrad, Gidrometeoizdat.
 * **Goda, Y. (1979).** A review on statistical interpretation of wave data. *Report of the Port and Harbour Research Institute, Japan*, 18(1), 5-32.
 * **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics*. M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands. [https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3](https://repository.tudelft.nl/record/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
 * **Groenendijk, H. W., & Van Gent, M. R. A. (1998).** *Shallow foreshore wave height statistics; A predictive model for the probability of exceedance of wave heights*. Technical Report H3351, WL | delft hydraulics, The Netherlands. [http://dx.doi.org/10.13140/RG.2.2.14180.68486](http://dx.doi.org/10.13140/RG.2.2.14180.68486)
