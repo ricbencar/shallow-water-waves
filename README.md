@@ -10,7 +10,7 @@ The applications allow users to input key wave and bathymetric parameters, perfo
 
 * **Dual Interface**: Offers both a command-line interface for quick calculations and scripting, and a graphical user interface for ease of use.
 
-* **Composed Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k\_1=2.0$, $k\_2=3.5$).
+* **Composed Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k\_1=2.0$, $k\_2=3.6$).
 
 * **Key Parameter Calculation**: Computes free-surface variance ($m\_0$), mean square wave height ($H\_{rms}$), and dimensional/dimensionless transitional wave heights ($H\_{tr\_dim}$, $\tilde{H}\_{tr}$).
 
@@ -49,7 +49,7 @@ m_0 = \left(\frac{H_{m0}}{4}\right)^2
 The mean square wave height ($H\_{rms}$) is an important characteristic of the wave field. Its calculation incorporates empirical coefficients to better capture the shallow-water distribution of extreme waves, deviating from the original deep-water formulas. This formula is derived from Groenendijk (1998), with slightly increased empirical coefficients:
 
 ```math
-H_{rms} = \left(3.00 + 3.50 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
+H_{rms} = \left(2.69 + 3.24 \cdot \sqrt{\frac{m_0}{d}}\right) \cdot \sqrt{m_0}
 ```
 
 ### 3. Dimensional Transitional Wave Height ($H\_{tr\_dim}$)
