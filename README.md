@@ -15,8 +15,8 @@ The Composite Weibull distribution is a two-part distribution specifically desig
 
 $$
 F(\tilde{h}) = \begin{cases}
-1 - \exp\left[-\left(\frac{\tilde{h}}{\tilde{H}_1}\right)^{k_1}\right] & \tilde{h} < \tilde{H}_{tr} \\
-1 - \exp\left[-\left(\frac{\tilde{h}}{\tilde{H}_2}\right)^{k_2}\right] & \tilde{h} \ge \tilde{H}_{tr}
+1 - \exp\left[-\left(\frac{\tilde{h}}{\tilde{H}_1}\right)^{k_1}\right], & \tilde{h} < \tilde{H}_{tr} \\
+1 - \exp\left[-\left(\frac{\tilde{h}}{\tilde{H}_2}\right)^{k_2}\right], & \tilde{h} \ge \tilde{H}_{tr}
 \end{cases}
 $$
 
@@ -37,14 +37,16 @@ Where:
 The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H\_{rms}$ and continuity at the transitional wave height. These equations are:
 
 1.  **Normalized** $H\_{rms}$ **Constraint (from Groenendijk, 1998, Equation 7.11):**
-    $$
-1 = \sqrt{\tilde{H}_{1}^{2}\gamma\left(\frac{2}{k_{1}}+1,\left(\frac{\tilde{H}_{tr}}{\tilde{H}_{1}}\right)^{k_{1}}\right)+\tilde{H}_{2}^{2}\Gamma\left(\frac{2}{k_{2}}+1,\left(\frac{\tilde{H}_{tr}}{\tilde{H}_{2}}\right)^{k_{2}}\right)}
-$$
+   $$
+1 = \sqrt{
+\tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right) 
++ \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
+}$$
     This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
 
 2.  **Continuity Condition (from Groenendijk, 1998, Equation 3.4):**
     $$
-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_{1}}\right)^{k_{1}}=\left(\frac{\tilde{H}_{tr}}{\tilde{H}_{2}}\right)^{k_{2}}
+\left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
 $$
     This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
 
