@@ -38,7 +38,7 @@ The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a syste
 
 1.  **Normalized** $H\_{rms}$ **Constraint (from Groenendijk, 1998, Equation 7.11):**
    ```math
-   \tilde{Hrms}_{tr} = 1 = \sqrt{
+   \tilde{H}_{rms} = 1 = \sqrt{
    \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
    + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
 }
@@ -140,7 +140,7 @@ where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution 
 H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}
 ```
 
-Here, $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
+Here, $Γ(a,x)$ and $Γ(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
 
 Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribution) and $\tilde{H}_2$ (the normalized scale parameter of the second Weibull distribution) are determined, the model calculates two types of dimensionless wave heights:
 
@@ -156,7 +156,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 
         $$H_{UN} = NH_1 \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] + NH_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{H_{tr}}{H_2}\right)^{k_2}\right)$$
 
-        where $\Gamma(a,x)$ is the unnormalized upper incomplete gamma function.
+        where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
 
     * **Case 2:** $\tilde{H}\_N \ge \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}\_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
 
@@ -178,7 +178,7 @@ Finally, the program computes several diagnostic ratios, which provide insights 
 
 The core calculations rely on precise implementations of fundamental mathematical functions:
 
-* **Complete Gamma Function ($\Gamma(z)$):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln($\Gamma(a)$)), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
+* **Complete Gamma Function ($Γ(z)$):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln($Γ(a)$)), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
 * **Unnormalized Lower Incomplete Gamma Function ($\gamma(a,x)$):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
