@@ -25,14 +25,12 @@
  *
  * - The dimensionless transitional parameter:
  * H̃_tr = Htr / Hrms.
- * If H̃_tr is above 3.5 then it is set to 3.5 and Htr is recalculated as
- * Htr = 3.5 * Hrms.
  *
  * - The dimensionless wave-height ratios (Hᵢ/Hrms) are calculated
  * by solving a system of non-linear equations derived from the Composite Weibull
  * distribution, ensuring the normalized Hrms of the distribution equals one.
  * This involves using a Newton-Raphson matrix method for simultaneous root-finding
- * and functions for incomplete gamma calculations. These ratios are then
+ * and functions for unnormalized incomplete gamma calculations. These ratios are then
  * converted to dimensional quantities (in meters) by multiplying with Hrms.
  *
  * - A detailed report is then generated (and written to "report.txt") with
@@ -41,7 +39,8 @@
  *
  * Compilation Instructions (example using g++ on Windows with OpenMP):
  *
- * g++ -O3 -Wall -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui ^
+ * g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic ^
+ * -Wconversion -Wsign-conversion -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui ^
  * -mwindows -static -static-libgcc -static-libstdc++ -fopenmp
  *
  ***********************************************************************/
@@ -77,119 +76,137 @@ const double LOCAL_EPS = 1e-16; // A very small tolerance value (10^-16) used fo
                                 // within the gamma function calculations.
 
 /**
- * @brief Computes the normalized lower incomplete gamma function P(a, x) = γ(a, x)/Γ(a).
+ * @brief Computes the unnormalized lower incomplete gamma function γ(a, x) = ∫[0,x] t^(a-1)e^(-t) dt.
  *
- * This function is a critical component for calculating moments of Weibull distributions.
- * It employs a hybrid approach for numerical stability and accuracy:
- * - For small values of 'x', it uses a series expansion.
+ * This function is a critical component for calculating moments of Weibull distributions,
+ * which are fundamental to the Composite Weibull model. It employs a hybrid approach
+ * for numerical stability and accuracy:
+ * - For small values of 'x' (specifically, x < a + 1.0), it uses a series expansion.
  * - For larger values of 'x', it utilizes a continued fraction expansion.
+ * This adaptive strategy ensures robust and precise computation across different input ranges.
  *
  * @param a The 'a' parameter (shape parameter) of the incomplete gamma function. Must be positive.
  * @param x The 'x' parameter (upper integration limit) of the incomplete gamma function. Must be non-negative.
- * @return The computed value of P(a, x). Returns `nan("")` (Not-a-Number) if input parameters are invalid.
+ * @return The computed value of γ(a, x). Returns `nan("")` (Not-a-Number) if input parameters are invalid
+ * or if the series/continued fraction fails to converge within the maximum iterations.
  */
-double incomplete_gamma_p(double a, double x)
+double incomplete_gamma_lower(double a, double x)
 {
-    const int MAXIT = 500;      
-    
-    if(a <= 0.0 || x < 0.0)
-        return std::nan("");
-    if(x == 0.0)
-        return 0.0;
+    const int MAXIT = 500;      // Maximum number of iterations allowed for either the series expansion or the continued fraction.
 
+    // Input validation: Essential for preventing mathematical errors and ensuring function robustness.
+    if(a <= 0.0 || x < 0.0)
+        return std::nan(""); // If 'a' is not positive or 'x' is negative, return NaN as the result is undefined.
+    if(x == 0.0)
+        return 0.0; // By definition, γ(a, 0) is 0 for any positive 'a'.
+
+    // Compute the natural logarithm of the complete gamma function, ln(Γ(a)).
+    // `std::lgamma` is used instead of `std::tgamma` followed by `log` for improved numerical stability,
+    // especially when 'a' is large, as `lgamma` avoids potential overflow/underflow issues with very large/small gamma values.
     double gln = std::lgamma(a);
-    
-    if(x < a + 1.0) {
-        double ap = a;
-        double sum = 1.0 / a;
-        double del = sum;
-        for (int n_iter = 1; n_iter <= MAXIT; ++n_iter) {
-            ap += 1.0;
-            del *= x / ap;
-            sum += del;
-            if(std::fabs(del) < std::fabs(sum) * LOCAL_EPS)
-                return sum * std::exp(-x + a * std::log(x) - gln);
+
+    // Conditional logic to select the appropriate numerical method (series or continued fraction).
+    // This choice is based on the relationship between 'x' and 'a', a common heuristic for optimal performance and accuracy.
+    if(x < a + 1.0) {  // Use series expansion for x < a+1.
+        double ap = a;          // `ap` is a mutable copy of 'a', used to increment in the series terms.
+        double sum = 1.0 / a;   // Initialize the sum with the first term of the series expansion.
+        double del = sum;       // `del` stores the value of the current term being added to the sum.
+        for (int n_iter = 1; n_iter <= MAXIT; ++n_iter) { // Iterate up to MAXIT to compute series terms.
+            ap += 1.0;          // Increment 'a' for the next term in the series (a+1, a+2, ...).
+            del *= x / ap;      // Calculate the next term: `del_n = del_{n-1} * (x / (a + n))`.
+            sum += del;         // Add the newly calculated term to the cumulative sum.
+            // Check for convergence: If the absolute value of the current term (`del`) is extremely small
+            // relative to the absolute value of the cumulative sum (`sum`), then the series has converged.
+            if(std::abs(del) < std::abs(sum) * LOCAL_EPS)
+                // Return the final result for γ(a,x).
+                return sum * std::exp(-x + a * std::log(x) - gln) * std::tgamma(a);
         }
-        return std::nan("");
-    } else {
-        double b = x + 1.0 - a;
+        return std::nan(""); // If the loop finishes without `del` becoming sufficiently small, it means convergence failed.
+    } else {  // Use continued fraction for x >= a+1.
+        double b = x + 1.0 - a; // Initialize the 'b' term (B_0) for the continued fraction expansion.
+        // Initialize 'c' and 'd' to extremely large/small values. This is a common technique
+        // to prevent division by zero or underflow during the initial steps of the continued fraction
+        // algorithm, where denominators might otherwise be zero or very close to zero.
         double c = 1.0 / std::numeric_limits<double>::min();
         double d = 1.0 / b;
-        double h = d;
-        for (int i = 1; i <= MAXIT; ++i) {
-            double an = -1.0 * i * (i - a);
-            b += 2.0;
-            d = an * d + b;
-            if(std::fabs(d) < std::numeric_limits<double>::min())
+        double h = d; // `h` accumulates the value of the continued fraction.
+        for (int i = 1; i <= MAXIT; ++i) { // Iterate up to MAXIT to compute continued fraction terms.
+            double an = -1.0 * i * (i - a); // Calculate the 'a_n' term (numerator) for the current iteration.
+            b += 2.0; // Update the 'b_n' term (denominator) for the current iteration.
+            d = an * d + b; // Apply the recurrence relation for D_n (denominator part of the fraction).
+            // Safeguard against division by zero or extremely small numbers for 'd'.
+            if(std::abs(d) < std::numeric_limits<double>::min())
                 d = std::numeric_limits<double>::min();
-            c = b + an / c;
-            if(std::fabs(c) < std::numeric_limits<double>::min())
+            c = b + an / c; // Apply the recurrence relation for C_n (numerator part of the fraction).
+            // Safeguard against division by zero or extremely small numbers for 'c'.
+            if(std::abs(c) < std::numeric_limits<double>::min())
                 c = std::numeric_limits<double>::min();
-            d = 1.0 / d;
-            double del = d * c;
-            h *= del;
-            if(std::fabs(del - 1.0) < LOCAL_EPS)
-                break;
+            d = 1.0 / d;    // Invert 'd' for the next step.
+            double del = d * c; // Calculate the current term (delta_n) of the continued fraction.
+            h *= del;       // Multiply `h` by the current term to update the accumulated fraction value.
+            // Check for convergence: If the current term `del` is very close to 1.0, the continued fraction has converged.
+            if(std::abs(del - 1.0) < LOCAL_EPS)
+                break; // Exit the loop if converged.
         }
+        // This part of the calculation results in Q(a,x) before multiplication by Gamma(a).
         double lnPart = -x + a * std::log(x) - gln;
-        double Qval = std::exp(lnPart) * h;
-        double Pval = 1.0 - Qval;
-        return (Pval < 0.0) ? 0.0 : Pval;
+        double Qval_normalized = std::exp(lnPart) * h;
+        // P(a,x) = 1 - Q(a,x).
+        double Pval_normalized = (1.0 - Qval_normalized);
+        // It's clamped to 0.0 to prevent very small negative floating-point results due to precision issues.
+        Pval_normalized = (Pval_normalized < 0.0) ? 0.0 : Pval_normalized;
+        // Return unnormalized lower incomplete gamma γ(a,x) = P(a,x) * Γ(a).
+        return Pval_normalized * std::tgamma(a);
     }
 }
 
-/**
- * @brief Computes the normalized upper incomplete gamma function Q(a, x) = Γ(a, x)/Γ(a).
- *
- * This function is a simple wrapper that leverages the `incomplete_gamma_p` function.
- * By definition, Q(a, x) is the complement of P(a, x), i.e., 1 - P(a, x).
- *
- * @param a The 'a' parameter of the incomplete gamma function.
- * @param x The 'x' parameter of the incomplete gamma function.
- * @return The computed value of Q(a, x).
- */
-inline double incomplete_gamma_q(double a, double x) {
-    return 1.0 - incomplete_gamma_p(a, x);
-}
 
 /**
- * @brief Computes the unnormalized upper incomplete gamma function Γ(a, x).
+ * @brief Computes the unnormalized upper incomplete gamma function Γ(a, x) = ∫[x,∞] t^(a-1)e^(-t) dt.
  *
  * This function calculates the unnormalized form of the upper incomplete gamma function.
- * It is derived from the normalized upper incomplete gamma function Q(a, x) and the complete gamma function Γ(a).
+ * It is derived from the complete gamma function Γ(a) and the unnormalized lower incomplete gamma function γ(a, x),
+ * using the identity Γ(a,x) = Γ(a) - γ(a,x).
  *
  * @param a The 'a' parameter (shape parameter) of the incomplete gamma function. Must be positive.
  * @param x The 'x' parameter (lower integration limit) of the incomplete gamma function. Must be non-negative.
  * @return The computed value of the unnormalized upper incomplete gamma function Γ(a, x).
  * @throws `std::invalid_argument` if input parameters ('a' or 'x') are outside their valid ranges.
  */
-double incomplete_gamma(double a, double x) {
+double incomplete_gamma_upper(double a, double x) {
+    // Input validation: Ensures 'a' is positive and 'x' is non-negative, as required by the gamma function definitions.
     if (a <= 0.0) {
-        throw std::invalid_argument("incomplete_gamma: 'a' must be positive.");
+        throw std::invalid_argument("incomplete_gamma_upper: 'a' must be positive.");
     }
     if (x < 0.0) {
-        throw std::invalid_argument("incomplete_gamma: 'x' must be non-negative.");
+        throw std::invalid_argument("incomplete_gamma_upper: 'x' must be non-negative.");
     }
-    return incomplete_gamma_q(a, x) * std::tgamma(a);
+    // Calculation: Γ(a,x) = Γ(a) - γ(a,x).
+    // `std::tgamma` computes the complete gamma function Γ(a).
+    return std::tgamma(a) - incomplete_gamma_lower(a, x);
 }
+
 
 /**
  * @brief Calculates HN (wave height with 1/N exceedance probability) for the Composite Weibull distribution.
  *
  * This function determines the specific wave height (H) such that the probability of a wave
- * exceeding this height is 1/N. The calculation depends on whether the target wave height
- * falls into the first or second part of the Composite Weibull distribution, separated by Htr.
+ * exceeding this height is 1/N. This is a key statistical measure. The calculation depends
+ * on whether the target wave height falls into the first or second part of the Composite Weibull
+ * distribution, which is separated by the transitional wave height (Htr).
  *
- * @param N The N value (e.g., 3 for H1/3). Must be strictly greater than 1.0.
+ * @param N The N value (e.g., 3 for H1/3, 100 for H1%). Must be strictly greater than 1.0
+ * because `log(N)` is used, and `N=1` would result in `log(1)=0`.
  * @param H1 The scale parameter of the first Weibull distribution. Must be positive.
  * @param H2 The scale parameter of the second Weibull distribution. Must be positive.
- * @param k1 The exponent of the first Weibull distribution. Must be positive.
- * @param k2 The exponent of the second Weibull distribution. Must be positive.
- * @param Htr The transitional wave height.
+ * @param k1 The exponent (shape parameter) of the first Weibull distribution. Must be positive.
+ * @param k2 The exponent (shape parameter) of the second Weibull distribution. Must be positive.
+ * @param Htr The transitional wave height, which defines the boundary between the two Weibull parts.
  * @return The calculated value of HN.
- * @throws `std::invalid_argument` if input parameters are invalid.
+ * @throws `std::invalid_argument` if input parameters are invalid (e.g., N <= 1, H1/H2 <= 0, k1/k2 <= 0).
  */
 double calculate_HN(double N, double H1, double H2, double k1, double k2, double Htr) {
+    // Input validation: Ensures all parameters are within their mathematically valid ranges.
     if (N <= 1.0) {
         throw std::invalid_argument("calculate_HN: N must be greater than 1 for log(N).");
     }
@@ -200,11 +217,17 @@ double calculate_HN(double N, double H1, double H2, double k1, double k2, double
         throw std::invalid_argument("calculate_HN: k1 and k2 must be positive.");
     }
 
+    // Calculate a candidate HN assuming it falls within the *first* part of the distribution (H <= Htr).
     double HN_candidate1 = H1 * std::pow(std::log(N), 1.0 / k1);
 
+    // Decision point: Check if the `HN_candidate1` is indeed less than the transitional wave height (Htr).
+    // A small `EPSILON` is subtracted from `Htr` to account for floating-point inaccuracies when comparing.
     if (HN_candidate1 < Htr - EPSILON) {
+        // If true, it means the wave height for the given exceedance probability is governed by the first Weibull part.
         return HN_candidate1;
     } else {
+        // If `HN_candidate1` is not less than `Htr`, it implies that the wave height for the given
+        // exceedance probability is determined by the *second* part of the distribution (H > Htr).
         return H2 * std::pow(std::log(N), 1.0 / k2);
     }
 }
@@ -213,19 +236,22 @@ double calculate_HN(double N, double H1, double H2, double k1, double k2, double
  * @brief Calculates the mean of the highest 1/N-part of wave heights (H1/N) for the Composite Weibull distribution.
  *
  * This function computes a characteristic wave height that represents the average height of the
- * highest N-th fraction of waves. The calculation depends on whether the relevant wave heights
- * fall into the first or second part of the Composite Weibull distribution.
+ * highest N-th fraction of waves in a given wave field. This is a commonly used metric in
+ * oceanography and coastal engineering (e.g., H1/3 for significant wave height).
+ * The calculation involves integrals of the probability density function and depends on
+ * whether the relevant wave heights fall into the first or second part of the Composite Weibull distribution.
  *
- * @param N_val The N parameter for H1/N. Must be strictly greater than 1.
+ * @param N_val The N parameter for H1/N (e.g., 3 for H1/3, 10 for H1/10). Must be strictly greater than 1.
  * @param H1 The scale parameter of the first Weibull distribution. Must be positive.
  * @param H2 The scale parameter of the second Weibull distribution. Must be positive.
- * @param k1 The exponent of the first Weibull distribution. Must be positive.
- * @param k2 The exponent of the second Weibull distribution. Must be positive.
+ * @param k1 The exponent (shape parameter) of the first Weibull distribution. Must be positive.
+ * @param k2 The exponent (shape parameter) of the second Weibull distribution. Must be positive.
  * @param Htr The transitional wave height.
  * @return The calculated value of H1/N.
- * @throws `std::invalid_argument` if input parameters are invalid.
+ * @throws `std::invalid_argument` if input parameters are invalid (e.g., H1/H2 <= 0, k1/k2 <= 0, N_val <= 1).
  */
 double calculate_H1N(double N_val, double H1, double H2, double k1, double k2, double Htr) {
+    // Input validation: Ensures all parameters are within their mathematically valid ranges.
     if (H1 <= 0.0 || H2 <= 0.0) {
         throw std::invalid_argument("calculate_H1N: H1 and H2 must be positive.");
     }
@@ -236,27 +262,35 @@ double calculate_H1N(double N_val, double H1, double H2, double k1, double k2, d
         throw std::invalid_argument("calculate_H1N: N_val must be greater than 1.");
     }
 
+    // First, determine HN (the wave height with 1/N exceedance probability).
+    // This is crucial because the integration limits and the specific formula for H1/N
+    // depend on where HN falls relative to Htr.
     double H_N_val = calculate_HN(N_val, H1, H2, k1, k2, Htr);
 
-    if (H_N_val < Htr - EPSILON) {
-        double term1_a = 1.0 / k1 + 1.0;
-        double term1_x_ln_Nval = std::log(N_val);
-        double term1_x_HtrH1 = std::pow(Htr / H1, k1);
+    // Calculate common terms needed for both cases.
+    double term1_a = 1.0 / k1 + 1.0;
+    double term1_x_ln_Nval = std::log(N_val);
+    double term1_x_HtrH1 = std::pow(Htr / H1, k1);
 
-        double gamma_term1_part1 = incomplete_gamma(term1_a, term1_x_ln_Nval);
-        double gamma_term1_part2 = incomplete_gamma(term1_a, term1_x_HtrH1);
+    double term2_a = 1.0 / k2 + 1.0;
+    double term2_x_HtrH2 = std::pow(Htr / H2, k2);
+
+    // Case 1: H_N_val is smaller than Htr.
+    // This implies that the integration for H1/N spans both parts of the Composite Weibull distribution.
+    if (H_N_val < Htr - EPSILON) {
+        // Contribution from the first Weibull distribution.
+        double gamma_term1_part1 = incomplete_gamma_upper(term1_a, term1_x_ln_Nval);
+        double gamma_term1_part2 = incomplete_gamma_upper(term1_a, term1_x_HtrH1);
         double gamma_term1 = gamma_term1_part1 - gamma_term1_part2;
 
-        double term2_a = 1.0 / k2 + 1.0;
-        double term2_x_HtrH2 = std::pow(Htr / H2, k2);
-
-        double gamma_term2 = incomplete_gamma(term2_a, term2_x_HtrH2);
+        // Contribution from the second Weibull distribution.
+        double gamma_term2 = incomplete_gamma_upper(term2_a, term2_x_HtrH2);
 
         return N_val * H1 * gamma_term1 + N_val * H2 * gamma_term2;
     } else {
-        double term_a = 1.0 / k2 + 1.0;
-        double term_x = std::log(N_val);
-        return N_val * H2 * incomplete_gamma(term_a, term_x);
+        // Case 2: H_N_val is greater than or equal to Htr.
+        // This means the integration for H1/N only involves the second part of the Composite Weibull distribution.
+        return N_val * H2 * incomplete_gamma_upper(term2_a, term1_x_ln_Nval);
     }
 }
 
@@ -266,7 +300,9 @@ double calculate_H1N(double N_val, double H1, double H2, double k1, double k2, d
  * @brief Defines the first non-linear equation F1(H1_Hrms, H2_Hrms, Htr_Hrms) = 0.
  *
  * This equation represents the normalized Hrms constraint for the Composite Weibull distribution.
- * It states that the square root of the weighted sum of incomplete gamma functions must equal 1.
+ * It states that the overall normalized Hrms of the Composite Weibull distribution must precisely equal 1.
+ * The equation directly uses the unnormalized lower incomplete gamma function, γ(a,x),
+ * and the unnormalized upper incomplete gamma function, Γ(a,x).
  *
  * @param H1_Hrms The normalized scale parameter of the first Weibull distribution.
  * @param H2_Hrms The normalized scale parameter of the second Weibull distribution.
@@ -274,18 +310,23 @@ double calculate_H1N(double N_val, double H1, double H2, double k1, double k2, d
  * @return The value of the first function, which should be driven to zero.
  */
 double F1(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
+    // Input validation for H1_Hrms and H2_Hrms to prevent issues like log(0) or sqrt(negative).
+    // While the solver should ideally keep values positive, these checks add robustness.
     if (H1_Hrms <= 0.0 || H2_Hrms <= 0.0) {
+        // Return a large value to push the solver away from invalid regions.
         return std::numeric_limits<double>::max();
     }
 
     double arg1 = std::pow(Htr_Hrms / H1_Hrms, k1);
     double arg2 = std::pow(Htr_Hrms / H2_Hrms, k2);
 
-    double term1 = H1_Hrms * H1_Hrms * incomplete_gamma_p(2.0 / k1 + 1.0, arg1);
-    double term2 = H2_Hrms * H2_Hrms * incomplete_gamma_q(2.0 / k2 + 1.0, arg2);
+    // Calculate terms using unnormalized incomplete gamma functions.
+    double term1 = H1_Hrms * H1_Hrms * incomplete_gamma_lower(2.0 / k1 + 1.0, arg1);
+    double term2 = H2_Hrms * H2_Hrms * incomplete_gamma_upper(2.0 / k2 + 1.0, arg2);
 
+    // Ensure the argument to sqrt is non-negative, though theoretically it should be.
     double sum_terms = term1 + term2;
-    if (sum_terms < 0.0) sum_terms = 0.0;
+    if (sum_terms < 0.0) sum_terms = 0.0; // Clamp to zero to avoid NaN from sqrt of negative.
 
     return std::sqrt(sum_terms) - 1.0;
 }
@@ -294,7 +335,7 @@ double F1(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
  * @brief Defines the second non-linear equation F2(H1_Hrms, H2_Hrms, Htr_Hrms) = 0.
  *
  * This equation represents the continuity condition between the two Weibull distributions
- * at the transitional wave height Htr.
+ * at the transitional wave height Htr: `(Htr/H1)^k1 = (Htr/H2)^k2`.
  *
  * @param H1_Hrms The normalized scale parameter of the first Weibull distribution.
  * @param H2_Hrms The normalized scale parameter of the second Weibull distribution.
@@ -302,7 +343,9 @@ double F1(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
  * @return The value of the second function, which should be driven to zero.
  */
 double F2(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
+    // Input validation for H1_Hrms and H2_Hrms to prevent division by zero or log(0).
     if (H1_Hrms <= 0.0 || H2_Hrms <= 0.0) {
+        // Return a large value to push the solver away from invalid regions.
         return std::numeric_limits<double>::max();
     }
     return std::pow(Htr_Hrms / H1_Hrms, k1) - std::pow(Htr_Hrms / H2_Hrms, k2);
@@ -312,6 +355,9 @@ double F2(double H1_Hrms, double H2_Hrms, double Htr_Hrms) {
  * @brief Solves a 2x2 linear system Ax = b for x using Cramer's rule.
  *
  * This function is a helper for the Newton-Raphson method for systems.
+ * It takes the Jacobian matrix elements (J11, J12, J21, J22) and the negative
+ * function values (-F1, -F2) as the right-hand side, and computes the updates
+ * (dx1, dx2) for H1_Hrms and H2_Hrms.
  *
  * @param J11 Element (1,1) of the Jacobian matrix (dF1/dH1).
  * @param J12 Element (1,2) of the Jacobian matrix (dF1/dH2).
@@ -326,12 +372,17 @@ void solve_linear_system_2x2(double J11, double J12, double J21, double J22,
                              double b1, double b2, double &dx1, double &dx2) {
     double determinant = J11 * J22 - J12 * J21;
 
+    // Check for a singular or nearly singular Jacobian matrix.
     if (std::abs(determinant) < std::numeric_limits<double>::epsilon() * 100) {
+        // If determinant is too small, the matrix is singular or ill-conditioned.
+        // In this case, we cannot reliably solve the system.
+        // Set dx1 and dx2 to zero to prevent large, unstable steps.
         dx1 = 0.0;
         dx2 = 0.0;
         return;
     }
 
+    // Apply Cramer's rule:
     dx1 = (b1 * J22 - b2 * J12) / determinant;
     dx2 = (J11 * b2 - J21 * b1) / determinant;
 }
@@ -340,26 +391,31 @@ void solve_linear_system_2x2(double J11, double J12, double J21, double J22,
  * @brief Provides initial guesses for H1_Hrms and H2_Hrms based on Htr_Hrms.
  *
  * A good initial guess is crucial for the efficiency and robustness of the Newton-Raphson method.
+ * This function uses an empirical regression for H1_Hrms, and then derives H2_Hrms from the
+ * continuity condition, assuming an initial relationship.
  *
  * @param Htr_Hrms The normalized transitional wave height.
  * @param H1_initial Output: The initial guess for H1_Hrms.
  * @param H2_initial Output: The initial guess for H2_Hrms.
  */
 void get_initial_guesses(double Htr_Hrms, double &H1_initial, double &H2_initial) {
-    double logHtr = std::log(Htr_Hrms);
-    H1_initial = 1.0 + std::exp(-1.705 - 2.329 * logHtr - 0.313 * logHtr * logHtr);
+    // Empirical regression for H1/Hrms.
+    H1_initial = 0.9552427998926 / (1.0 - 0.992405988921401 * exp(-1.42537392576977 * Htr_Hrms));
 
-    H2_initial = Htr_Hrms * std::pow(H1_initial / Htr_Hrms, k1 / k2);
+    // Empirical regression for H2_initial
+    H2_initial = 1.054085273232950 + 0.9369023639428842 * pow(Htr_Hrms, 2.980718327103574) / (pow(2.549022900471753, 2.980718327103574) + pow(Htr_Hrms, 2.980718327103574));
 
-    if (H1_initial <= 0.0) H1_initial = std::numeric_limits<double>::min();
-    if (H2_initial <= 0.0) H2_initial = std::numeric_limits<double>::min();
+    // Ensure initial guesses are positive, as physical parameters cannot be zero or negative.
+    if (H1_initial <= 0.0) H1_initial = std::numeric_limits<double>::min(); // Small positive value
+    if (H2_initial <= 0.0) H2_initial = std::numeric_limits<double>::min(); // Small positive value
 }
 
 /**
  * @brief Solves for H1_Hrms and H2_Hrms simultaneously using the Newton-Raphson method for systems.
  *
  * This function implements the multi-dimensional Newton-Raphson algorithm to find the roots
- * of the system of non-linear equations F1 and F2.
+ * of the system of non-linear equations F1 and F2. It iteratively refines the guesses
+ * for H1_Hrms and H2_Hrms until the functions F1 and F2 are sufficiently close to zero.
  *
  * @param Htr_Hrms The normalized transitional wave height (constant for this solve).
  * @param H1_Hrms Output: The converged normalized scale parameter of the first Weibull distribution.
@@ -370,27 +426,40 @@ void get_initial_guesses(double Htr_Hrms, double &H1_initial, double &H2_initial
  */
 bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms,
                                double tol, int maxit) {
+    // Get initial guesses for H1_Hrms and H2_Hrms.
     get_initial_guesses(Htr_Hrms, H1_Hrms, H2_Hrms);
 
     for (int iter = 0; iter < maxit; ++iter) {
+        // Evaluate the functions at the current guesses.
         double f1_val = F1(H1_Hrms, H2_Hrms, Htr_Hrms);
         double f2_val = F2(H1_Hrms, H2_Hrms, Htr_Hrms);
 
+        // Check for convergence. If both function values are close to zero, we've converged.
         if (std::abs(f1_val) < tol && std::abs(f2_val) < tol) {
             return true;
         }
 
+        // Calculate the Jacobian matrix elements using central finite differences.
+        // J11 = dF1/dH1
         double J11 = (F1(H1_Hrms + JACOBIAN_DX, H2_Hrms, Htr_Hrms) - F1(H1_Hrms - JACOBIAN_DX, H2_Hrms, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+        // J12 = dF1/dH2
         double J12 = (F1(H1_Hrms, H2_Hrms + JACOBIAN_DX, Htr_Hrms) - F1(H1_Hrms, H2_Hrms - JACOBIAN_DX, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+        // J21 = dF2/dH1
         double J21 = (F2(H1_Hrms + JACOBIAN_DX, H2_Hrms, Htr_Hrms) - F2(H1_Hrms - JACOBIAN_DX, H2_Hrms, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
+        // J22 = dF2/dH2
         double J22 = (F2(H1_Hrms, H2_Hrms + JACOBIAN_DX, Htr_Hrms) - F2(H1_Hrms, H2_Hrms - JACOBIAN_DX, Htr_Hrms)) / (2.0 * JACOBIAN_DX);
 
+        // Solve the linear system J * dx = -F for dx.
+        // Here, dx = [dH1, dH2]^T and F = [f1_val, f2_val]^T.
         double dH1, dH2;
         solve_linear_system_2x2(J11, J12, J21, J22, -f1_val, -f2_val, dH1, dH2);
 
+        // Update the guesses.
         H1_Hrms += dH1;
         H2_Hrms += dH2;
 
+        // Ensure H1_Hrms and H2_Hrms remain positive. If they become non-positive,
+        // clamp them to a small positive value to prevent mathematical errors in subsequent iterations.
         if (H1_Hrms <= 0.0) H1_Hrms = std::numeric_limits<double>::min();
         if (H2_Hrms <= 0.0) H2_Hrms = std::numeric_limits<double>::min();
     }
@@ -401,12 +470,19 @@ bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms
 }
 
 
-// Build the detailed report using the computed values.
+//---------------------------------------------------------------------
+// Function: buildReport
+// Purpose:
+//   Computes all wave parameters, performs calculations based on the
+//   Composed Weibull model, and builds a detailed report as a
+//   formatted wide string.
+//---------------------------------------------------------------------
 static std::wstring buildReport(double Hm0, double d, double slopeM)
 {
     std::wstringstream ss;
     ss << std::fixed << std::setprecision(4);
 
+    // Input validation for physical parameters
     if (Hm0 <= 0.0 || d <= 0.0)
     {
         ss << L"ERROR: Hm0 and d must be positive.\n";
@@ -418,24 +494,18 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
         return ss.str();
     }
 
-    // Compute free-surface variance
+    // Compute free-surface variance: m0 = (Hm0 / 4)^2
     double m0 = std::pow(Hm0 / 4.0, 2.0);
 
-    // Mean square wave height (using formula that incorporates 'd' and 'm0')
+    // Mean square wave height: Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0)
     double Hrms = (2.69 + 3.24 * std::sqrt(m0) / d) * std::sqrt(m0);
 
     // Compute the actual tangent of the beach slope: tan(alpha) = 1.0 / slopeM.
     double tanAlpha = 1.0 / slopeM;
-    // Dimensional transitional wave height (using formula that incorporates 'tanAlpha' and 'd')
+    // Dimensional transitional wave height: Htr = (0.35 + 5.8*(1/m)) * d.
     double Htr_dim = (0.35 + 5.8 * tanAlpha) * d;
+    // Dimensionless transitional parameter: H̃_tr = Htr / Hrms.
     double Htr_tilde = (Hrms > 0.0) ? (Htr_dim / Hrms) : 0.0;
-
-    // If dimensionless Htr exceeds 3.5, then adopt Htr_tilde = 3.5 and recalc Htr_dim.
-    if (Htr_tilde > 3.5)
-    {
-        Htr_tilde = 3.5;
-        Htr_dim = 3.5 * Hrms;
-    }
 
     // Solve for H1_Hrms and H2_Hrms simultaneously using the Newton-Raphson matrix solver.
     double H1_Hrms;
@@ -643,7 +713,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR /*lpCmdLine*/, int nCmdShow)
 {
     const wchar_t CLASS_NAME[] = L"MyWindowClass";
 
