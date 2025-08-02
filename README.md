@@ -178,11 +178,11 @@ Finally, the program computes several diagnostic ratios, which provide insights 
 
 The core calculations rely on precise implementations of fundamental mathematical functions:
 
-* **Complete Gamma Function ($Γ(z)$):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln($Γ(a)$)), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
+* **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
-* **Unnormalized Lower Incomplete Gamma Function ($\gamma(a,x)$):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
+* **Unnormalized Lower Incomplete Gamma Function (Γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
-* **Unnormalized Upper Incomplete Gamma Function ($\Gamma(a,x)$):** This is calculated as $\Gamma(a) - \gamma(a,x)$.
+* **Unnormalized Upper Incomplete Gamma Function ($\Gamma(a,x)$):** This is calculated as Γ(a) - \Γ(a,x)$.
 
 ## Building and Running
 
