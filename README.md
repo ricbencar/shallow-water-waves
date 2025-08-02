@@ -38,19 +38,18 @@ The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a syste
 
 1.  **Normalized** $H\_{rms}$ **Constraint (from Groenendijk, 1998, Equation 7.11):**
    ```math
-   1 = \sqrt{
+   \tilde{Hrms}_{tr} = 1 = \sqrt{
    \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
    + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
 }
    ```
-    This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
+This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
 
 2.  **Continuity Condition (from Groenendijk, 1998, Equation 3.4):**
    ```math
    \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
    ```
-	   
-    This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
+This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
 
 ## Features
 
