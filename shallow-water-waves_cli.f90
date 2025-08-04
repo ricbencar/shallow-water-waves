@@ -266,10 +266,7 @@ CONTAINS
             RETURN
         END IF
         incomplete_gamma_upper = GAMMA(a) - incomplete_gamma_lower(a, x)
-        ! Clamp denormals to zero for the final result
-        IF (incomplete_gamma_upper > 0.0_8 .AND. incomplete_gamma_upper < TINY(1.0_8)) THEN
-            incomplete_gamma_upper = 0.0_8
-        END IF
+
     END FUNCTION incomplete_gamma_upper
 
 
@@ -311,18 +308,10 @@ CONTAINS
         END IF
 
         log_N_val = LOG(N)
-        ! Clamp denormals to zero for log_N_val if it becomes very small positive
-        IF (log_N_val > 0.0_8 .AND. log_N_val < TINY(1.0_8)) THEN
-            log_N_val = 0.0_8
-        END IF
 
         term_power1 = (1.0_8 / k1_val)
         ! The 0^0 case check was removed as it's unreachable/unnecessary given N > 1 and k values.
         HN_candidate1 = H1 * (log_N_val)**term_power1
-        ! Clamp denormals to zero for HN_candidate1
-        IF (HN_candidate1 > 0.0_8 .AND. HN_candidate1 < TINY(1.0_8)) THEN
-            HN_candidate1 = 0.0_8
-        END IF
 
         IF (HN_candidate1 < Htr - EPSILON) THEN
             calculate_HN = HN_candidate1
@@ -330,10 +319,6 @@ CONTAINS
             term_power2 = (1.0_8 / k2_val)
             ! The 0^0 case check was removed as it's unreachable/unnecessary given N > 1 and k values.
             calculate_HN = H2 * (log_N_val)**term_power2
-            ! Clamp denormals to zero for calculate_HN
-            IF (calculate_HN > 0.0_8 .AND. calculate_HN < TINY(1.0_8)) THEN
-                calculate_HN = 0.0_8
-            END IF
         END IF
     END FUNCTION calculate_HN
 
@@ -380,61 +365,29 @@ CONTAINS
 
         term1_a = 1.0_8 / k1_val + 1.0_8
         log_N_val = LOG(N_val)
-        ! Clamp denormals to zero for log_N_val if it becomes very small positive
-        IF (log_N_val > 0.0_8 .AND. log_N_val < TINY(1.0_8)) THEN
-            log_N_val = 0.0_8
-        END IF
         term1_x_ln_Nval = log_N_val
 
         Htr_H1_ratio = Htr / H1
-        ! Clamp denormals to zero for Htr_H1_ratio if it becomes very small positive
-        IF (Htr_H1_ratio > 0.0_8 .AND. Htr_H1_ratio < TINY(1.0_8)) THEN
-            Htr_H1_ratio = 0.0_8
-        END IF
         term1_x_HtrH1 = (Htr_H1_ratio)**k1_val
-        ! Clamp denormals to zero for term1_x_HtrH1
-        IF (term1_x_HtrH1 > 0.0_8 .AND. term1_x_HtrH1 < TINY(1.0_8)) THEN
-            term1_x_HtrH1 = 0.0_8
-        END IF
 
         term2_a = 1.0_8 / k2_val + 1.0_8
         Htr_H2_ratio = Htr / H2
-        ! Clamp denormals to zero for Htr_H2_ratio if it becomes very small positive
-        IF (Htr_H2_ratio > 0.0_8 .AND. Htr_H2_ratio < TINY(1.0_8)) THEN
-            Htr_H2_ratio = 0.0_8
-        END IF
         term2_x_HtrH2 = (Htr_H2_ratio)**k2_val
-        ! Clamp denormals to zero for term2_x_HtrH2
-        IF (term2_x_HtrH2 > 0.0_8 .AND. term2_x_HtrH2 < TINY(1.0_8)) THEN
-            term2_x_HtrH2 = 0.0_8
-        END IF
 
         IF (H_N_val < Htr - EPSILON) THEN
         ! Contribution from the first Weibull distribution.
             gamma_term1_part1 = incomplete_gamma_upper(term1_a, term1_x_ln_Nval)
             gamma_term1_part2 = incomplete_gamma_upper(term1_a, term1_x_HtrH1)
             gamma_term1 = gamma_term1_part1 - gamma_term1_part2
-            ! Clamp denormals to zero for gamma_term1
-            IF (gamma_term1 > 0.0_8 .AND. gamma_term1 < TINY(1.0_8)) THEN
-                gamma_term1 = 0.0_8
-            END IF
 
         ! Contribution from the second Weibull distribution.
             gamma_term2 = incomplete_gamma_upper(term2_a, term2_x_HtrH2)
-            ! Clamp denormals to zero for gamma_term2
-            IF (gamma_term2 > 0.0_8 .AND. gamma_term2 < TINY(1.0_8)) THEN
-                gamma_term2 = 0.0_8
-            END IF
 
             calculate_H1N = N_val * H1 * gamma_term1 + N_val * H2 * gamma_term2
         ELSE
         ! Case 2: H_N_val is greater than or equal to Htr.
         ! This means the integration for H1/N only involves the second part of the Composite Weibull distribution.
             calculate_H1N = N_val * H2 * incomplete_gamma_upper(term2_a, term1_x_ln_Nval)
-        END IF
-        ! Clamp denormals to zero for the final result
-        IF (calculate_H1N > 0.0_8 .AND. calculate_H1N < TINY(1.0_8)) THEN
-            calculate_H1N = 0.0_8
         END IF
     END FUNCTION calculate_H1N
 
@@ -460,26 +413,10 @@ CONTAINS
         END IF
 
         Htr_H1_ratio = Htr_Hrms_val / H1_Hrms_val
-        ! Clamp denormals to zero for Htr_H1_ratio
-        IF (Htr_H1_ratio > 0.0_8 .AND. Htr_H1_ratio < TINY(1.0_8)) THEN
-            Htr_H1_ratio = 0.0_8
-        END IF
         arg1 = (Htr_H1_ratio)**k1
-        ! Clamp denormals to zero for arg1
-        IF (arg1 > 0.0_8 .AND. arg1 < TINY(1.0_8)) THEN
-            arg1 = 0.0_8
-        END IF
 
         Htr_H2_ratio = Htr_Hrms_val / H2_Hrms_val
-        ! Clamp denormals to zero for Htr_H2_ratio
-        IF (Htr_H2_ratio > 0.0_8 .AND. Htr_H2_ratio < TINY(1.0_8)) THEN
-            Htr_H2_ratio = 0.0_8
-        END IF
         arg2 = (Htr_H2_ratio)**k2
-        ! Clamp denormals to zero for arg2
-        IF (arg2 > 0.0_8 .AND. arg2 < TINY(1.0_8)) THEN
-            arg2 = 0.0_8
-        END IF
 
     ! Calculate terms using unnormalized incomplete gamma functions.
         term1 = H1_Hrms_val * H1_Hrms_val * incomplete_gamma_lower(2.0_8 / k1 + 1.0_8, arg1)
@@ -488,16 +425,8 @@ CONTAINS
     ! Ensure the argument to sqrt is non-negative, though theoretically it should be.
         sum_terms = term1 + term2
         IF (sum_terms < 0.0_8) sum_terms = 0.0_8! Clamp to zero to avoid NaN from sqrt of negative.
-        ! Clamp denormals to zero for sum_terms
-        IF (sum_terms > 0.0_8 .AND. sum_terms < TINY(1.0_8)) THEN
-            sum_terms = 0.0_8
-        END IF
 
         F1 = SQRT(sum_terms) - 1.0_8
-        ! Clamp denormals to zero for the final result
-        IF (F1 > 0.0_8 .AND. F1 < TINY(1.0_8)) THEN
-            F1 = 0.0_8
-        END IF
     END FUNCTION F1
 
 
@@ -522,32 +451,12 @@ CONTAINS
         END IF
 
         Htr_H1_ratio = Htr_Hrms_val / H1_Hrms_val
-        ! Clamp denormals to zero for Htr_H1_ratio
-        IF (Htr_H1_ratio > 0.0_8 .AND. Htr_H1_ratio < TINY(1.0_8)) THEN
-            Htr_H1_ratio = 0.0_8
-        END IF
         term1_F2 = (Htr_H1_ratio)**k1
-        ! Clamp denormals to zero for term1_F2
-        IF (term1_F2 > 0.0_8 .AND. term1_F2 < TINY(1.0_8)) THEN
-            term1_F2 = 0.0_8
-        END IF
 
         Htr_H2_ratio = Htr_Hrms_val / H2_Hrms_val
-        ! Clamp denormals to zero for Htr_H2_ratio
-        IF (Htr_H2_ratio > 0.0_8 .AND. Htr_H2_ratio < TINY(1.0_8)) THEN
-            Htr_H2_ratio = 0.0_8
-        END IF
         term2_F2 = (Htr_H2_ratio)**k2
-        ! Clamp denormals to zero for term2_F2
-        IF (term2_F2 > 0.0_8 .AND. term2_F2 < TINY(1.0_8)) THEN
-            term2_F2 = 0.0_8
-        END IF
 
         F2 = term1_F2 - term2_F2
-        ! Clamp denormals to zero for the final result
-        IF (F2 > 0.0_8 .AND. F2 < TINY(1.0_8)) THEN
-            F2 = 0.0_8
-        END IF
     END FUNCTION F2
 
     SUBROUTINE solve_linear_system_2x2(J11, J12, J21, J22, b1, b2, dx1, dx2)
@@ -605,18 +514,10 @@ CONTAINS
 
     ! Empirical regression for H1/Hrms.
         exp_term = EXP(-1.42537392576977_8 * Htr_Hrms_val)
-        ! Clamp denormals to zero for exp_term
-        IF (exp_term > 0.0_8 .AND. exp_term < TINY(1.0_8)) THEN
-            exp_term = 0.0_8
-        END IF
         H1_initial = 0.9552427998926_8 / (1.0_8 - 0.992405988921401_8 * exp_term)
 
     ! Empirical regression for H2_initial
         Htr_Hrms_val_power = (Htr_Hrms_val**2.980718327103574_8)
-        ! Clamp denormals to zero for Htr_Hrms_val_power
-        IF (Htr_Hrms_val_power > 0.0_8 .AND. Htr_Hrms_val_power < TINY(1.0_8)) THEN
-            Htr_Hrms_val_power = 0.0_8
-        END IF
         H2_initial = 1.054085273232950_8 + 0.9369023639428842_8 * Htr_Hrms_val_power / &
                      ((2.549022900471753_8**2.980718327103574_8) + Htr_Hrms_val_power)
 
@@ -720,10 +621,6 @@ CONTAINS
     ! Dimensionless transitional parameter: H̃_tr = Htr / Hrms.
         IF (Hrms > TINY(1.0_8)) THEN! Use a tolerance for comparison
             Htr_tilde = (Htr_dim / Hrms)
-            ! Clamp denormals to zero for Htr_tilde
-            IF (Htr_tilde > 0.0_8 .AND. Htr_tilde < TINY(1.0_8)) THEN
-                Htr_tilde = 0.0_8
-            END IF
         ELSE
             Htr_tilde = 0.0_8! Handle division by zero
         END IF
