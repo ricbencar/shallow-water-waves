@@ -62,7 +62,6 @@
 
 PROGRAM carvalho2025_table
     IMPLICIT NONE
-    ! REAL(KIND=8), PARAMETER :: PI = ACOS(-1.0_8) ! Define PI for double precision - Removed, as it's unused.
     REAL(KIND=8), PARAMETER :: k1 = 2.0_8    ! Exponent for the first part of the Composite Weibull distribution.
                                            ! As per the theoretical foundation (Groenendijk, 1998, Section 2.1 and 3.3.2),
                                            ! the initial part of the wave height distribution in shallow water is assumed

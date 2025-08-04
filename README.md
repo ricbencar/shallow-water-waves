@@ -131,7 +131,10 @@ The dimensionless wave-height ratios are critical outputs of the model. The calc
 The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
 
 ```math
-f(H_{1\_{Hrms}}) = \sqrt{H_{1\_{Hrms}}^2 \cdot \gamma\left(2/k_1+1, \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1}\right) + H_{2\_{Hrms}}^2 \cdot \Gamma\left(2/k_2+1, \left(\frac{\tilde{H}_{tr}}{H_{2\_{Hrms}}}\right)^{k_2}\right)} - 1
+f(\tilde{H}_{1_{Hrms}}, \tilde{H}_{2_{Hrms}}, \tilde{H}_{tr}) = \sqrt{
+\tilde{H}_{1_{Hrms}}^2 \cdot \gamma\left(\frac{2}{k_1} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{1_{Hrms}}}\right)^{k_1}\right) + 
+\tilde{H}_{2_{Hrms}}^2 \cdot \Gamma\left(\frac{2}{k_2} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{2_{Hrms}}}\right)^{k_2}\right)
+} - 1 = 0
 ```
 
 where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k\_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $H\_{2\_{Hrms}}$ is related to $H\_{1\_{Hrms}}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
@@ -142,7 +145,7 @@ H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\
 
 Here, $γ(a,x)$ and $Γ(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
 
-Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribution) and $\tilde{H}_2$ (the normalized scale parameter of the second Weibull distribution) are determined, the model calculates two types of dimensionless wave heights:
+Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribution) and $\tilde{H}_2$ (the normalized scale parameter of the second Weibull distribution) are determined, two types of dimensionless wave heights can be calculated:
 
 * $\tilde{H}\_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}\_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}\_{tr}$, then $\tilde{H}\_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
 
@@ -172,7 +175,7 @@ H = \tilde{H} \cdot H_{rms}
 
 ### 7. Diagnostic Ratios
 
-Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include ratios characteristic wave height ratios $(H\_{1/n})/(H\_{1/3})$ with $n = 10, 50, 100, 250, \text{ and } 1000$.
+Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include characteristic wave height ratios $(H\_{1/N})/(H\_{1/3})$ with $N = 10, 50, 100, 250, \text{ and } 1000$.
 
 ## Supporting Mathematical Functions
 
@@ -180,9 +183,27 @@ The core calculations rely on precise implementations of fundamental mathematica
 
 * **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
+```math
+\[
+Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
+\]
+```
+
 * **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
-* **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - \Γ(a,x).
+```math
+\[
+γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
+\]
+```
+
+* **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
+
+```math
+\[
+Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
+\]
+```
 
 ## Building and Running
 

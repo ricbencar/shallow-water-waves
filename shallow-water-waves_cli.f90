@@ -7,7 +7,7 @@
 !
 ! The command-line application performs the following:
 ! 1. If three command-line arguments are provided, they are used as
-! Hm0 (local significant spectral wave height), d (local water depth),
+! Hm0 (local significant spectral spectral wave height), d (local water depth),
 ! and slopeM (beach slope 1:m). Otherwise, the program prompts the user
 ! for these values.
 ! 2. Computes the following intermediate values:
@@ -127,7 +127,7 @@ PROGRAM ShallowWaterWaves
     END IF
 
 ! Validate input parameters
-    IF (Hm0 <= 0.0_8.OR. d <= 0.0_8) THEN
+    IF (Hm0 <= 0.0_8 .OR. d <= 0.0_8) THEN
         WRITE(*,*) "ERROR: Hm0 and d must be positive."
         CALL writeReportToFile("ERROR: Hm0 and d must be positive.")
         STOP 1
@@ -140,13 +140,12 @@ PROGRAM ShallowWaterWaves
 
     CALL buildReportAndDisplay(Hm0, d, slopeM)
 
-    STOP 0
-
 CONTAINS
 
 ! All gamma functions applied, either complete or incomplete, are non-normalized.
 
     REAL(KIND=8) FUNCTION incomplete_gamma_lower(a, x)
+        IMPLICIT NONE
     ! @brief Computes the unnormalized lower incomplete gamma function γ(a, x) = ∫[0,x] t^(a-1)e^(-t) dt.
     !
     ! This function is a critical component for calculating moments of Weibull distributions,
@@ -164,11 +163,11 @@ CONTAINS
         INTEGER, PARAMETER :: MAXIT = 500 ! Maximum number of iterations allowed for either the series expansion or the continued fraction.
         REAL(KIND=8), PARAMETER :: LOCAL_EPS_GAMMA = 1.0E-16_8! A very small tolerance value (10^-16) used for checking convergence
                                         ! within the gamma function calculations.
-        REAL(KIND=8) :: gln, ap, sum_val, del_val, b, c, d, h, an, del
-        INTEGER :: n_iter, i! Added 'i' to the declaration.
+        REAL(KIND=8) :: gln, ap, sum_val, del_val, b, c, d, h, an, del, exp_term
+        INTEGER :: n_iter ! Explicitly declare n_iter
 
     ! Input validation: Essential for preventing mathematical errors and ensuring function robustness.
-        IF (a <= 0.0_8.OR. x < 0.0_8) THEN
+        IF (a <= 0.0_8 .OR. x < 0.0_8) THEN
             incomplete_gamma_lower = HUGE(1.0_8)! Use HUGE for NaN equivalent
             RETURN
         END IF
@@ -192,7 +191,16 @@ CONTAINS
                 del_val = del_val * x / ap
                 sum_val = sum_val + del_val
                 IF (ABS(del_val) < ABS(sum_val) * LOCAL_EPS_GAMMA) THEN
-                    incomplete_gamma_lower = sum_val * EXP(-x + a * LOG(x) - gln) * GAMMA(a)
+                    exp_term = EXP(-x + a * LOG(x) - gln)
+                    ! Clamp denormals to zero
+                    IF (exp_term > 0.0_8 .AND. exp_term < TINY(1.0_8)) THEN
+                        exp_term = 0.0_8
+                    END IF
+                    incomplete_gamma_lower = sum_val * exp_term * GAMMA(a)
+                    ! Clamp denormals to zero for the final result
+                    IF (incomplete_gamma_lower > 0.0_8 .AND. incomplete_gamma_lower < TINY(1.0_8)) THEN
+                        incomplete_gamma_lower = 0.0_8
+                    END IF
                     RETURN
                 END IF
             END DO
@@ -202,8 +210,8 @@ CONTAINS
             c = 1.0_8 / TINY(1.0_8)! Equivalent to C++ numeric_limits<double>::min()
             d = 1.0_8 / b
             h = d
-            DO i = 1, MAXIT! Here, 'i' is used as the loop variable within this function
-                an = -1.0_8 * REAL(i, KIND=8) * (REAL(i, KIND=8) - a)
+            DO n_iter = 1, MAXIT! Using n_iter for consistency
+                an = -1.0_8 * REAL(n_iter, KIND=8) * (REAL(n_iter, KIND=8) - a)
                 b = b + 2.0_8
                 d = an * d + b
                 IF (ABS(d) < TINY(1.0_8)) d = TINY(1.0_8)
@@ -212,15 +220,29 @@ CONTAINS
                 d = 1.0_8 / d
                 del = d * c
                 h = h * del
+                ! Clamp denormals to zero for h
+                IF (h > 0.0_8 .AND. h < TINY(1.0_8)) THEN
+                    h = 0.0_8
+                END IF
                 IF (ABS(del - 1.0_8) < LOCAL_EPS_GAMMA) EXIT
             END DO
-            incomplete_gamma_lower = (1.0_8 - EXP(-x + a * LOG(x) - gln) * h) * GAMMA(a)
+            exp_term = EXP(-x + a * LOG(x) - gln)
+            ! Clamp denormals to zero
+            IF (exp_term > 0.0_8 .AND. exp_term < TINY(1.0_8)) THEN
+                exp_term = 0.0_8
+            END IF
+            incomplete_gamma_lower = (1.0_8 - exp_term * h) * GAMMA(a)
             IF (incomplete_gamma_lower < 0.0_8) incomplete_gamma_lower = 0.0_8! Clamp to 0.0
+            ! Clamp denormals to zero for the final result
+            IF (incomplete_gamma_lower > 0.0_8 .AND. incomplete_gamma_lower < TINY(1.0_8)) THEN
+                incomplete_gamma_lower = 0.0_8
+            END IF
         END IF
     END FUNCTION incomplete_gamma_lower
 
 
     REAL(KIND=8) FUNCTION incomplete_gamma_upper(a, x)
+        IMPLICIT NONE
     ! @brief Computes the unnormalized upper incomplete gamma function Γ(a, x) = ∫[x,∞] t^(a-1)e^(-t) dt.
     !
     ! This function calculates the unnormalized form of the upper incomplete gamma function.
@@ -244,10 +266,15 @@ CONTAINS
             RETURN
         END IF
         incomplete_gamma_upper = GAMMA(a) - incomplete_gamma_lower(a, x)
+        ! Clamp denormals to zero for the final result
+        IF (incomplete_gamma_upper > 0.0_8 .AND. incomplete_gamma_upper < TINY(1.0_8)) THEN
+            incomplete_gamma_upper = 0.0_8
+        END IF
     END FUNCTION incomplete_gamma_upper
 
 
     REAL(KIND=8) FUNCTION calculate_HN(N, H1, H2, k1_val, k2_val, Htr)
+        IMPLICIT NONE
     ! @brief Calculates HN (wave height with 1/N exceedance probability) for the Composite Weibull distribution.
     !
     ! This function determines the specific wave height (H) such that the probability of a wave
@@ -265,34 +292,53 @@ CONTAINS
     ! @return The calculated value of HN.
     ! Returns `Huge(1.0_8)` if input parameters are invalid.
         REAL(KIND=8), INTENT(IN) :: N, H1, H2, k1_val, k2_val, Htr
-        REAL(KIND=8) :: HN_candidate1
+        REAL(KIND=8) :: HN_candidate1, log_N_val, term_power1, term_power2
 
         IF (N <= 1.0_8) THEN
             WRITE(*,*) "Error: calculate_HN: N must be greater than 1 for LOG(N)."
             calculate_HN = HUGE(1.0_8)
             RETURN
         END IF
-        IF (H1 <= 0.0_8.OR. H2 <= 0.0_8) THEN
+        IF (H1 <= 0.0_8 .OR. H2 <= 0.0_8) THEN
             WRITE(*,*) "Error: calculate_HN: H1 and H2 must be positive."
             calculate_HN = HUGE(1.0_8)
             RETURN
         END IF
-        IF (k1_val <= 0.0_8.OR. k2_val <= 0.0_8) THEN
+        IF (k1_val <= 0.0_8 .OR. k2_val <= 0.0_8) THEN
             WRITE(*,*) "Error: calculate_HN: k1 and k2 must be positive."
             calculate_HN = HUGE(1.0_8)
             RETURN
         END IF
 
-        HN_candidate1 = H1 * (LOG(N))**(1.0_8 / k1_val)
+        log_N_val = LOG(N)
+        ! Clamp denormals to zero for log_N_val if it becomes very small positive
+        IF (log_N_val > 0.0_8 .AND. log_N_val < TINY(1.0_8)) THEN
+            log_N_val = 0.0_8
+        END IF
+
+        term_power1 = (1.0_8 / k1_val)
+        ! The 0^0 case check was removed as it's unreachable/unnecessary given N > 1 and k values.
+        HN_candidate1 = H1 * (log_N_val)**term_power1
+        ! Clamp denormals to zero for HN_candidate1
+        IF (HN_candidate1 > 0.0_8 .AND. HN_candidate1 < TINY(1.0_8)) THEN
+            HN_candidate1 = 0.0_8
+        END IF
 
         IF (HN_candidate1 < Htr - EPSILON) THEN
             calculate_HN = HN_candidate1
         ELSE
-            calculate_HN = H2 * (LOG(N))**(1.0_8 / k2_val)
+            term_power2 = (1.0_8 / k2_val)
+            ! The 0^0 case check was removed as it's unreachable/unnecessary given N > 1 and k values.
+            calculate_HN = H2 * (log_N_val)**term_power2
+            ! Clamp denormals to zero for calculate_HN
+            IF (calculate_HN > 0.0_8 .AND. calculate_HN < TINY(1.0_8)) THEN
+                calculate_HN = 0.0_8
+            END IF
         END IF
     END FUNCTION calculate_HN
 
     REAL(KIND=8) FUNCTION calculate_H1N(N_val, H1, H2, k1_val, k2_val, Htr)
+        IMPLICIT NONE
     ! @brief Calculates the mean of the highest 1/N-part of wave heights (H1/N) for the Composite Weibull distribution.
     !
     ! This function computes a characteristic wave height that represents the average height of the
@@ -312,14 +358,14 @@ CONTAINS
         REAL(KIND=8), INTENT(IN) :: N_val, H1, H2, k1_val, k2_val, Htr
         REAL(KIND=8) :: H_N_val, term1_a, term1_x_ln_Nval, term1_x_HtrH1, &
                              gamma_term1_part1, gamma_term1_part2, gamma_term1, &
-                             term2_a, term2_x_HtrH2, gamma_term2
+                             term2_a, term2_x_HtrH2, gamma_term2, log_N_val, Htr_H1_ratio, Htr_H2_ratio
 
-        IF (H1 <= 0.0_8.OR. H2 <= 0.0_8) THEN
+        IF (H1 <= 0.0_8 .OR. H2 <= 0.0_8) THEN
             WRITE(*,*) "Error: calculate_H1N: H1 and H2 must be positive."
             calculate_H1N = HUGE(1.0_8)
             RETURN
         END IF
-        IF (k1_val <= 0.0_8.OR. k2_val <= 0.0_8) THEN
+        IF (k1_val <= 0.0_8 .OR. k2_val <= 0.0_8) THEN
             WRITE(*,*) "Error: calculate_H1N: k1 and k2 must be positive."
             calculate_H1N = HUGE(1.0_8)
             RETURN
@@ -333,20 +379,52 @@ CONTAINS
         H_N_val = calculate_HN(N_val, H1, H2, k1_val, k2_val, Htr)
 
         term1_a = 1.0_8 / k1_val + 1.0_8
-        term1_x_ln_Nval = LOG(N_val)
-        term1_x_HtrH1 = (Htr / H1)**k1_val
+        log_N_val = LOG(N_val)
+        ! Clamp denormals to zero for log_N_val if it becomes very small positive
+        IF (log_N_val > 0.0_8 .AND. log_N_val < TINY(1.0_8)) THEN
+            log_N_val = 0.0_8
+        END IF
+        term1_x_ln_Nval = log_N_val
+
+        Htr_H1_ratio = Htr / H1
+        ! Clamp denormals to zero for Htr_H1_ratio if it becomes very small positive
+        IF (Htr_H1_ratio > 0.0_8 .AND. Htr_H1_ratio < TINY(1.0_8)) THEN
+            Htr_H1_ratio = 0.0_8
+        END IF
+        term1_x_HtrH1 = (Htr_H1_ratio)**k1_val
+        ! Clamp denormals to zero for term1_x_HtrH1
+        IF (term1_x_HtrH1 > 0.0_8 .AND. term1_x_HtrH1 < TINY(1.0_8)) THEN
+            term1_x_HtrH1 = 0.0_8
+        END IF
 
         term2_a = 1.0_8 / k2_val + 1.0_8
-        term2_x_HtrH2 = (Htr / H2)**k2_val
+        Htr_H2_ratio = Htr / H2
+        ! Clamp denormals to zero for Htr_H2_ratio if it becomes very small positive
+        IF (Htr_H2_ratio > 0.0_8 .AND. Htr_H2_ratio < TINY(1.0_8)) THEN
+            Htr_H2_ratio = 0.0_8
+        END IF
+        term2_x_HtrH2 = (Htr_H2_ratio)**k2_val
+        ! Clamp denormals to zero for term2_x_HtrH2
+        IF (term2_x_HtrH2 > 0.0_8 .AND. term2_x_HtrH2 < TINY(1.0_8)) THEN
+            term2_x_HtrH2 = 0.0_8
+        END IF
 
         IF (H_N_val < Htr - EPSILON) THEN
         ! Contribution from the first Weibull distribution.
             gamma_term1_part1 = incomplete_gamma_upper(term1_a, term1_x_ln_Nval)
             gamma_term1_part2 = incomplete_gamma_upper(term1_a, term1_x_HtrH1)
             gamma_term1 = gamma_term1_part1 - gamma_term1_part2
+            ! Clamp denormals to zero for gamma_term1
+            IF (gamma_term1 > 0.0_8 .AND. gamma_term1 < TINY(1.0_8)) THEN
+                gamma_term1 = 0.0_8
+            END IF
 
         ! Contribution from the second Weibull distribution.
             gamma_term2 = incomplete_gamma_upper(term2_a, term2_x_HtrH2)
+            ! Clamp denormals to zero for gamma_term2
+            IF (gamma_term2 > 0.0_8 .AND. gamma_term2 < TINY(1.0_8)) THEN
+                gamma_term2 = 0.0_8
+            END IF
 
             calculate_H1N = N_val * H1 * gamma_term1 + N_val * H2 * gamma_term2
         ELSE
@@ -354,9 +432,14 @@ CONTAINS
         ! This means the integration for H1/N only involves the second part of the Composite Weibull distribution.
             calculate_H1N = N_val * H2 * incomplete_gamma_upper(term2_a, term1_x_ln_Nval)
         END IF
+        ! Clamp denormals to zero for the final result
+        IF (calculate_H1N > 0.0_8 .AND. calculate_H1N < TINY(1.0_8)) THEN
+            calculate_H1N = 0.0_8
+        END IF
     END FUNCTION calculate_H1N
 
     REAL(KIND=8) FUNCTION F1(H1_Hrms_val, H2_Hrms_val, Htr_Hrms_val)
+        IMPLICIT NONE
     ! @brief Defines the first non-linear equation F1(H1_Hrms, H2_Hrms, Htr_Hrms) = 0.
     !
     ! This equation represents the normalized Hrms constraint for the Composite Weibull distribution.
@@ -369,15 +452,34 @@ CONTAINS
     ! @param Htr_Hrms_val The normalized transitional wave height (constant for a given solve).
     ! @return The value of the first function, which should be driven to zero.
         REAL(KIND=8), INTENT(IN) :: H1_Hrms_val, H2_Hrms_val, Htr_Hrms_val
-        REAL(KIND=8) :: arg1, arg2, term1, term2, sum_terms
+        REAL(KIND=8) :: arg1, arg2, term1, term2, sum_terms, Htr_H1_ratio, Htr_H2_ratio
 
-        IF (H1_Hrms_val <= 0.0_8.OR. H2_Hrms_val <= 0.0_8) THEN
+        IF (H1_Hrms_val <= 0.0_8 .OR. H2_Hrms_val <= 0.0_8) THEN
             F1 = HUGE(1.0_8)
             RETURN
         END IF
 
-        arg1 = (Htr_Hrms_val / H1_Hrms_val)**k1
-        arg2 = (Htr_Hrms_val / H2_Hrms_val)**k2
+        Htr_H1_ratio = Htr_Hrms_val / H1_Hrms_val
+        ! Clamp denormals to zero for Htr_H1_ratio
+        IF (Htr_H1_ratio > 0.0_8 .AND. Htr_H1_ratio < TINY(1.0_8)) THEN
+            Htr_H1_ratio = 0.0_8
+        END IF
+        arg1 = (Htr_H1_ratio)**k1
+        ! Clamp denormals to zero for arg1
+        IF (arg1 > 0.0_8 .AND. arg1 < TINY(1.0_8)) THEN
+            arg1 = 0.0_8
+        END IF
+
+        Htr_H2_ratio = Htr_Hrms_val / H2_Hrms_val
+        ! Clamp denormals to zero for Htr_H2_ratio
+        IF (Htr_H2_ratio > 0.0_8 .AND. Htr_H2_ratio < TINY(1.0_8)) THEN
+            Htr_H2_ratio = 0.0_8
+        END IF
+        arg2 = (Htr_H2_ratio)**k2
+        ! Clamp denormals to zero for arg2
+        IF (arg2 > 0.0_8 .AND. arg2 < TINY(1.0_8)) THEN
+            arg2 = 0.0_8
+        END IF
 
     ! Calculate terms using unnormalized incomplete gamma functions.
         term1 = H1_Hrms_val * H1_Hrms_val * incomplete_gamma_lower(2.0_8 / k1 + 1.0_8, arg1)
@@ -386,12 +488,21 @@ CONTAINS
     ! Ensure the argument to sqrt is non-negative, though theoretically it should be.
         sum_terms = term1 + term2
         IF (sum_terms < 0.0_8) sum_terms = 0.0_8! Clamp to zero to avoid NaN from sqrt of negative.
+        ! Clamp denormals to zero for sum_terms
+        IF (sum_terms > 0.0_8 .AND. sum_terms < TINY(1.0_8)) THEN
+            sum_terms = 0.0_8
+        END IF
 
         F1 = SQRT(sum_terms) - 1.0_8
+        ! Clamp denormals to zero for the final result
+        IF (F1 > 0.0_8 .AND. F1 < TINY(1.0_8)) THEN
+            F1 = 0.0_8
+        END IF
     END FUNCTION F1
 
 
     REAL(KIND=8) FUNCTION F2(H1_Hrms_val, H2_Hrms_val, Htr_Hrms_val)
+        IMPLICIT NONE
     ! @brief Defines the second non-linear equation F2(H1_Hrms, H2_Hrms, Htr_Hrms) = 0.
     !
     ! This equation represents the continuity condition between the two Weibull distributions
@@ -402,16 +513,45 @@ CONTAINS
     ! @param Htr_Hrms_val The normalized transitional wave height (constant for a given solve).
     ! @return The value of the second function, which should be driven to zero.
         REAL(KIND=8), INTENT(IN) :: H1_Hrms_val, H2_Hrms_val, Htr_Hrms_val
+        REAL(KIND=8) :: term1_F2, term2_F2, Htr_H1_ratio, Htr_H2_ratio
 
-        IF (H1_Hrms_val <= 0.0_8.OR. H2_Hrms_val <= 0.0_8) THEN
+        IF (H1_Hrms_val <= 0.0_8 .OR. H2_Hrms_val <= 0.0_8) THEN
         ! Return a large value to push the solver away from invalid regions.
             F2 = HUGE(1.0_8)
             RETURN
         END IF
-        F2 = (Htr_Hrms_val / H1_Hrms_val)**k1 - (Htr_Hrms_val / H2_Hrms_val)**k2
+
+        Htr_H1_ratio = Htr_Hrms_val / H1_Hrms_val
+        ! Clamp denormals to zero for Htr_H1_ratio
+        IF (Htr_H1_ratio > 0.0_8 .AND. Htr_H1_ratio < TINY(1.0_8)) THEN
+            Htr_H1_ratio = 0.0_8
+        END IF
+        term1_F2 = (Htr_H1_ratio)**k1
+        ! Clamp denormals to zero for term1_F2
+        IF (term1_F2 > 0.0_8 .AND. term1_F2 < TINY(1.0_8)) THEN
+            term1_F2 = 0.0_8
+        END IF
+
+        Htr_H2_ratio = Htr_Hrms_val / H2_Hrms_val
+        ! Clamp denormals to zero for Htr_H2_ratio
+        IF (Htr_H2_ratio > 0.0_8 .AND. Htr_H2_ratio < TINY(1.0_8)) THEN
+            Htr_H2_ratio = 0.0_8
+        END IF
+        term2_F2 = (Htr_H2_ratio)**k2
+        ! Clamp denormals to zero for term2_F2
+        IF (term2_F2 > 0.0_8 .AND. term2_F2 < TINY(1.0_8)) THEN
+            term2_F2 = 0.0_8
+        END IF
+
+        F2 = term1_F2 - term2_F2
+        ! Clamp denormals to zero for the final result
+        IF (F2 > 0.0_8 .AND. F2 < TINY(1.0_8)) THEN
+            F2 = 0.0_8
+        END IF
     END FUNCTION F2
 
     SUBROUTINE solve_linear_system_2x2(J11, J12, J21, J22, b1, b2, dx1, dx2)
+        IMPLICIT NONE
     ! @brief Solves a 2x2 linear system Ax = b for x using Cramer's rule.
     !
     ! This function is a helper for the Newton-Raphson method for systems.
@@ -433,7 +573,6 @@ CONTAINS
 
         determinant = J11 * J22 - J12 * J21
 
-
     ! Check for a singular or nearly singular Jacobian matrix.
         IF (ABS(determinant) < EPSILON * 100.0_8) THEN
         ! If determinant is too small, the matrix is singular or ill-conditioned.
@@ -450,6 +589,7 @@ CONTAINS
     END SUBROUTINE solve_linear_system_2x2
 
     SUBROUTINE get_initial_guesses(Htr_Hrms_val, H1_initial, H2_initial)
+        IMPLICIT NONE
     ! @brief Provides initial guesses for H1_Hrms and H2_Hrms based on Htr_Hrms.
     !
     ! A good initial guess is crucial for the efficiency and robustness of the Newton-Raphson method.
@@ -461,13 +601,24 @@ CONTAINS
     ! @param H2_initial Output: The initial guess for H2_Hrms.
         REAL(KIND=8), INTENT(IN) :: Htr_Hrms_val
         REAL(KIND=8), INTENT(OUT) :: H1_initial, H2_initial
+        REAL(KIND=8) :: exp_term, Htr_Hrms_val_power
 
     ! Empirical regression for H1/Hrms.
-        H1_initial = 0.9552427998926_8 / (1.0_8 - 0.992405988921401_8 * EXP(-1.42537392576977_8 * Htr_Hrms_val))
+        exp_term = EXP(-1.42537392576977_8 * Htr_Hrms_val)
+        ! Clamp denormals to zero for exp_term
+        IF (exp_term > 0.0_8 .AND. exp_term < TINY(1.0_8)) THEN
+            exp_term = 0.0_8
+        END IF
+        H1_initial = 0.9552427998926_8 / (1.0_8 - 0.992405988921401_8 * exp_term)
 
     ! Empirical regression for H2_initial
-        H2_initial = 1.054085273232950_8 + 0.9369023639428842_8 * (Htr_Hrms_val**2.980718327103574_8) / &
-                     ((2.549022900471753_8**2.980718327103574_8) + (Htr_Hrms_val**2.980718327103574_8))
+        Htr_Hrms_val_power = (Htr_Hrms_val**2.980718327103574_8)
+        ! Clamp denormals to zero for Htr_Hrms_val_power
+        IF (Htr_Hrms_val_power > 0.0_8 .AND. Htr_Hrms_val_power < TINY(1.0_8)) THEN
+            Htr_Hrms_val_power = 0.0_8
+        END IF
+        H2_initial = 1.054085273232950_8 + 0.9369023639428842_8 * Htr_Hrms_val_power / &
+                     ((2.549022900471753_8**2.980718327103574_8) + Htr_Hrms_val_power)
 
     ! Ensure initial guesses are positive, as physical parameters cannot be zero or negative.
         IF (H1_initial <= 0.0_8) H1_initial = TINY(1.0_8)
@@ -475,6 +626,7 @@ CONTAINS
     END SUBROUTINE get_initial_guesses
 
     LOGICAL FUNCTION newtonRaphsonSystemSolver(Htr_Hrms_val, H1_Hrms_out, H2_Hrms_out, tol, maxit)
+        IMPLICIT NONE
     ! @brief Solves for H1_Hrms and H2_Hrms simultaneously using the Newton-Raphson method for systems.
     !
     ! This function implements the multi-dimensional Newton-Raphson algorithm to find the roots
@@ -501,8 +653,8 @@ CONTAINS
             f1_val = F1(H1_Hrms_out, H2_Hrms_out, Htr_Hrms_val)
             f2_val = F2(H1_Hrms_out, H2_Hrms_out, Htr_Hrms_val)
 
-            IF (ABS(f1_val) < tol.AND. ABS(f2_val) < tol) THEN
-                newtonRaphsonSystemSolver =.TRUE.
+            IF (ABS(f1_val) < tol .AND. ABS(f2_val) < tol) THEN
+                newtonRaphsonSystemSolver = .TRUE.
                 RETURN
             END IF
 
@@ -527,7 +679,7 @@ CONTAINS
 
         WRITE(*,*) "Newton-Raphson system solver failed to converge for Htr_Hrms =", Htr_Hrms_val, &
              " after ", maxit, " iterations."
-        newtonRaphsonSystemSolver =.FALSE.
+        newtonRaphsonSystemSolver = .FALSE.
     END FUNCTION newtonRaphsonSystemSolver
 
 !---------------------------------------------------------------------
@@ -538,6 +690,7 @@ CONTAINS
 !   writes this report to "report.txt" and displays it on the console.
 !---------------------------------------------------------------------
     SUBROUTINE buildReportAndDisplay(Hm0, d, slopeM)
+        IMPLICIT NONE
         REAL(KIND=8), INTENT(IN) :: Hm0, d, slopeM
         CHARACTER(LEN=4000) :: report_str! A large enough string to hold the report
         CHARACTER(LEN=100) :: temp_line! Temporary string for building each line
@@ -567,6 +720,10 @@ CONTAINS
     ! Dimensionless transitional parameter: H̃_tr = Htr / Hrms.
         IF (Hrms > TINY(1.0_8)) THEN! Use a tolerance for comparison
             Htr_tilde = (Htr_dim / Hrms)
+            ! Clamp denormals to zero for Htr_tilde
+            IF (Htr_tilde > 0.0_8 .AND. Htr_tilde < TINY(1.0_8)) THEN
+                Htr_tilde = 0.0_8
+            END IF
         ELSE
             Htr_tilde = 0.0_8! Handle division by zero
         END IF
@@ -612,136 +769,139 @@ CONTAINS
         END IF
 
     ! Build the report string with formatted output using internal write
-        WRITE(temp_line, '(A22)') "======================"
+        WRITE(temp_line, '(A)') "======================"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A18)') "   INPUT PARAMETERS"
+        WRITE(temp_line, '(A)') "   INPUT PARAMETERS"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A22)') "======================"
-        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-
-        WRITE(temp_line, '(A19, F7.4)') "Hm0 (m)         :", Hm0
+        WRITE(temp_line, '(A)') "======================"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F8.4)') "d (m)           :", d
+        ! Adjusted to include colon and match spacing
+        WRITE(temp_line, '(A17, F7.4)') "Hm0 (m)         :", Hm0
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F8.4, A17, F6.4, A1)') "Beach slope (1:m):", slopeM, "   (tan(alpha) = ", tanAlpha, ")"
+        WRITE(temp_line, '(A17, F8.4)') "d (m)           :", d
+        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
+
+        ! Adjusted to include colon and match spacing
+        WRITE(temp_line, '(A18, F8.4, A17, F6.4, A1)') "Beach slope (1:m):", slopeM, "   (tan(alpha) = ", tanAlpha, ")"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
         report_str = TRIM(report_str) // NEW_LINE('A')! Blank line
 
     ! Section: CALCULATED PARAMETERS
-        WRITE(temp_line, '(A27)') "==========================="
+        WRITE(temp_line, '(A)') "==========================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A23)') "   CALCULATED PARAMETERS"
+        WRITE(temp_line, '(A)') "   CALCULATED PARAMETERS"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A27)') "==========================="
-        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-
-        WRITE(temp_line, '(A33, F7.4)') "Free surface variance m0         :", m0
+        WRITE(temp_line, '(A)') "==========================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A33, F7.4)') "Mean square wave height Hrms (m) :", Hrms
+        ! Adjusted to include colon and match spacing
+        WRITE(temp_line, '(A34, F7.4)') "Free surface variance m0         :", m0
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A33, F7.4)') "Dimensionless H~_tr (Htr/Hrms)   :", Htr_tilde
+        WRITE(temp_line, '(A34, F7.4)') "Mean square wave height Hrms (m) :", Hrms
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A33, F7.4)') "Transitional wave height Htr (m) :", Htr_dim
+        WRITE(temp_line, '(A34, F7.4)') "Dimensionless H~_tr (Htr/Hrms)   :", Htr_tilde
+        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
+
+        WRITE(temp_line, '(A34, F7.4)') "Transitional wave height Htr (m) :", Htr_dim
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
         report_str = TRIM(report_str) // NEW_LINE('A')! Blank line
 
     ! Section: DIMENSIONLESS WAVE HEIGHTS (H/Hrms)
-        WRITE(temp_line, '(A41)') "========================================="
+        WRITE(temp_line, '(A)') "========================================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A37)') "   DIMENSIONLESS WAVE HEIGHTS (H/Hrms)"
+        WRITE(temp_line, '(A)') "   DIMENSIONLESS WAVE HEIGHTS (H/Hrms)"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A41)') "========================================="
-        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-
-        WRITE(temp_line, '(A19, F7.4)') "H1/Hrms       :", interp_Hrms(1)
+        WRITE(temp_line, '(A)') "========================================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H2/Hrms       :", interp_Hrms(2)
+        WRITE(temp_line, '(A15, F7.4)') "H1/Hrms       : ", interp_Hrms(1)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/3 / Hrms   :", interp_Hrms(3)
+        WRITE(temp_line, '(A15, F7.4)') "H2/Hrms       : ", interp_Hrms(2)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/10 / Hrms  :", interp_Hrms(4)
+        WRITE(temp_line, '(A15, F7.4)') "H1/3 / Hrms   : ", interp_Hrms(3)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/50 / Hrms  :", interp_Hrms(5)
+        WRITE(temp_line, '(A15, F7.4)') "H1/10 / Hrms  : ", interp_Hrms(4)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/100 / Hrms :", interp_Hrms(6)
+        WRITE(temp_line, '(A15, F7.4)') "H1/50 / Hrms  : ", interp_Hrms(5)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/250 / Hrms :", interp_Hrms(7)
+        WRITE(temp_line, '(A15, F7.4)') "H1/100 / Hrms : ", interp_Hrms(6)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/1000 /Hrms :", interp_Hrms(8)
+        WRITE(temp_line, '(A15, F7.4)') "H1/250 / Hrms : ", interp_Hrms(7)
+        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
+
+        WRITE(temp_line, '(A15, F7.4)') "H1/1000 /Hrms : ", interp_Hrms(8)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
         report_str = TRIM(report_str) // NEW_LINE('A')! Blank line
 
     ! Section: DIMENSIONAL WAVE HEIGHTS (m)
-        WRITE(temp_line, '(A34)') "=================================="
+        WRITE(temp_line, '(A)') "=================================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A30)') "   DIMENSIONAL WAVE HEIGHTS (m)"
+        WRITE(temp_line, '(A)') "   DIMENSIONAL WAVE HEIGHTS (m)"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A34)') "=================================="
-        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-
-        WRITE(temp_line, '(A19, F7.4)') "H1 (m)        :", dimensional(1)
+        WRITE(temp_line, '(A)') "=================================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H2 (m)        :", dimensional(2)
+        WRITE(temp_line, '(A15, F7.4)') "H1 (m)        : ", dimensional(1)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/3 (m)      :", dimensional(3)
+        WRITE(temp_line, '(A15, F7.4)') "H2 (m)        : ", dimensional(2)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/10 (m)     :", dimensional(4)
+        WRITE(temp_line, '(A15, F7.4)') "H1/3 (m)      : ", dimensional(3)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/50 (m)     :", dimensional(5)
+        WRITE(temp_line, '(A15, F7.4)') "H1/10 (m)     : ", dimensional(4)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/100 (m)    :", dimensional(6)
+        WRITE(temp_line, '(A15, F7.4)') "H1/50 (m)     : ", dimensional(5)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/250 (m)    :", dimensional(7)
+        WRITE(temp_line, '(A15, F7.4)') "H1/100 (m)    : ", dimensional(6)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A19, F7.4)') "H1/1000 (m)   :", dimensional(8)
+        WRITE(temp_line, '(A15, F7.4)') "H1/250 (m)    : ", dimensional(7)
+        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
+
+        WRITE(temp_line, '(A15, F7.4)') "H1/1000 (m)   : ", dimensional(8)
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
         report_str = TRIM(report_str) // NEW_LINE('A')! Blank line
 
     ! Section: DIAGNOSTIC RATIOS
-        WRITE(temp_line, '(A23)') "======================="
+        WRITE(temp_line, '(A)') "======================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A19)') "   DIAGNOSTIC RATIOS"
+        WRITE(temp_line, '(A)') "   DIAGNOSTIC RATIOS"
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        WRITE(temp_line, '(A23)') "======================="
-        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-
-        WRITE(temp_line, '(A20, F7.4)') "(H1/10)/(H1/3)   :", ratio_110_13
+        WRITE(temp_line, '(A)') "======================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A20, F7.4)') "(H1/50)/(H1/3)   :", ratio_150_13
+        ! Adjusted to include colon and match spacing
+        WRITE(temp_line, '(A18, F7.4)') "(H1/10)/(H1/3)   :", ratio_110_13
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A20, F7.4)') "(H1/100)/(H1/3)  :", ratio_1100_13
+        WRITE(temp_line, '(A18, F7.4)') "(H1/50)/(H1/3)   :", ratio_150_13
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A20, F7.4)') "(H1/250)/(H1/3)  :", ratio_1250_13
+        WRITE(temp_line, '(A18, F7.4)') "(H1/100)/(H1/3)  :", ratio_1100_13
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(temp_line, '(A20, F7.4)') "(H1/1000)/(H1/3) :", ratio_11000_13
+        WRITE(temp_line, '(A18, F7.4)') "(H1/250)/(H1/3)  :", ratio_1250_13
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        report_str = TRIM(report_str) // NEW_LINE('A')! Blank line
 
-        WRITE(temp_line, '(A13)') "End of Report"
+        WRITE(temp_line, '(A18, F7.4)') "(H1/1000)/(H1/3) :", ratio_11000_13
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
+
+        WRITE(temp_line, '(A)') "End of Report"
+        report_str = TRIM(report_str) // TRIM(temp_line) ! Removed NEW_LINE('A')
 
         CALL writeReportToFile(TRIM(report_str))
         WRITE(*,'(A)') TRIM(report_str)
@@ -753,6 +913,7 @@ CONTAINS
 !   Writes the generated report string to a file named "report.txt".
 !---------------------------------------------------------------------
     SUBROUTINE writeReportToFile(report)
+        IMPLICIT NONE
         CHARACTER(LEN=*), INTENT(IN) :: report
         INTEGER :: iostat_val
 
@@ -772,6 +933,7 @@ CONTAINS
 !   Uses manual parsing for robustness.
 !---------------------------------------------------------------------
     LOGICAL FUNCTION string_to_real(input_str, output_val)
+        IMPLICIT NONE
         CHARACTER(LEN=*), INTENT(IN) :: input_str
         REAL(KIND=8), INTENT(OUT) :: output_val
         CHARACTER(LEN=LEN(input_str)) :: trimmed_str
@@ -780,18 +942,18 @@ CONTAINS
         LOGICAL :: has_decimal, has_digit
 
         output_val = 0.0_8
-        string_to_real =.TRUE.
+        string_to_real = .TRUE.
         sign_val = 1.0_8
         value_part = 0.0_8
         decimal_factor = 0.1_8
-        has_decimal =.FALSE.
-        has_digit =.FALSE.
+        has_decimal = .FALSE.
+        has_digit = .FALSE.
 
         trimmed_str = TRIM(ADJUSTL(input_str))
         len_trimmed = LEN(trimmed_str)
 
         IF (len_trimmed == 0) THEN
-            string_to_real =.FALSE.
+            string_to_real = .FALSE.
             RETURN
         END IF
 
@@ -805,28 +967,28 @@ CONTAINS
         END IF
 
     ! Parse integer part
-        DO WHILE (i <= len_trimmed.AND. trimmed_str(i:i) >= '0'.AND. trimmed_str(i:i) <= '9')
+        DO WHILE (i <= len_trimmed .AND. trimmed_str(i:i) >= '0' .AND. trimmed_str(i:i) <= '9')
             value_part = value_part * 10.0_8 + REAL(ICHAR(trimmed_str(i:i)) - ICHAR('0'), KIND=8)
-            has_digit =.TRUE.
+            has_digit = .TRUE.
             i = i + 1
         END DO
 
     ! Parse decimal part
-        IF (i <= len_trimmed.AND. trimmed_str(i:i) == '.') THEN
-            has_decimal =.TRUE.
+        IF (i <= len_trimmed .AND. trimmed_str(i:i) == '.') THEN
+            has_decimal = .TRUE.
             i = i + 1
-            DO WHILE (i <= len_trimmed.AND. trimmed_str(i:i) >= '0'.AND. trimmed_str(i:i) <= '9')
+            DO WHILE (i <= len_trimmed .AND. trimmed_str(i:i) >= '0' .AND. trimmed_str(i:i) <= '9')
                 value_part = value_part + REAL(ICHAR(trimmed_str(i:i)) - ICHAR('0'), KIND=8) * decimal_factor
                 decimal_factor = decimal_factor / 10.0_8
-                has_digit =.TRUE.
+                has_digit = .TRUE.
                 i = i + 1
             END DO
         END IF
 
     ! Check for remaining characters (non-numeric, or multiple decimals)
     ! This also catches cases where only a sign or only a decimal point was present without digits.
-        IF (i <= len_trimmed.OR..NOT. has_digit) THEN
-            string_to_real =.FALSE.
+        IF (i <= len_trimmed .OR. .NOT. has_digit) THEN
+            string_to_real = .FALSE.
             RETURN
         END IF
 
