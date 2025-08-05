@@ -546,7 +546,7 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"======================\n";
     ss << L"Hm0 (m)         : " << Hm0 << L"\n";
     ss << L"d (m)           : " << d << L"\n";
-    ss << L"Beach slope (1:m): " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
+    ss << L"Beach slope (m) : " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
 
     ss << L"===========================\n";
     ss << L"   CALCULATED PARAMETERS\n";
@@ -640,7 +640,7 @@ int main(int argc, char* argv[]) {
         std::wcout << L"Enter water depth d (m): ";
         std::wcin >> d;
         
-        std::wcout << L"Enter beach slope (1:m): ";
+        std::wcout << L"Enter beach slope (m): ";
         std::wcin >> slopeM;
     }
 

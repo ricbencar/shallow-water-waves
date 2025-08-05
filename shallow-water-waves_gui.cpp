@@ -11,7 +11,7 @@
  *
  * 1. Hm0 (in meters)          - The local significant spectral wave height.
  * 2. d (in meters)            - The local water depth.
- * 3. Beach slope (1:m)        - The beach slope expressed as “1:m”.
+ * 3. Beach slope (m)          - The beach slope expressed as “1:m”.
  *
  * Based on these inputs, the program computes:
  *
@@ -551,7 +551,7 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"======================\n";
     ss << L"Hm0 (m)         : " << Hm0 << L"\n";
     ss << L"d (m)           : " << d << L"\n";
-    ss << L"Beach slope (1:m): " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
+    ss << L"Beach slope (m) : " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
 
     ss << L"===========================\n";
     ss << L"   CALCULATED PARAMETERS\n";
