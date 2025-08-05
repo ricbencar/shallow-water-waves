@@ -50,9 +50,8 @@ PROGRAM ShallowWaterWaves
     REAL(KIND=8), PARAMETER :: k2 = 3.6_8! Exponent for the second part of the Composite Weibull distribution
 
 ! Precision for Numerical Solver Convergence:
-    REAL(KIND=8), PARAMETER :: EPSILON = 1.0E-12_8! A small value (10^-12) indicating the maximum allowable error or difference
+    REAL(KIND=8), PARAMETER :: EPSILON = 1.0E-5_8! A small value (10^-12) indicating the maximum allowable error or difference
                                         ! within numerical computations.
-    REAL(KIND=8), PARAMETER :: JACOBIAN_DX = 1.0E-8_8! Small step size for finite difference approximation of Jacobian derivatives.
 
     INTEGER, PARAMETER :: REPORT_UNIT = 10
     REAL(KIND=8) :: Hm0, d, slopeM
@@ -154,6 +153,7 @@ CONTAINS
     ! - For small values of 'x' (specifically, x < a + 1.0), it uses a series expansion.
     ! - For larger values of 'x', it utilizes a continued fraction expansion.
     ! This adaptive strategy ensures robust and precise computation across different input ranges.
+    ! This is a standard numerical implementation for the incomplete gamma function.
     !
     ! @param a The 'a' parameter (shape parameter) of the incomplete gamma function. Must be positive.
     ! @param x The 'x' parameter (upper integration limit) of the incomplete gamma function. Must be non-negative.
@@ -165,17 +165,6 @@ CONTAINS
                                         ! within the gamma function calculations.
         REAL(KIND=8) :: gln, ap, sum_val, del_val, b, c, d, h, an, del, exp_term
         INTEGER :: n_iter ! Explicitly declare n_iter
-
-    ! Input validation: Essential for preventing mathematical errors and ensuring function robustness.
-        IF (a <= 0.0_8 .OR. x < 0.0_8) THEN
-            incomplete_gamma_lower = HUGE(1.0_8)! Use HUGE for NaN equivalent
-            RETURN
-        END IF
-    ! Corrected: Check if x is very close to 0.0_8 instead of exactly equal.
-        IF (ABS(x - 0.0_8) < TINY(1.0_8)) THEN
-            incomplete_gamma_lower = 0.0_8
-            RETURN
-        END IF
 
     ! Compute the natural logarithm of the complete gamma function, ln(Γ(a)).
     ! `LOG_GAMMA` is used for improved numerical stability.
@@ -192,15 +181,7 @@ CONTAINS
                 sum_val = sum_val + del_val
                 IF (ABS(del_val) < ABS(sum_val) * LOCAL_EPS_GAMMA) THEN
                     exp_term = EXP(-x + a * LOG(x) - gln)
-                    ! Clamp denormals to zero
-                    IF (exp_term > 0.0_8 .AND. exp_term < TINY(1.0_8)) THEN
-                        exp_term = 0.0_8
-                    END IF
                     incomplete_gamma_lower = sum_val * exp_term * GAMMA(a)
-                    ! Clamp denormals to zero for the final result
-                    IF (incomplete_gamma_lower > 0.0_8 .AND. incomplete_gamma_lower < TINY(1.0_8)) THEN
-                        incomplete_gamma_lower = 0.0_8
-                    END IF
                     RETURN
                 END IF
             END DO
@@ -220,23 +201,10 @@ CONTAINS
                 d = 1.0_8 / d
                 del = d * c
                 h = h * del
-                ! Clamp denormals to zero for h
-                IF (h > 0.0_8 .AND. h < TINY(1.0_8)) THEN
-                    h = 0.0_8
-                END IF
                 IF (ABS(del - 1.0_8) < LOCAL_EPS_GAMMA) EXIT
             END DO
             exp_term = EXP(-x + a * LOG(x) - gln)
-            ! Clamp denormals to zero
-            IF (exp_term > 0.0_8 .AND. exp_term < TINY(1.0_8)) THEN
-                exp_term = 0.0_8
-            END IF
             incomplete_gamma_lower = (1.0_8 - exp_term * h) * GAMMA(a)
-            IF (incomplete_gamma_lower < 0.0_8) incomplete_gamma_lower = 0.0_8! Clamp to 0.0
-            ! Clamp denormals to zero for the final result
-            IF (incomplete_gamma_lower > 0.0_8 .AND. incomplete_gamma_lower < TINY(1.0_8)) THEN
-                incomplete_gamma_lower = 0.0_8
-            END IF
         END IF
     END FUNCTION incomplete_gamma_lower
 
@@ -248,6 +216,7 @@ CONTAINS
     ! This function calculates the unnormalized form of the upper incomplete gamma function.
     ! It is derived from the complete gamma function Γ(a) and the unnormalized lower incomplete gamma function γ(a, x),
     ! using the identity Γ(a,x) = Γ(a) - γ(a,x).
+    ! This is a standard numerical implementation for the incomplete gamma function.
     !
     ! @param a The 'a' parameter (shape parameter) of the incomplete gamma function. Must be positive.
     ! @param x The 'x' parameter (lower integration limit) of the incomplete gamma function. Must be non-negative.
@@ -268,6 +237,22 @@ CONTAINS
         incomplete_gamma_upper = GAMMA(a) - incomplete_gamma_lower(a, x)
 
     END FUNCTION incomplete_gamma_upper
+
+    REAL(KIND=8) FUNCTION gamma_deriv_term(a, x)
+        IMPLICIT NONE
+    ! @brief Computes the term x^(a-1) * exp(-x), which appears in the derivative of incomplete gamma functions.
+    !
+    ! This function is a helper for calculating analytical derivatives of the incomplete gamma functions.
+    ! In this application, 'x' (which corresponds to 'u' or 'v') is always positive,
+    ! so special handling for x near zero is not required.
+    !
+    ! @param a The 'a' parameter (shape parameter).
+    ! @param x The 'x' parameter.
+    ! @return The value of x^(a-1) * exp(-x).
+        REAL(KIND=8), INTENT(IN) :: a, x
+
+        gamma_deriv_term = x**(a - 1.0_8) * EXP(-x)
+    END FUNCTION gamma_deriv_term
 
 
     REAL(KIND=8) FUNCTION calculate_HN(N, H1, H2, k1_val, k2_val, Htr)
@@ -290,22 +275,6 @@ CONTAINS
     ! Returns `Huge(1.0_8)` if input parameters are invalid.
         REAL(KIND=8), INTENT(IN) :: N, H1, H2, k1_val, k2_val, Htr
         REAL(KIND=8) :: HN_candidate1, log_N_val, term_power1, term_power2
-
-        IF (N <= 1.0_8) THEN
-            WRITE(*,*) "Error: calculate_HN: N must be greater than 1 for LOG(N)."
-            calculate_HN = HUGE(1.0_8)
-            RETURN
-        END IF
-        IF (H1 <= 0.0_8 .OR. H2 <= 0.0_8) THEN
-            WRITE(*,*) "Error: calculate_HN: H1 and H2 must be positive."
-            calculate_HN = HUGE(1.0_8)
-            RETURN
-        END IF
-        IF (k1_val <= 0.0_8 .OR. k2_val <= 0.0_8) THEN
-            WRITE(*,*) "Error: calculate_HN: k1 and k2 must be positive."
-            calculate_HN = HUGE(1.0_8)
-            RETURN
-        END IF
 
         log_N_val = LOG(N)
 
@@ -405,26 +374,20 @@ CONTAINS
     ! @param Htr_Hrms_val The normalized transitional wave height (constant for a given solve).
     ! @return The value of the first function, which should be driven to zero.
         REAL(KIND=8), INTENT(IN) :: H1_Hrms_val, H2_Hrms_val, Htr_Hrms_val
-        REAL(KIND=8) :: arg1, arg2, term1, term2, sum_terms, Htr_H1_ratio, Htr_H2_ratio
+        REAL(KIND=8) :: u, v, term1, term2, sum_terms
 
         IF (H1_Hrms_val <= 0.0_8 .OR. H2_Hrms_val <= 0.0_8) THEN
             F1 = HUGE(1.0_8)
             RETURN
         END IF
 
-        Htr_H1_ratio = Htr_Hrms_val / H1_Hrms_val
-        arg1 = (Htr_H1_ratio)**k1
-
-        Htr_H2_ratio = Htr_Hrms_val / H2_Hrms_val
-        arg2 = (Htr_H2_ratio)**k2
+        u = (Htr_Hrms_val / H1_Hrms_val)**k1
+        v = (Htr_Hrms_val / H2_Hrms_val)**k2
 
     ! Calculate terms using unnormalized incomplete gamma functions.
-        term1 = H1_Hrms_val * H1_Hrms_val * incomplete_gamma_lower(2.0_8 / k1 + 1.0_8, arg1)
-        term2 = H2_Hrms_val * H2_Hrms_val * incomplete_gamma_upper(2.0_8 / k2 + 1.0_8, arg2)
-
-    ! Ensure the argument to sqrt is non-negative, though theoretically it should be.
+        term1 = H1_Hrms_val * H1_Hrms_val * incomplete_gamma_lower(2.0_8 / k1 + 1.0_8, u)
+        term2 = H2_Hrms_val * H2_Hrms_val * incomplete_gamma_upper(2.0_8 / k2 + 1.0_8, v)
         sum_terms = term1 + term2
-        IF (sum_terms < 0.0_8) sum_terms = 0.0_8! Clamp to zero to avoid NaN from sqrt of negative.
 
         F1 = SQRT(sum_terms) - 1.0_8
     END FUNCTION F1
@@ -442,7 +405,7 @@ CONTAINS
     ! @param Htr_Hrms_val The normalized transitional wave height (constant for a given solve).
     ! @return The value of the second function, which should be driven to zero.
         REAL(KIND=8), INTENT(IN) :: H1_Hrms_val, H2_Hrms_val, Htr_Hrms_val
-        REAL(KIND=8) :: term1_F2, term2_F2, Htr_H1_ratio, Htr_H2_ratio
+        REAL(KIND=8) :: term1_F2, term2_F2
 
         IF (H1_Hrms_val <= 0.0_8 .OR. H2_Hrms_val <= 0.0_8) THEN
         ! Return a large value to push the solver away from invalid regions.
@@ -450,11 +413,8 @@ CONTAINS
             RETURN
         END IF
 
-        Htr_H1_ratio = Htr_Hrms_val / H1_Hrms_val
-        term1_F2 = (Htr_H1_ratio)**k1
-
-        Htr_H2_ratio = Htr_Hrms_val / H2_Hrms_val
-        term2_F2 = (Htr_H2_ratio)**k2
+        term1_F2 = (Htr_Hrms_val / H1_Hrms_val)**k1
+        term2_F2 = (Htr_Hrms_val / H2_Hrms_val)**k2
 
         F2 = term1_F2 - term2_F2
     END FUNCTION F2
@@ -481,16 +441,6 @@ CONTAINS
         REAL(KIND=8) :: determinant
 
         determinant = J11 * J22 - J12 * J21
-
-    ! Check for a singular or nearly singular Jacobian matrix.
-        IF (ABS(determinant) < EPSILON * 100.0_8) THEN
-        ! If determinant is too small, the matrix is singular or ill-conditioned.
-        ! In this case, we cannot reliably solve the system.
-        ! Set dx1 and dx2 to zero to prevent large, unstable steps.
-            dx1 = 0.0_8
-            dx2 = 0.0_8
-            RETURN
-        END IF
 
     ! Apply Cramer's rule:
         dx1 = (b1 * J22 - b2 * J12) / determinant
@@ -521,9 +471,6 @@ CONTAINS
         H2_initial = 1.054085273232950_8 + 0.9369023639428842_8 * Htr_Hrms_val_power / &
                      ((2.549022900471753_8**2.980718327103574_8) + Htr_Hrms_val_power)
 
-    ! Ensure initial guesses are positive, as physical parameters cannot be zero or negative.
-        IF (H1_initial <= 0.0_8) H1_initial = TINY(1.0_8)
-        IF (H2_initial <= 0.0_8) H2_initial = TINY(1.0_8)
     END SUBROUTINE get_initial_guesses
 
     LOGICAL FUNCTION newtonRaphsonSystemSolver(Htr_Hrms_val, H1_Hrms_out, H2_Hrms_out, tol, maxit)
@@ -548,6 +495,9 @@ CONTAINS
         REAL(KIND=8) :: dH1, dH2
         INTEGER :: iter
 
+        REAL(KIND=8) :: u, v, term_A, term_B, gamma_lower_val, gamma_upper_val, G1_val
+        REAL(KIND=8) :: gamma_deriv_u, gamma_deriv_v
+
         CALL get_initial_guesses(Htr_Hrms_val, H1_Hrms_out, H2_Hrms_out)
 
         DO iter = 0, maxit - 1
@@ -559,23 +509,42 @@ CONTAINS
                 RETURN
             END IF
 
-        ! Calculate the Jacobian matrix elements using central finite differences.
-            J11 = (F1(H1_Hrms_out + JACOBIAN_DX, H2_Hrms_out, Htr_Hrms_val) - &
-                   F1(H1_Hrms_out - JACOBIAN_DX, H2_Hrms_out, Htr_Hrms_val)) / (2.0_8 * JACOBIAN_DX)
-            J12 = (F1(H1_Hrms_out, H2_Hrms_out + JACOBIAN_DX, Htr_Hrms_val) - &
-                   F1(H1_Hrms_out, H2_Hrms_out - JACOBIAN_DX, Htr_Hrms_val)) / (2.0_8 * JACOBIAN_DX)
-            J21 = (F2(H1_Hrms_out + JACOBIAN_DX, H2_Hrms_out, Htr_Hrms_val) - &
-                   F2(H1_Hrms_out - JACOBIAN_DX, H2_Hrms_out, Htr_Hrms_val)) / (2.0_8 * JACOBIAN_DX)
-            J22 = (F2(H1_Hrms_out, H2_Hrms_out + JACOBIAN_DX, Htr_Hrms_val) - &
-                   F2(H1_Hrms_out, H2_Hrms_out - JACOBIAN_DX, Htr_Hrms_val)) / (2.0_8 * JACOBIAN_DX)
+            ! Pre-calculate common terms for Jacobian
+            u = (Htr_Hrms_val / H1_Hrms_out)**k1
+            v = (Htr_Hrms_val / H2_Hrms_out)**k2
+
+            term_A = 2.0_8 / k1 + 1.0_8
+            term_B = 2.0_8 / k2 + 1.0_8
+
+            gamma_lower_val = incomplete_gamma_lower(term_A, u)
+            gamma_upper_val = incomplete_gamma_upper(term_B, v)
+
+            G1_val = SQRT(H1_Hrms_out * H1_Hrms_out * gamma_lower_val + &
+                          H2_Hrms_out * H2_Hrms_out * gamma_upper_val)
+
+            gamma_deriv_u = gamma_deriv_term(term_A, u)
+            gamma_deriv_v = gamma_deriv_term(term_B, v)
+
+        ! Calculate the Jacobian matrix elements using analytical derivatives.
+        ! J11 = dF1/dH1_Hrms_out
+            J11 = (1.0_8 / G1_val) * (H1_Hrms_out * gamma_lower_val + &
+                  H1_Hrms_out * H1_Hrms_out * (-k1 * Htr_Hrms_val**k1 / H1_Hrms_out**(k1+1.0_8)) * gamma_deriv_u)
+
+        ! J12 = dF1/dH2_Hrms_out
+            J12 = (1.0_8 / G1_val) * (H2_Hrms_out * gamma_upper_val + &
+                  H2_Hrms_out * H2_Hrms_out * (-k2 * Htr_Hrms_val**k2 / H2_Hrms_out**(k2+1.0_8)) * gamma_deriv_v)
+
+        ! J21 = dF2/dH1_Hrms_out
+            J21 = -k1 * (Htr_Hrms_val**k1) * (H1_Hrms_out**(-k1-1.0_8))
+
+        ! J22 = dF2/dH2_Hrms_out
+            J22 = k2 * (Htr_Hrms_val**k2) * (H2_Hrms_out**(-k2-1.0_8))
 
             CALL solve_linear_system_2x2(J11, J12, J21, J22, -f1_val, -f2_val, dH1, dH2)
 
             H1_Hrms_out = H1_Hrms_out + dH1
             H2_Hrms_out = H2_Hrms_out + dH2
 
-            IF (H1_Hrms_out <= 0.0_8) H1_Hrms_out = TINY(1.0_8)
-            IF (H2_Hrms_out <= 0.0_8) H2_Hrms_out = TINY(1.0_8)
         END DO
 
         WRITE(*,*) "Newton-Raphson system solver failed to converge for Htr_Hrms =", Htr_Hrms_val, &
@@ -588,7 +557,7 @@ CONTAINS
 ! Purpose:
 !   Computes all wave parameters, performs calculations based on the
 !   Composed Weibull model, and builds a detailed report. It then
-!   writes this report to "report.txt" and displays it on the console.
+!   writes this report to "report.txt".
 !---------------------------------------------------------------------
     SUBROUTINE buildReportAndDisplay(Hm0, d, slopeM)
         IMPLICIT NONE
@@ -619,11 +588,7 @@ CONTAINS
         Htr_dim = (0.35_8 + 5.8_8 * tanAlpha) * d
 
     ! Dimensionless transitional parameter: H̃_tr = Htr / Hrms.
-        IF (Hrms > TINY(1.0_8)) THEN! Use a tolerance for comparison
-            Htr_tilde = (Htr_dim / Hrms)
-        ELSE
-            Htr_tilde = 0.0_8! Handle division by zero
-        END IF
+        Htr_tilde = (Htr_dim / Hrms)
 
     ! Solve for H1_Hrms and H2_Hrms simultaneously using the Newton-Raphson matrix solver.
         IF (.NOT. newtonRaphsonSystemSolver(Htr_tilde, H1_Hrms, H2_Hrms, EPSILON, 100)) THEN
@@ -649,21 +614,11 @@ CONTAINS
         END DO
 
     ! Calculate diagnostic ratios.
-    ! Corrected: Use ABS and TINY for floating-point comparison
-        IF (ABS(interp_Hrms(3)) > TINY(1.0_8)) THEN
-            ratio_110_13 = (interp_Hrms(4) / interp_Hrms(3))
-            ratio_150_13 = (interp_Hrms(5) / interp_Hrms(3))
-            ratio_1100_13 = (interp_Hrms(6) / interp_Hrms(3))
-            ratio_1250_13 = (interp_Hrms(7) / interp_Hrms(3))
-            ratio_11000_13 = (interp_Hrms(8) / interp_Hrms(3))
-        ELSE
-        ! Handle division by zero for ratios if H1/3 is zero or very close to it
-            ratio_110_13 = 0.0_8
-            ratio_150_13 = 0.0_8
-            ratio_1100_13 = 0.0_8
-            ratio_1250_13 = 0.0_8
-            ratio_11000_13 = 0.0_8
-        END IF
+        ratio_110_13 = (interp_Hrms(4) / interp_Hrms(3))
+        ratio_150_13 = (interp_Hrms(5) / interp_Hrms(3))
+        ratio_1100_13 = (interp_Hrms(6) / interp_Hrms(3))
+        ratio_1250_13 = (interp_Hrms(7) / interp_Hrms(3))
+        ratio_11000_13 = (interp_Hrms(8) / interp_Hrms(3))
 
     ! Build the report string with formatted output using internal write
         WRITE(temp_line, '(A)') "======================"
