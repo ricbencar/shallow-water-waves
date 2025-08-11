@@ -168,6 +168,10 @@ H = \tilde{H} \cdot H_{rms}
 
 Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include characteristic wave height ratios $(H_{1/N})/(H_{1/3})$ with $N = 10, 50, 100, 250, \text{ and } 1000$.
 
+## Utility Script: m0_calculator.py
+
+For convenience, a Python script `m0_calculator.py` is included. This utility can be used to estimate the free-surface variance ($m_0$) if it is not known directly. The script uses a more comprehensive physical model, considering wave shoaling and breaking (based on Thornton & Guza, 1983) to derive $m_0$ from offshore wave parameters like peak period and wave height. It serves as a useful pre-processing tool to generate the necessary $m_0$ input for the main CLI/GUI applications.
+
 ## Supporting Mathematical Functions
 
 The core calculations rely on precise implementations of fundamental mathematical functions:
@@ -228,10 +232,6 @@ g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion -Wsign-con
 
 **Usage:**
 Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the `Hm0`, `m0`, `d`, and `Beach slope m` values in the respective text fields and click "Compute" to see the results. The report will also be saved to `report.txt` in the same directory as the executable.
-
-## Utility Script: m0_calculator.py
-
-For convenience, a Python script `m0_calculator.py` is included. This utility can be used to estimate the free-surface variance ($m_0$) if it is not known directly. The script uses a more comprehensive physical model, considering wave shoaling and breaking (based on Thornton & Guza, 1983) to derive $m_0$ from offshore wave parameters like peak period and wave height. It serves as a useful pre-processing tool to generate the necessary $m_0$ input for the main C++ applications.
 
 ## References
 
