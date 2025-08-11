@@ -7,15 +7,14 @@
  *
  * The program is implemented as a Windows GUI application using only the
  * native Win32 API and standard C++.
- * It allows the user to input three key parameters:
+ * It allows the user to input four key parameters:
  *
  * 1. Hm0 (in meters)          - The local significant spectral wave height.
- * 2. d (in meters)            - The local water depth.
- * 3. Beach slope (m)          - The beach slope expressed as “1:m”.
+ * 2. m0 (in m^2)              - The free-surface variance.
+ * 3. d (in meters)            - The local water depth.
+ * 4. Beach slope (m)          - The beach slope expressed as “1:m”.
  *
  * Based on these inputs, the program computes:
- *
- * - Free-surface variance: m0 = (Hm0 / 4)²
  *
  * - Mean square wave height:
  * Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0)
@@ -399,7 +398,7 @@ void solve_linear_system_2x2(double J11, double J12, double J21, double J22,
  * @param H2_initial Output: The initial guess for H2_Hrms.
  */
 void get_initial_guesses(double Htr_Hrms, double &H1_initial, double &H2_initial) {
-    // Empirical regression for H1/Hrms.
+    // Empirical regression for H1_initial.
     H1_initial = 0.9552427998926 / (1.0 - 0.992405988921401 * exp(-1.42537392576977 * Htr_Hrms));
 
     // Empirical regression for H2_initial
@@ -477,15 +476,15 @@ bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms
 //   Composed Weibull model, and builds a detailed report as a
 //   formatted wide string.
 //---------------------------------------------------------------------
-static std::wstring buildReport(double Hm0, double d, double slopeM)
+static std::wstring buildReport(double Hm0, double m0, double d, double slopeM)
 {
     std::wstringstream ss;
     ss << std::fixed << std::setprecision(4);
 
     // Input validation for physical parameters
-    if (Hm0 <= 0.0 || d <= 0.0)
+    if (Hm0 <= 0.0 || m0 <= 0.0 || d <= 0.0)
     {
-        ss << L"ERROR: Hm0 and d must be positive.\n";
+        ss << L"ERROR: Hm0, m0, and d must be positive.\n";
         return ss.str();
     }
     if (slopeM <= 0.0)
@@ -493,9 +492,6 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
         ss << L"ERROR: Beach slope (m) must be positive.\n";
         return ss.str();
     }
-
-    // Compute free-surface variance: m0 = (Hm0 / 4)^2
-    double m0 = std::pow(Hm0 / 4.0, 2.0);
 
     // Mean square wave height: Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0)
     double Hrms = (2.69 + 3.24 * std::sqrt(m0) / d) * std::sqrt(m0);
@@ -550,13 +546,13 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"   INPUT PARAMETERS\n";
     ss << L"======================\n";
     ss << L"Hm0 (m)         : " << Hm0 << L"\n";
+    ss << L"m0 (m^2)        : " << m0 << L"\n";
     ss << L"d (m)           : " << d << L"\n";
     ss << L"Beach slope (m) : " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
 
     ss << L"===========================\n";
     ss << L"   CALCULATED PARAMETERS\n";
     ss << L"===========================\n";
-    ss << L"Free surface variance m0         : " << m0 << L"\n";
     ss << L"Mean square wave height Hrms (m) : " << Hrms << L"\n";
     ss << L"Dimensionless H~_tr (Htr/Hrms)   : " << Htr_tilde << L"\n";
     ss << L"Transitional wave height Htr (m) : " << Htr_dim << L"\n\n";
@@ -630,12 +626,13 @@ static std::wstring fixNewlinesForEditControl(const std::wstring &text)
 }
 
 #define IDC_EDIT_HM0 101
-#define IDC_EDIT_D 102
-#define IDC_EDIT_SLOPE 105
-#define IDC_BUTTON_COMPUTE 103
-#define IDC_OUTPUT 104
+#define IDC_EDIT_M0  102
+#define IDC_EDIT_D 103
+#define IDC_EDIT_SLOPE 104
+#define IDC_BUTTON_COMPUTE 105
+#define IDC_OUTPUT 106
 
-HWND hEditHm0, hEditD, hEditSlope, hOutput;
+HWND hEditHm0, hEditM0, hEditD, hEditSlope, hOutput;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -646,26 +643,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
     {
         CreateWindow(L"STATIC", L"Hm0 (m):", WS_CHILD | WS_VISIBLE,
-                     10, 10, 80, 20, hwnd, NULL, NULL, NULL);
+                     10, 10, 120, 20, hwnd, NULL, NULL, NULL);
         hEditHm0 = CreateWindow(L"EDIT", L"2.5", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                                100, 10, 100, 20, hwnd, (HMENU)IDC_EDIT_HM0, NULL, NULL);
+                                140, 10, 100, 20, hwnd, (HMENU)IDC_EDIT_HM0, NULL, NULL);
+
+        CreateWindow(L"STATIC", L"m0 (m^2):", WS_CHILD | WS_VISIBLE,
+                     10, 40, 120, 20, hwnd, NULL, NULL, NULL);
+        hEditM0 = CreateWindow(L"EDIT", L"0.3906", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+                               140, 40, 100, 20, hwnd, (HMENU)IDC_EDIT_M0, NULL, NULL);
 
         CreateWindow(L"STATIC", L"d (m):", WS_CHILD | WS_VISIBLE,
-                     10, 40, 80, 20, hwnd, NULL, NULL, NULL);
-        hEditD = CreateWindow(L"EDIT", L"10.0", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                              100, 40, 100, 20, hwnd, (HMENU)IDC_EDIT_D, NULL, NULL);
+                     10, 70, 120, 20, hwnd, NULL, NULL, NULL);
+        hEditD = CreateWindow(L"EDIT", L"5.0", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+                              140, 70, 100, 20, hwnd, (HMENU)IDC_EDIT_D, NULL, NULL);
 
         CreateWindow(L"STATIC", L"Beach slope m:", WS_CHILD | WS_VISIBLE,
-                     10, 70, 120, 20, hwnd, NULL, NULL, NULL);
-        hEditSlope = CreateWindow(L"EDIT", L"20", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-                                  140, 70, 60, 20, hwnd, (HMENU)IDC_EDIT_SLOPE, NULL, NULL);
+                     10, 100, 120, 20, hwnd, NULL, NULL, NULL);
+        hEditSlope = CreateWindow(L"EDIT", L"100", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+                                  140, 100, 100, 20, hwnd, (HMENU)IDC_EDIT_SLOPE, NULL, NULL);
 
         CreateWindow(L"BUTTON", L"Compute", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-                     10, 100, 190, 30, hwnd, (HMENU)IDC_BUTTON_COMPUTE, NULL, NULL);
+                     10, 130, 230, 30, hwnd, (HMENU)IDC_BUTTON_COMPUTE, NULL, NULL);
 
         hOutput = CreateWindow(L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER |
                                ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
-                               10, 140, 760, 440, hwnd, (HMENU)IDC_OUTPUT, NULL, NULL);
+                               10, 170, 760, 410, hwnd, (HMENU)IDC_OUTPUT, NULL, NULL);
 
         hMonoFont = CreateFont(
             20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
@@ -684,6 +686,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
             GetWindowText(hEditHm0, buffer, 63);
             double Hm0 = _wtof(buffer);
+            
+            GetWindowText(hEditM0, buffer, 63);
+            double m0 = _wtof(buffer);
 
             GetWindowText(hEditD, buffer, 63);
             double d = _wtof(buffer);
@@ -691,7 +696,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             GetWindowText(hEditSlope, buffer, 63);
             double slopeM = _wtof(buffer);
 
-            std::wstring report = buildReport(Hm0, d, slopeM);
+            std::wstring report = buildReport(Hm0, m0, d, slopeM);
             writeReportToFile(report);
             std::wstring guiText = fixNewlinesForEditControl(report);
             SetWindowText(hOutput, guiText.c_str());

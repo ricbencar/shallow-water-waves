@@ -6,13 +6,11 @@
  * parameters using a model based on the Composed Weibull distribution.
  *
  * The command-line application performs the following:
- * 1. If three command-line arguments are provided, they are used as
- * Hm0 (local significant spectral wave height), d (local water depth),
- * and slopeM (beach slope 1:m). Otherwise, the program prompts the user
- * for these values.
+ * 1. If four command-line arguments are provided, they are used as
+ * Hm0 (local significant spectral wave height), m0 (free-surface variance),
+ * d (local water depth), and slopeM (beach slope 1:m). Otherwise, the program
+ * prompts the user for these values.
  * 2. Computes the following intermediate values:
- * - Free-surface variance: m0 = (Hm0 / 4)²
- *
  * - Mean square wave height:
  * Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0)
  *
@@ -39,8 +37,8 @@
  * -Wconversion -Wsign-conversion -static -static-libgcc -static-libstdc++ \
  * -o shallow-water-waves_cli shallow-water-waves_cli.cpp
  *
- * To run with command-line arguments (e.g., Hm0=2.5, d=10, slopeM=20):
- * shallow-water-waves_cli 2.5 10 20
+ * To run with command-line arguments (e.g., Hm0=2.5, m0=0.3906, d=5, slopeM=100):
+ * shallow-water-waves_cli 2.5 0.3906 5 100
  ***********************************************************************/
 
 #define _USE_MATH_DEFINES // Required on some systems (e.g., Windows with MSVC) for M_PI
@@ -471,15 +469,15 @@ bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms
 //   Composed Weibull model, and builds a detailed report as a
 //   formatted wide string.
 //---------------------------------------------------------------------
-static std::wstring buildReport(double Hm0, double d, double slopeM)
+static std::wstring buildReport(double Hm0, double m0, double d, double slopeM)
 {
     std::wstringstream ss;
     ss << std::fixed << std::setprecision(4);
 
     // Input validation for physical parameters
-    if (Hm0 <= 0.0 || d <= 0.0)
+    if (Hm0 <= 0.0 || m0 <= 0.0 || d <= 0.0)
     {
-        ss << L"ERROR: Hm0 and d must be positive.\n";
+        ss << L"ERROR: Hm0, m0, and d must be positive.\n";
         return ss.str();
     }
     if (slopeM <= 0.0)
@@ -487,9 +485,6 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
         ss << L"ERROR: Beach slope (m) must be positive.\n";
         return ss.str();
     }
-
-    // Compute free-surface variance: m0 = (Hm0 / 4)^2
-    double m0 = std::pow(Hm0 / 4.0, 2.0);
 
     // Mean square wave height: Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0)
     double Hrms = (2.69 + 3.24 * std::sqrt(m0) / d) * std::sqrt(m0);
@@ -545,13 +540,13 @@ static std::wstring buildReport(double Hm0, double d, double slopeM)
     ss << L"   INPUT PARAMETERS\n";
     ss << L"======================\n";
     ss << L"Hm0 (m)         : " << Hm0 << L"\n";
+    ss << L"m0 (m^2)        : " << m0 << L"\n";
     ss << L"d (m)           : " << d << L"\n";
     ss << L"Beach slope (m) : " << slopeM << L"   (tan(alpha) = " << tanAlpha << L")\n\n";
 
     ss << L"===========================\n";
     ss << L"   CALCULATED PARAMETERS\n";
     ss << L"===========================\n";
-    ss << L"Free surface variance m0         : " << m0 << L"\n";
     ss << L"Mean square wave height Hrms (m) : " << Hrms << L"\n";
     ss << L"Dimensionless H~_tr (Htr/Hrms)   : " << Htr_tilde << L"\n";
     ss << L"Transitional wave height Htr (m) : " << Htr_dim << L"\n\n";
@@ -618,14 +613,16 @@ int main(int argc, char* argv[]) {
     std::wcout.imbue(std::locale(""));
     
     double Hm0 = 0.0;
+    double m0 = 0.0;
     double d = 0.0;
     double slopeM = 0.0;
 
-    if (argc >= 4) {
+    if (argc >= 5) {
         try {
             Hm0 = std::stod(argv[1]);
-            d = std::stod(argv[2]);
-            slopeM = std::stod(argv[3]);
+            m0 = std::stod(argv[2]);
+            d = std::stod(argv[3]);
+            slopeM = std::stod(argv[4]);
         } catch (const std::invalid_argument& ia) {
             std::wcerr << L"Invalid argument: " << ia.what() << L". Please enter numeric values.\n";
             return 1;
@@ -636,6 +633,9 @@ int main(int argc, char* argv[]) {
     } else {
         std::wcout << L"Enter Hm0 (m): ";
         std::wcin >> Hm0;
+
+        std::wcout << L"Enter free-surface variance m0 (m^2): ";
+        std::wcin >> m0;
         
         std::wcout << L"Enter water depth d (m): ";
         std::wcin >> d;
@@ -644,7 +644,7 @@ int main(int argc, char* argv[]) {
         std::wcin >> slopeM;
     }
 
-    std::wstring report = buildReport(Hm0, d, slopeM);
+    std::wstring report = buildReport(Hm0, m0, d, slopeM);
     
     writeReportToFile(report);
 
