@@ -60,10 +60,10 @@ The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a syste
 
 Both the CLI and GUI applications require the following four input parameters:
 
-* **$H_{m0}$ (in meters)**: The local significant spectral wave height. This value is used for reporting and context but is not a direct input to the core calculation, which now starts from $m_0$.
-* **$m_0$ (in m²)**: The free-surface variance (zeroth spectral moment). This is now the primary input representing the total wave energy.
-* **$d$ (in meters)**: The local water depth.
-* **Beach slope ($1:m$)**: The beach slope expressed as "1:m". For example, entering 20 signifies a slope of $1/20=0.05$. This parameter influences the transitional wave height.
+* $H_{m0}$ (in meters): The local significant spectral wave height. This value is used for reporting and context but is not a direct input to the core calculation, which now starts from $m_0$.
+* $m_0$ (in m²): The free-surface variance (zeroth spectral moment). This is now the primary input representing the total wave energy.
+* $d$ (in meters): The local water depth.
+* Beach slope ($1:m$): The beach slope expressed as "1:m". For example, entering 20 signifies a slope of $1/20=0.05$. This parameter influences the transitional wave height.
 
 ## Computational Process
 
@@ -128,23 +128,17 @@ Here, $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incom
 Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribution) and $\tilde{H}_2$ (the normalized scale parameter of the second Weibull distribution) are determined, two types of dimensionless wave heights can be calculated:
 
 * **$\tilde{H}_N$ (Wave Height with $1/N$ Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
-
     * If $\tilde{H}_{N,candidate} < \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_1 \cdot (\ln(N))^{1/k_1}$
-
     * If $\tilde{H}_{N,candidate} \ge \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_2 \cdot (\ln(N))^{1/k_2}$
 
 * **$\tilde{H}_{1/N}$ (Mean of the Highest $1/N$-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
-
     * **Case 1:** $\tilde{H}_N < \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
-
         ```math
         H_{1/N} = N H_1 \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] + N H_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{H_{tr}}{H_2}\right)^{k_2}\right)
         ```
-
         where $\Gamma(a,x)$ is the unnormalized upper incomplete gamma function.
 
     * **Case 2:** $\tilde{H}_N \ge \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
-
         ```math
         \tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
         ```
