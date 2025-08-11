@@ -29,14 +29,29 @@ Where:
 * $k_1 = 2.0$ is the exponent (shape parameter) for the first part, which is Rayleigh-shaped.
 * $k_2 = 3.6$ is the empirically determined exponent for the second part.
 
-The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H_{rms}$ and continuity at the transitional wave height.
+The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H_{rms}$ and continuity at the transitional wave height. These equations are:
+
+1.  **Normalized $H_{rms}$ Constraint (from Groenendijk, 1998, Equation 7.11):**
+    ```math
+    \tilde{H}_{rms} = 1 = \sqrt{
+    \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
+    + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
+    }
+    ```
+    This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
+
+2.  **Continuity Condition (from Groenendijk, 1998, Equation 3.4):**
+    ```math
+    \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
+    ```
+    This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
 
 ## Features
 
 * **Dual Interface**: Offers both a command-line interface for quick calculations and scripting, and a graphical user interface for ease of use.
-* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k_1=2.0$, $k_2=3.6$).
+* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k_1=2.0$, $k_2=3.6$). This two-part distribution is designed to reflect the different physical regimes governing smaller (unbroken) and larger (breaking) waves.
 * **Key Parameter Calculation**: Takes free-surface variance ($m_0$) as input and computes the mean square wave height ($H_{rms}$), and dimensional/dimensionless transitional wave heights ($H_{tr\_dim}$, $\tilde{H}_{tr}$).
-* **Dimensionless Wave-Height Ratios**: Calculates $\tilde{H}_N$ and $\tilde{H}_{1/N}$ for various characteristic wave heights by solving a system of two non-linear equations derived from the Composite Weibull distribution.
+* **Dimensionless Wave-Height Ratios**: Calculates $\tilde{H}_N$ (wave height with $1/N$ exceedance probability) and $\tilde{H}_{1/N}$ (mean of the highest $1/N$-part of wave heights) for various characteristic wave heights ($H_1, H_2, H_{1/3}, H_{1/10}, H_{1/50}, H_{1/100}, H_{1/1000}$). These are determined by solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring the normalized $H_{rms}$ of the distribution equals one. The solution employs a robust numerical strategy using a Newton-Raphson matrix method for simultaneous root-finding, and precise implementations of incomplete gamma functions.
 * **Dimensional Wave Heights**: Converts dimensionless ratios to actual wave heights in meters.
 * **Diagnostic Ratios**: Provides insights into the wave height distribution shape through various diagnostic ratios.
 * **Detailed Reporting**: Generates a comprehensive report of input parameters, calculated values, and diagnostic ratios.
@@ -45,10 +60,10 @@ The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a syste
 
 Both the CLI and GUI applications require the following four input parameters:
 
-* **$H_{m0}$ (in meters)**: The local significant spectral wave height (used for reporting and context).
-* **$m_0$ (in m²)**: The free-surface variance. This is the primary input for the energy calculations.
+* **$H_{m0}$ (in meters)**: The local significant spectral wave height. This value is used for reporting and context but is not a direct input to the core calculation, which now starts from $m_0$.
+* **$m_0$ (in m²)**: The free-surface variance (zeroth spectral moment). This is now the primary input representing the total wave energy.
 * **$d$ (in meters)**: The local water depth.
-* **Beach slope ($1:m$)**: The beach slope expressed as "1:m". For example, entering 100 signifies a slope of $1/100=0.01$.
+* **Beach slope ($1:m$)**: The beach slope expressed as "1:m". For example, entering 20 signifies a slope of $1/20=0.05$. This parameter influences the transitional wave height.
 
 ## Computational Process
 
@@ -56,7 +71,7 @@ Based on the provided inputs, the program performs a series of calculations to d
 
 ### 1. Mean Square Wave Height ($H_{rms}$)
 
-The mean square wave height ($H_{rms}$) is an important characteristic of the wave field. It is now calculated directly from the input free-surface variance ($m_0$) and local depth ($d$). This formula, used in both the CLI and GUI implementations, incorporates empirical coefficients to better capture shallow-water effects:
+The mean square wave height ($H_{rms}$) is an important characteristic of the wave field. Its calculation now starts directly from the input free-surface variance ($m_0$) and incorporates empirical coefficients to better capture the shallow-water distribution of extreme waves. This formula, used in both the CLI and GUI implementations, is:
 
 ```math
 H_{rms} = \left(2.69 + 3.24 \cdot \frac{\sqrt{m_0}}{d}\right) \cdot \sqrt{m_0}
@@ -67,6 +82,7 @@ This relationship demonstrates an increase with the degree of saturation ($\Psi 
 ### 2. Dimensional Transitional Wave Height ($H_{tr\_dim}$)
 
 The dimensional transitional wave height ($H_{tr\_dim}$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($d$) and the beach slope ($m$):
+The tangent of the beach slope (tan($\alpha$)) is derived from the input $m$:
 
 ```math
 \tan(\alpha) = \frac{1}{m}
@@ -78,9 +94,37 @@ Then, $H_{tr\_dim}$ is computed as:
 H_{tr\_dim} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
 ```
 
-### 3. Subsequent Calculations
+For example, if $m=20$, then $\tan(\alpha)=1/20=0.05$, and $H_{tr\_dim}=(0.35+5.8 \cdot 0.05) \cdot d=0.64 \cdot d$. This relationship indicates that steeper slopes tend to result in higher $H_{tr}$ values, implying that fewer waves deviate from the Rayleigh distribution on steeper foreshores.
 
-The remaining calculations for the dimensionless transitional parameter ($\tilde{H}_{tr}$), dimensionless wave-height ratios, dimensional wave heights, and diagnostic ratios proceed as described in the original documentation, using the newly computed $H_{rms}$ as the basis for normalization.
+### 3. Dimensionless Transitional Parameter ($\tilde{H}_{tr}$)
+
+The dimensionless transitional parameter ($\tilde{H}_{tr}$) normalizes the dimensional transitional wave height by the mean square wave height:
+
+```math
+\tilde{H}_{tr} = \frac{H_{tr\_dim}}{H_{rms}}
+```
+
+### 4. Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
+
+The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
+
+The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4).
+
+### 5. Dimensional Wave Heights ($H$)
+
+The calculated dimensionless wave-height ratios ($\tilde{H}_N$ or $\tilde{H}_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H_{rms}$):
+
+```math
+H = \tilde{H} \cdot H_{rms}
+```
+
+### 6. Diagnostic Ratios
+
+Finally, the program computes several diagnostic ratios, which provide insights into the shape of the wave height distribution and the relative significance of extreme waves. These include characteristic wave height ratios $(H_{1/N})/(H_{1/3})$ with $N = 10, 50, 100, 250, \text{ and } 1000$.
+
+## Supporting Mathematical Functions
+
+The core calculations rely on precise implementations of fundamental mathematical functions, including the Complete Gamma Function (Γ(z)) and the Unnormalized Lower/Upper Incomplete Gamma Functions (γ(a,x), Γ(a,x)).
 
 ## Building and Running
 
@@ -128,7 +172,19 @@ For convenience, a Python script `m0_calculator.py` is included. This utility ca
 ## References
 
 * **Battjes, J. A., & Groenendijk, H. W. (2000).** Wave height distributions on shallow foreshores. *Coastal Engineering*, 40(3), 161-182.
+* **Caires, S., & Van Gent, M. R. A. (2012).** Wave height distribution in constant and finite depths. *Coastal Engineering Proceedings*, 1(33), 15.
+* **Goda, Y. (1979).** A review on statistical interpretation of wave data. *Report of the Port and Harbour Research Institute, Japan*, 18(1), 5-32.
 * **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics*. M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands.
+* **Groenendijk, H. W., & Van Gent, M. R. A. (1998).** *Shallow foreshore wave height statistics; A predictive model for the probability of exceedance of wave heights*. Technical Report H3351, WL | delft hydraulics, The Netherlands.
+* **Hasselmann, K., Barnett, T. P., Bouws, E., Carlson, H., Cartwright, D. D. E., Enke, K.,... & Walden, H. (1973).** *Measurements of Wind-Wave Growth and Swell Decay during the Joint North Sea Wave Project (JONSWAP)*. Ergnzungsheft zur Deutschen Hydrographischen Zeitschrift Reihe, A (8), 95.
+* **Karmpadakis, I., Swan, C., & Christou, M. (2020).** Assessment of wave height distributions using an extensive field database. *Coastal Engineering*, 157, 103630.
+* **Karmpadakis, I., Swan, C., & Christou, M. (2022).** A new wave height distribution for intermediate and shallow water depths. *Coastal Engineering*, 175, 104130.
+* **Klopman, G. (1996).** *Extreme wave heights in shallow water*. WL | delft hydraulics, Report H2486, The Netherlands.
+* **Klopman, G., & Stive, M. J. F. (1989).** *Extreme waves and wave loading in shallow water*. Paper presented at the E&P Forum Workshop in Paris, Delft Hydraulics, The Netherlands.
+* **Longuet-Higgins, M. S. (1952).** On the statistical distribution of heights of sea waves. *Journal of Marine Research*, 11(3), 245-266.
 * **Longuet-Higgins, M. S. (1980).** On the distribution of the heights of sea waves: Some effects of nonlinearity and finite band width. *Journal of Geophysical Research*, 85(C3), 1519-1523.
+* **Naess, A. (1985).** On the distribution of crest to trough wave heights. *Ocean Engineering*, 12(3), 221-234.
+* **Rice, S. O. (1944).** Mathematical analysis of random noise. *Bell System Technical Journal*, 23(3), 282-332.
+* **Tayfun, M. A. (1990).** Distribution of large wave heights. *Journal of Waterway, Port, Coastal, and Ocean Engineering*, 116(6), 686-707.
 * **Thornton, E. B., & Guza, R. T. (1982).** Energy saturation and phase speeds measured on a natural beach. *Journal of Geophysical Research*, 87(C12), 9499-9508.
 * **Thornton, E. B., & Guza, R. T. (1983).** Transformation of wave height distribution. *Journal of Geophysical Research*, 88(C10), 5925-5938.
