@@ -11,7 +11,7 @@ Through these applications, users can input essential wave parameters to perform
 
 ## Composite Weibull Distribution
 
-The Composite Weibull distribution is a two-part distribution specifically designed for shallow water environments, capturing the distinct physical regimes of unbroken and breaking waves. It is described by the following cumulative distribution function (CDF) for normalized wave heights ($\tilde{h} = h / H_{rms}$):
+The Composite Weibull distribution is a two-part distribution specifically designed for shallow water environments, capturing the distinct physical regimes of unbroken and breaking waves. It is described by the following cumulative distribution function (CDF) for normalized wave heights ($\tilde{h} = h / H\_{rms}$):
 
 ```math
 F(\tilde{h}) = \begin{cases}
@@ -22,29 +22,34 @@ F(\tilde{h}) = \begin{cases}
 
 Where:
 
-* $\tilde{h} = h / H_{rms}$ is the normalized wave height.
-* $\tilde{H}_1 = H_1 / H_{rms}$ is the normalized scale parameter for the first part of the distribution (unbroken waves).
-* $\tilde{H}_2 = H_2 / H_{rms}$ is the normalized scale parameter for the second part of the distribution (breaking waves).
-* $\tilde{H}_{tr} = H_{tr} / H_{rms}$ is the dimensionless transitional wave height, marking the boundary between the two parts of the distribution.
-* $k_1 = 2.0$ is the exponent (shape parameter) for the first part, which is Rayleigh-shaped.
-* $k_2 = 3.6$ is the empirically determined exponent for the second part.
+* $\tilde{h} = h / H\_{rms}$ is the normalized wave height.
 
-The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H_{rms}$ and continuity at the transitional wave height. These equations are:
+* $\tilde{H}_1 = H\_1 / H\_{rms}$ is the normalized scale parameter for the first part of the distribution (unbroken waves).
 
-1.  **Normalized $H_{rms}$ Constraint (from Groenendijk, 1998, Equation 7.11):**
-    ```math
-    \tilde{H}_{rms} = 1 = \sqrt{
-    \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
-    + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
-    }
-    ```
-    This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
+* $\tilde{H}_2 = H\_2 / H\_{rms}$ is the normalized scale parameter for the second part of the distribution (breaking waves).
+
+* $\tilde{H}_{tr} = H\_{tr} / H\_{rms}$ is the dimensionless transitional wave height, marking the boundary between the two parts of the distribution.
+
+* $k\_1 = 2.0$ is the exponent (shape parameter) for the first part, which is Rayleigh-shaped.
+
+* $k\_2 = 3.6$ is the empirically determined exponent for the second part.
+
+The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H\_{rms}$ and continuity at the transitional wave height. These equations are:
+
+1.  **Normalized** $H\_{rms}$ **Constraint (from Groenendijk, 1998, Equation 7.11):**
+   ```math
+   \tilde{H}_{rms} = 1 = \sqrt{
+   \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
+   + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
+}
+   ```
+This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
 
 2.  **Continuity Condition (from Groenendijk, 1998, Equation 3.4):**
-    ```math
-    \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
-    ```
-    This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
+   ```math
+   \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
+   ```
+This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
 
 ## Features
 
