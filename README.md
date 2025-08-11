@@ -54,11 +54,17 @@ This condition ensures that the cumulative distribution function is continuous a
 ## Features
 
 * **Dual Interface**: Offers both a command-line interface for quick calculations and scripting, and a graphical user interface for ease of use.
-* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k_1=2.0$, $k_2=3.6$). This two-part distribution is designed to reflect the different physical regimes governing smaller (unbroken) and larger (breaking) waves.
-* **Key Parameter Calculation**: Takes free-surface variance ($m_0$) as input and computes the mean square wave height ($H_{rms}$), and dimensional/dimensionless transitional wave heights ($H_{tr\_dim}$, $\tilde{H}_{tr}$).
-* **Dimensionless Wave-Height Ratios**: Calculates $\tilde{H}_N$ (wave height with $1/N$ exceedance probability) and $\tilde{H}_{1/N}$ (mean of the highest $1/N$-part of wave heights) for various characteristic wave heights ($H_1, H_2, H_{1/3}, H_{1/10}, H_{1/50}, H_{1/100}, H_{1/1000}$). These are determined by solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring the normalized $H_{rms}$ of the distribution equals one. The solution employs a robust numerical strategy using a Newton-Raphson matrix method for simultaneous root-finding, and precise implementations of incomplete gamma functions.
+
+* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k\_1=2.0$, $k\_2=3.6$). This two-part distribution is designed to reflect the different physical regimes governing smaller (unbroken) and larger (breaking) waves.
+
+* **Key Parameter Calculation**: Computes free-surface variance ($m\_0$), mean square wave height ($H\_{rms}$), and dimensional/dimensionless transitional wave heights ($H\_{tr\_dim}$, $\tilde{H}\_{tr}$).
+
+* **Dimensionless Wave-Height Ratios**: Calculates $\tilde{H}\_N$ (wave height with $1/N$ exceedance probability) and $\tilde{H}\_{1/N}$ (mean of the highest $1/N$-part of wave heights) for various characteristic wave heights ($H\_1, H\_2, H\_{1/3}, H\_{1/10}, H\_{1/50}, H\_{1/100}, H\_{1/1000}$). These are determined by solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring the normalized $H\_{rms}$ of the distribution equals one. The solution employs a robust numerical strategy using a Newton-Raphson matrix method for simultaneous root-finding, and precise implementations of incomplete gamma functions.
+
 * **Dimensional Wave Heights**: Converts dimensionless ratios to actual wave heights in meters.
+
 * **Diagnostic Ratios**: Provides insights into the wave height distribution shape through various diagnostic ratios.
+
 * **Detailed Reporting**: Generates a comprehensive report of input parameters, calculated values, and diagnostic ratios.
 
 ## Input Parameters
@@ -152,7 +158,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 
 ### 5. Dimensional Wave Heights ($H$)
 
-The calculated dimensionless wave-height ratios ($\tilde{H}_N$ or $\tilde{H}_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H_{rms}$):
+The calculated dimensionless wave-height ratios ($\tilde{H}\_N$ or $\tilde{H}\_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H\_{rms}$):
 
 ```math
 H = \tilde{H} \cdot H_{rms}
@@ -169,25 +175,19 @@ The core calculations rely on precise implementations of fundamental mathematica
 * **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
 ```math
-\[
 Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
-\]
 ```
 
 * **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
 ```math
-\[
 γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
-\]
 ```
 
 * **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
 
 ```math
-\[
 Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
-\]
 ```
 
 ## Building and Running
