@@ -48,6 +48,7 @@
        Within the surf zone, depth-induced breaking clips the upper tail of
        the wave height distribution, causing it to deviate from the Rayleigh
        distribution. To account for this, the model uses the empirical
+
        relationship proposed by Battjes & Groenendijk (2000). This formula
        was derived from extensive laboratory data and provides a more accurate
        link between Hrms, m0, and local depth (d) in a breaking-dominated
@@ -79,10 +80,11 @@
 import math
 import sys
 
-# NEW: A helper class to direct print statements to multiple outputs.
+# A helper class to direct print statements to multiple outputs (terminal and file).
 class Logger(object):
     """
     A file-like object that writes to both a terminal and a log file.
+    This allows simultaneous console output and file logging.
     """
     def __init__(self, terminal, logfile):
         self.terminal = terminal
@@ -99,8 +101,9 @@ class Logger(object):
 
 def get_validated_input(prompt, validation_func=None):
     """
-    A helper function to get and validate numeric input from the user.
-    It shows the prompt in the console and writes the input value to a file.
+    A helper function to get and validate numeric input from the user in
+    interactive mode. It shows the prompt in the console and writes the
+    input value to a file.
 
     Args:
         prompt (str): The message to display to the user.
@@ -124,8 +127,6 @@ def get_validated_input(prompt, validation_func=None):
             # Convert the input string to a floating-point number.
             value = float(value_str)
 
-            # The repetitive print statement that echoed user input has been removed.
-            
             # Check if the input is valid using the provided validation function.
             if validation_func is None or validation_func(value):
                 # We also write the value to the log file here so it's recorded.
@@ -225,9 +226,6 @@ def solve_for_L_newton(L0, d, tolerance=1e-7, max_iterations=100):
     try:
         # Start with a good initial guess for L. The Eckart (1952) approximation
         # provides a robust starting point that is explicit and reasonably accurate.
-        # L_eckart = L0 * sqrt(tanh((2*pi/L0)^2 * d * (g*T^2/(2*pi)))
-        # This simplifies to L_eckart = L0 * tanh( (2*pi*d/L0)^0.5 )
-        # Note: The original code had a slight variation, this is a common form.
         L_current = L0 * math.tanh((2 * math.pi * d / L0)**0.5)
     except (ValueError, OverflowError):
         # Fallback to deep water wavelength if guess fails.
@@ -289,8 +287,6 @@ def calculate_m0_with_full_TG_formula(Hs0, d, d0_boundary):
     try:
         # --- Step 1: Calculate Hrms using Thornton & Guza (1983) model ---
         # This is an integrated form of d(E*Cg)/dx = -<epsilon_b>.
-        # The parameter 'a' is an empirical coefficient related to the breaking
-        # process, and 'yd' is the offshore forcing parameter.
         a = (0.51 * d**0.1)**5
         yd_offshore_forcing = Hs0**2 * math.sqrt(d0_boundary)
 
@@ -304,9 +300,6 @@ def calculate_m0_with_full_TG_formula(Hs0, d, d0_boundary):
         full_term = 1 - d**(23/4) * (inner_term_d0 - inner_term_yd)
 
         if full_term <= 0:
-            # This indicates that the model predicts full dissipation before
-            # reaching the target depth 'd', which can happen if the beach
-            # is very dissipative or the offshore forcing is low.
             print(f"Error: Calculation resulted in a non-positive term ({full_term:.4f}) inside the root.")
             return None, None
 
@@ -317,25 +310,16 @@ def calculate_m0_with_full_TG_formula(Hs0, d, d0_boundary):
         # Let x = sqrt(m0). This gives a quadratic equation for x:
         # (3.24/d) * x^2 + 2.69 * x - Hrms = 0
 
-        # Coefficients for the quadratic formula: ax^2 + bx + c = 0
         quad_a = 3.24 / d
         quad_b = 2.69
         quad_c = -Hrms
-
-        # Calculate the discriminant of the quadratic equation.
         discriminant = quad_b**2 - 4 * quad_a * quad_c
 
         if discriminant < 0:
-            # A negative discriminant means no real solution exists, which is
-            # physically unrealistic and points to an issue with the inputs or
-            # the applicability of the formula for the given parameters.
             print(f"Error: Negative discriminant ({discriminant:.4f}) in quadratic solver for m0.")
             return None, None
 
-        # Solve for x = sqrt(m0). We take the positive root as sqrt(m0) must be positive.
         sqrt_m0 = (-quad_b + math.sqrt(discriminant)) / (2 * quad_a)
-
-        # Final calculation for m0.
         m0 = sqrt_m0**2
 
         return m0, Hrms
@@ -344,36 +328,27 @@ def calculate_m0_with_full_TG_formula(Hs0, d, d0_boundary):
         print(f"\nAn error occurred during the m0 calculation: {e}")
         return None, None
 
-def comprehensive_wave_calculator():
+def run_calculation(Hm0_d_initial, Tp, d, m):
     """
-    Main function to drive the wave parameter calculations. It gathers user
-    inputs, performs intermediate calculations, decides which physical model
-    regime to apply, and prints a comprehensive report.
-    """
-    print("--- Comprehensive Wave Parameter Calculator ---")
-    print("Please provide the following initial values.")
+    Performs the core wave parameter calculations based on the provided inputs
+    and prints a comprehensive report. This function is called by both
+    interactive and command-line modes.
 
+    Args:
+        Hm0_d_initial (float): Initial Wave Height at depth d (m).
+        Tp (float): Peak Wave Period (s).
+        d (float): Local Water Depth (m).
+        m (float): Beach Slope (e.g., 100 for 1:100).
+    """
     g = 9.81  # Acceleration due to gravity (m/s^2)
     pi = math.pi
 
-    # --- Get User Inputs ---
-    Hm0_d_initial = get_validated_input("Enter Wave Height at depth d (Hm0_d): ", lambda x: x > 0)
-    Tp = get_validated_input("Enter Peak Wave Period (Tp): ", lambda x: x > 0)
-    d = get_validated_input("Enter Local Water Depth (d): ", lambda x: x > 0)
-    m = get_validated_input("Enter Beach Slope (1:m): ", lambda x: x > 0)
-
     # --- Initial Calculations based on Linear Wave Theory ---
-    # Deep water wavelength (L0) depends only on wave period.
     L0 = (g * Tp**2) / (2 * pi)
-    # Solve the dispersion relation to find the local wavelength at depth d.
     L_local = solve_for_L_newton(L0, d)
-    # Calculate the local wave number.
     k_local = 2 * pi / L_local if L_local > 0 else float('inf')
 
     # --- Wave Breaking Check (Miche Criterion) at Local Depth (d) ---
-    # Miche (1944) proposed a theoretical limit for wave steepness (H/L) before
-    # breaking. This is a geometric constraint.
-    # [H/L]_max = 0.142 * tanh(k*d)
     Hb_Miche_d = 0.142 * L_local * math.tanh(k_local * d)
     is_capped_d = False
     Hm0_d = Hm0_d_initial
@@ -384,7 +359,6 @@ def comprehensive_wave_calculator():
         is_capped_d = True
 
     # --- Back-calculate deep water parameters from local conditions ---
-    # Use the shoaling coefficient to find the equivalent deep-water wave height.
     Ks_d = shoaling_coefficient(k_local, d)
     Hm0_deep = Hm0_d / Ks_d
 
@@ -393,33 +367,26 @@ def comprehensive_wave_calculator():
     Hrms = None
     m0_method_str = ""
     use_tg_formula = False
-
     L_at_d0, d0, k_at_d0, Ks_at_d0, Hm0_d0 = 0, 0, 0, 0, 0
     is_capped_d0 = False
 
     # Determine the physical regime. The transition to a "shallow water"
-    # dissipative regime is often defined by d/L < 1/20. We use this to
-    # define the boundary depth 'd0' where the surf zone model should be applied.
-    # First, find the wavelength at d/L = 1/20 by solving L = L0*tanh(2*pi*(L/20)/L).
+    # dissipative regime is often defined by d/L < 1/20.
     d0_check_L = L0 * math.tanh(pi / 10)
     d0_check = d0_check_L / 20 if d0_check_L > 0 else 0
 
-    # Check if the local depth 'd' is inside this shallow water boundary.
     if d <= d0_check:
         use_tg_formula = True
         print(f"\nCondition met: d ({d:.4f}m) <= d0_check ({d0_check:.4f}m).")
         print(f"Physical Regime: Shallow Water / Surf Zone.")
         print(f"Applying Model: Thornton & Guza (1983) / Battjes & Groenendijk (2000) hybrid.")
 
-        # These are the wave parameters at the boundary of the surf zone.
         d0 = d0_check
         L_at_d0 = d0_check_L
         k_at_d0 = 2 * pi / L_at_d0 if L_at_d0 > 0 else float('inf')
         Ks_at_d0 = shoaling_coefficient(k_at_d0, d0)
-        # Shoal the deep water wave height to the boundary depth d0.
         Hm0_d0 = Hm0_deep * Ks_at_d0
 
-        # Perform another wave breaking check at this new shallow depth (d0).
         Hb_Miche_d0 = 0.142 * L_at_d0 * math.tanh(k_at_d0 * d0)
         if Hm0_d0 > Hb_Miche_d0:
             print(f"\n(!) NOTE: Calculated wave height at d0 ({Hm0_d0:.4f}m) exceeds breaking limit {Hb_Miche_d0:.4f}m.")
@@ -427,7 +394,6 @@ def comprehensive_wave_calculator():
             print(f"    Adjusted Hm0_d0 to {Hb_Miche_d0:.4f}m.")
             is_capped_d0 = True
 
-        # Calculate m0 and Hrms using the hybrid T&G/B&G formula for the surf zone.
         m0, Hrms = calculate_m0_with_full_TG_formula(Hs0=Hm0_d0, d=d, d0_boundary=d0)
 
         if m0 is None:
@@ -435,14 +401,10 @@ def comprehensive_wave_calculator():
         else:
             m0_method_str = "(T&G/B&G method)"
     else:
-        # If outside the surf zone, use the simpler Rayleigh method.
         print(f"\nCondition for surf zone model not met (d ({d:.4f}m) > d0_check ({d0_check:.4f}m)).")
         print(f"Physical Regime: Intermediate/Deep Water.")
         print(f"Applying Model: Linear Theory with Rayleigh Statistics.")
-
-        # For a Rayleigh distribution, m0 is related to Hm0 by Hm0 = 4*sqrt(m0).
         m0 = (Hm0_d / 4.0)**2
-        # Hrms is then calculated from m0, assuming Hrms = sqrt(8 * m0).
         Hrms = math.sqrt(8 * m0)
         m0_method_str = "(Rayleigh method: (Hm0_d/4)^2)"
 
@@ -450,32 +412,26 @@ def comprehensive_wave_calculator():
         print("\nCould not complete calculations due to an error in the m0 computation.")
         return
 
-    # The ratio Hrms/d is a key parameter in surf zone dynamics. In the inner
-    # surf zone, it approaches a constant value (e.g., ~0.42 in Thornton & Guza, 1982).
     Hrms_over_d = Hrms / d if d > 0 else 0
 
     # --- Display Unified Report ---
     print("\n" + "="*65)
     print("--- Comprehensive Wave Parameter Report ---")
     print("="*65)
-
     print("\n[Input Parameters]")
     print(f"{'Initial Wave Height at d (Hm0_d)':<45}: {Hm0_d_initial:.4f} m" + (f" (capped to {Hm0_d:.4f} m)" if is_capped_d else ""))
     print(f"{'Peak Wave Period (Tp)':<45}: {Tp:.4f} s")
     print(f"{'Local Water Depth (d)':<45}: {d:.4f} m")
     print(f"{'Beach Slope (m)':<45}: {m:.4f}")
-
     print("\n[Derived Deep Water Parameters (d -> inf)]")
     print(f"{'Deep Water Wave Height (Hm0_deep)':<45}: {Hm0_deep:.4f} m")
     print(f"{'Deep Water Wavelength (L0)':<45}: {L0:.4f} m")
-
     if use_tg_formula:
         print("\n[Derived Parameters at Surf Zone Boundary (d0)]")
         print(f"{'Wave Height (Hm0_d0)':<45}: {Hm0_d0:.4f} m" + (" (breaking)" if is_capped_d0 else ""))
         print(f"{'Shallow Water Depth (d0)':<45}: {d0:.4f} m")
         print(f"{'Wavelength at d0 (L_d0)':<45}: {L_at_d0:.4f} m")
         print(f"{'Shoaling Coefficient (Ks_d0)':<45}: {Ks_at_d0:.4f}")
-
     print("\n[Derived Parameters at Local Depth (d)]")
     print(f"{'Local Water Depth (d)':<45}: {d:.4f} m")
     if is_capped_d:
@@ -491,37 +447,107 @@ def comprehensive_wave_calculator():
     if use_tg_formula:
         offshore_forcing_yd = Hm0_d0**2 * math.sqrt(d0) if d0 > 0 else 0
         print(f"{'Offshore Forcing Parameter (yd)':<45}: {offshore_forcing_yd:.4f} m^2.5")
-        print(f"{'T&G Empirical Coefficient (a_eq^5)':<45}: {(0.51 * d**0.1):.4f}") # This is related to B in T&G83
+        print(f"{'T&G Empirical Coefficient (a_eq^5)':<45}: {(0.51 * d**0.1):.4f}")
     print(f"{'Free-surface variance (m0)':<45}: {m0:.4f} m^2 {m0_method_str}")
     print(f"{'Root mean square wave height (Hrms)':<45}: {Hrms:.4f} m")
     print(f"{'Hrms / d ratio (Saturation Index)':<45}: {Hrms_over_d:.4f}")
     print("\n" + "="*65)
 
+def comprehensive_wave_calculator_interactive():
+    """
+    Drives the wave parameter calculations in interactive mode by prompting
+    the user for each input value.
+    """
+    print("--- Comprehensive Wave Parameter Calculator (Interactive Mode) ---")
+    print("Please provide the following initial values.")
+
+    Hm0_d_initial = get_validated_input("Enter Wave Height at depth d (Hm0_d): ", lambda x: x > 0)
+    Tp = get_validated_input("Enter Peak Wave Period (Tp): ", lambda x: x > 0)
+    d = get_validated_input("Enter Local Water Depth (d): ", lambda x: x > 0)
+    m = get_validated_input("Enter Beach Slope (1:m): ", lambda x: x > 0)
+
+    # Call the core calculation function with the gathered inputs.
+    run_calculation(Hm0_d_initial, Tp, d, m)
+
+def print_usage():
+    """Prints the usage information for the script to the console."""
+    usage_text = """
+    ===============================================================================
+                                USAGE INFORMATION
+    ===============================================================================
+    This script can be run in two modes:
+
+    1. INTERACTIVE MODE:
+       Run the script without any arguments to be prompted for each input value.
+       $ python m0_calculator.py
+
+    2. COMMAND-LINE MODE:
+       Provide the four required parameters as command-line arguments in order.
+       $ python m0_calculator.py <Hm0_d> <Tp> <d> <slope>
+
+       - <Hm0_d>:  Initial Wave Height at depth d (meters, >0)
+       - <Tp>:     Peak Wave Period (seconds, >0)
+       - <d>:      Local Water Depth (meters, >0)
+       - <slope>:  Beach Slope (e.g., for 1:100, enter 100, >0)
+
+    EXAMPLE:
+       $ python m0_calculator.py 2.5 18 5 100
+    ===============================================================================
+    """
+    # Usage and error messages should go to stderr.
+    sys.stderr.write(usage_text)
+
 if __name__ == '__main__':
     """
-    This block executes when the script is run directly.
-    It now redirects all 'print' statements to both the console and 'output.txt'.
+    Main entry point of the script.
+    - Checks for command-line arguments to decide the execution mode.
+    - Redirects all 'print' statements to both the console and 'output.txt'.
     """
-    # Keep track of the original standard output (the console).
     original_stdout = sys.stdout
+    calculation_started = False
     
     try:
-        # Open the output file in write mode.
         with open('output.txt', 'w') as f:
-            # Create an instance of our Logger class, passing it the console and the file.
             sys.stdout = Logger(original_stdout, f)
 
-            # Run the main calculator function. All print statements inside it
-            # will now go to both the console and the file.
-            comprehensive_wave_calculator()
+            # Check the number of command-line arguments.
+            if len(sys.argv) == 1:
+                # No arguments provided, run in interactive mode.
+                comprehensive_wave_calculator_interactive()
+                calculation_started = True
+            elif len(sys.argv) == 5:
+                # Four arguments provided, run in command-line mode.
+                try:
+                    print("--- Comprehensive Wave Parameter Calculator (Command-Line Mode) ---")
+                    Hm0_d = float(sys.argv[1])
+                    Tp = float(sys.argv[2])
+                    d = float(sys.argv[3])
+                    m = float(sys.argv[4])
+                    
+                    # Basic validation for command-line inputs.
+                    if not all(x > 0 for x in [Hm0_d, Tp, d, m]):
+                         raise ValueError("All input values must be positive numbers.")
+                    
+                    run_calculation(Hm0_d, Tp, d, m)
+                    calculation_started = True
 
-            # Restore the original standard output.
+                except ValueError as e:
+                    sys.stdout = original_stdout # Restore stdout to print error clearly
+                    sys.stderr.write(f"\nError: Invalid command-line arguments. {e}\n")
+                    print_usage()
+            else:
+                # Incorrect number of arguments, print usage information.
+                sys.stdout = original_stdout # Restore stdout to print usage clearly
+                print_usage()
+
             sys.stdout = original_stdout
+        
+        if calculation_started:
+            print("\nCalculation complete. Output has been displayed and saved to 'output.txt'.")
 
-        print("\nCalculation complete. Output has been displayed and saved to 'output.txt'.")
     except KeyboardInterrupt:
+        sys.stdout = original_stdout
         sys.stderr.write("\n\nProgram interrupted by user. Exiting.\n")
     except Exception as e:
-        # Restore stdout before printing the error to avoid potential issues.
         sys.stdout = original_stdout
         sys.stderr.write(f"\nA critical error occurred: {e}\n")
