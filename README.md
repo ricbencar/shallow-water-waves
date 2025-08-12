@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project presents a robust solution for accurately computing local shallow-foreshore wave-height distribution parameters, critical for coastal engineering applications. It offers both a **Command-Line Interface (CLI)** and a **Graphical User Interface (GUI)**, providing flexibility for users to interact with the model. The core of this project lies in its implementation of the **Composite Weibull distribution**, a sophisticated model specifically designed for shallow water environments.
+This project presents a solution for accurately computing local shallow-foreshore wave-height distribution parameters, which are critical for coastal engineering applications. It offers both a **Command-Line Interface (CLI)** and a **Graphical User Interface (GUI)**, providing flexibility for users to interact with the model. The core of this project lies in its implementation of the **Composite Weibull distribution**, a statistical model specifically designed for shallow water environments.
 
 Unlike deep-water conditions where wave behavior is often well-described by simpler distributions like Rayleigh, shallow foreshores introduce complex phenomena such as depth-induced breaking, non-linear wave-wave interactions, and bottom friction. These processes significantly alter wave height distributions, making accurate prediction challenging (Groenendijk, 1998; Battjes & Groenendijk, 2000). The Composite Weibull distribution addresses these complexities by employing a two-part structure that effectively captures the distinct physical regimes of unbroken and breaking waves.
 
@@ -170,7 +170,7 @@ Finally, the program computes several diagnostic ratios, which provide insights 
 
 ## Utility Script: m0_calculator.py
 
-For convenience, a Python script `m0_calculator.py` is included. This utility can be used to estimate the free-surface variance ($m_0$) if it is not known directly. The script uses a more comprehensive physical model, considering wave shoaling and breaking (based on Thornton & Guza, 1983) to derive $m_0$ from offshore wave parameters like peak period and wave height. It serves as a useful pre-processing tool to generate the necessary $m_0$ input for the main CLI/GUI applications.
+For convenience, a Python script `m0_calculator.py` is included. This utility can be used to estimate the free-surface variance ($m_0$) if it is not known directly. The script uses Thornton & Guza (1983) model to derive $m_0$ from offshore wave parameters like peak period and wave height. It serves as a useful pre-processing tool to generate the necessary $m_0$ input for the main CLI/GUI applications. You can run the calculator by providing the parameters as command-line arguments or by entering them interactively.
 
 ## Supporting Mathematical Functions
 
@@ -209,9 +209,9 @@ g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion -Wsign-con
 **Usage:**
 You can run the CLI application by providing the parameters as command-line arguments or by entering them interactively.
 
-* **With command-line arguments (e.g., Hm0=2.5, m0=0.3906, d=5.0, slopeM=100):**
+* **With command-line arguments (e.g., Hm0=2.5, m0=0.4998, d=5.0, slopeM=100):**
     ```bash
-    shallow-water-waves_cli 2.5 0.3906 5.0 100
+    shallow-water-waves_cli 2.5 0.4998 5.0 100
     ```
 
 * **Interactive input:**
@@ -231,7 +231,7 @@ g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion -Wsign-con
 ```
 
 **Usage:**
-Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the `Hm0`, `m0`, `d`, and `Beach slope m` values in the respective text fields and click "Compute" to see the results. The report will also be saved to `report.txt` in the same directory as the executable.
+Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the `Hm0`, `m0`, `d`, and `Beach slope m` values in the respective text fields and click "Compute" to see the results. The report will also be saved to text file `report.txt` in the same directory as the executable.
 
 ## References
 

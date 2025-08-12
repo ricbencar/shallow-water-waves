@@ -649,7 +649,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         CreateWindow(L"STATIC", L"m0 (m^2):", WS_CHILD | WS_VISIBLE,
                      10, 40, 120, 20, hwnd, NULL, NULL, NULL);
-        hEditM0 = CreateWindow(L"EDIT", L"0.3906", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+        hEditM0 = CreateWindow(L"EDIT", L"0.4998", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
                                140, 40, 100, 20, hwnd, (HMENU)IDC_EDIT_M0, NULL, NULL);
 
         CreateWindow(L"STATIC", L"d (m):", WS_CHILD | WS_VISIBLE,

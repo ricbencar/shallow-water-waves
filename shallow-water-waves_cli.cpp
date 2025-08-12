@@ -38,7 +38,7 @@
  * -o shallow-water-waves_cli shallow-water-waves_cli.cpp
  *
  * To run with command-line arguments (e.g., Hm0=2.5, m0=0.3906, d=5, slopeM=100):
- * shallow-water-waves_cli 2.5 0.3906 5 100
+ * shallow-water-waves_cli 2.5 0.4998 5 100
  ***********************************************************************/
 
 #define _USE_MATH_DEFINES // Required on some systems (e.g., Windows with MSVC) for M_PI
