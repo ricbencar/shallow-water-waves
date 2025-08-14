@@ -171,7 +171,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 
 ### 6. Dimensional Wave Heights ($H$)
 
-The calculated dimensionless wave-height ratios ($\tilde{H}_N$ or $\tilde{H}_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H_{rms}$):
+The calculated dimensionless wave-height ratios ($\tilde{H}\_N$ or $\tilde{H}\_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H\_{rms}$):
 
 ```math
 H = \tilde{H} \cdot H_{rms}
