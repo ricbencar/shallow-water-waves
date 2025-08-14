@@ -22,26 +22,34 @@ F(\tilde{h}) = \begin{cases}
 
 Where:
 
-* $\tilde{h} = h / H_{rms}$ is the normalized wave height.
-* $\tilde{H}_1 = H_1 / H_{rms}$ is the normalized scale parameter for the first part of the distribution (unbroken waves).
-* $\tilde{H}_2 = H_2 / H_{rms}$ is the normalized scale parameter for the second part of the distribution (breaking waves).
-* $\tilde{H}_{tr} = H_{tr} / H_{rms}$ is the dimensionless transitional wave height, marking the boundary between the two parts of the distribution.
-* $k_1 = 2.0$ is the exponent (shape parameter) for the first part, which is Rayleigh-shaped.
-* $k_2 = 3.6$ is the empirically determined exponent for the second part.
+* $\tilde{h} = h / H\_{rms}$ is the normalized wave height.
 
-The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H_{rms}$ and continuity at the transitional wave height. These equations are:
+* $\tilde{H}_1 = H\_1 / H\_{rms}$ is the normalized scale parameter for the first part of the distribution (unbroken waves).
 
-1.  **Normalized $H_{rms}$ Constraint (from Groenendijk, 1998, Equation 7.11):**
-    ```math
-    \tilde{H}_{rms} = 1 = \sqrt{ \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right) + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right) }
-    ```
-    This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
+* $\tilde{H}_2 = H\_2 / H\_{rms}$ is the normalized scale parameter for the second part of the distribution (breaking waves).
+
+* $\tilde{H}_{tr} = H\_{tr} / H\_{rms}$ is the dimensionless transitional wave height, marking the boundary between the two parts of the distribution.
+
+* $k\_1 = 2.0$ is the exponent (shape parameter) for the first part, which is Rayleigh-shaped.
+
+* $k\_2 = 3.6$ is the empirically determined exponent for the second part.
+
+The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a system of non-linear equations to ensure consistency with the normalized $H\_{rms}$ and continuity at the transitional wave height. These equations are:
+
+1.  **Normalized** $H\_{rms}$ **Constraint (from Groenendijk, 1998, Equation 7.11):**
+   ```math
+   \tilde{H}_{rms} = 1 = \sqrt{
+   \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
+   + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
+}
+   ```
+This equation ensures that the overall root-mean-square of the normalized composite distribution equals one.
 
 2.  **Continuity Condition (from Groenendijk, 1998, Equation 3.4):**
-    ```math
-    \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
-    ```
-    This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
+   ```math
+   \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
+   ```
+This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
 
 ## Features
 
@@ -116,26 +124,44 @@ The dimensionless transitional parameter ($\tilde{H}_{tr}$) normalizes the dimen
 
 ### 5. Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
 
-The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
+The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H\_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation and the continuity condition. Once $\tilde{H}_1$ and $\tilde{H}_2$ are determined, two types of dimensionless wave heights can be calculated:
+The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
 
-* **$\tilde{H}_N$ (Wave Height with $1/N$ Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
+```math
+f(\tilde{H}_{1_{Hrms}}, \tilde{H}_{2_{Hrms}}, \tilde{H}_{tr}) = \sqrt{
+\tilde{H}_{1_{Hrms}}^2 \cdot \gamma\left(\frac{2}{k_1} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{1_{Hrms}}}\right)^{k_1}\right) + 
+\tilde{H}_{2_{Hrms}}^2 \cdot \Gamma\left(\frac{2}{k_2} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{2_{Hrms}}}\right)^{k_2}\right)
+} - 1 = 0
+```
 
-    * If $\tilde{H}_{N,candidate} < \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_1 \cdot (\ln(N))^{1/k_1}$
-    * If $\tilde{H}_{N,candidate} \ge \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_2 \cdot (\ln(N))^{1/k_2}$
+where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k\_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $H\_{2\_{Hrms}}$ is related to $H\_{1\_{Hrms}}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
 
-* **$\tilde{H}_{1/N}$ (Mean of the Highest $1/N$-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
+```math
+H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}
+```
 
-    * **Case 1: $\tilde{H}_N < \tilde{H}_{tr}$** (The integration for $\tilde{H}_{1/N}$ spans both parts of the distribution). The formula used is (Groenendijk 1998, Equation A.10):
-        ```math
-        \tilde{H}_{1/N} = N \tilde{H}_1 \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) \right] + N \tilde{H}_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
-        ```
+Here, $γ(a,x)$ and $Γ(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
 
-    * **Case 2: $\tilde{H}_N \ge \tilde{H}_{tr}$** (The integration for $\tilde{H}_{1/N}$ only involves the second part of the distribution). The formula used is (Groenendijk 1998, Equation A.17):
-        ```math
-        \tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
-        ```
+Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribution) and $\tilde{H}_2$ (the normalized scale parameter of the second Weibull distribution) are determined, two types of dimensionless wave heights can be calculated:
+
+* $\tilde{H}\_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}\_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}\_{tr}$, then $\tilde{H}\_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
+
+    * If $\tilde{H}\_{N,candidate} < \tilde{H}\_{tr}$: $\tilde{H}\_N = \tilde{H}\_1 \cdot (\ln(N))^{1/k\_1}$
+
+    * If $\tilde{H}\_{N,candidate} \ge \tilde{H}\_{tr}$: $\tilde{H}\_N = \tilde{H}\_2 \cdot (\ln(N))^{1/k\_2}$
+
+* $\tilde{H}\_{1/N}$ **(Mean of the Highest** $1/N$**-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H\_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}\_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
+
+    * **Case 1:** $\tilde{H}\_N < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}\_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
+
+        $$H_{UN} = NH_1 \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] + NH_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{H_{tr}}{H_2}\right)^{k_2}\right)$$
+
+        where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
+
+    * **Case 2:** $\tilde{H}\_N \ge \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}\_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
+
+        $$\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)$$
 
 ### 6. Dimensional Wave Heights ($H$)
 
@@ -153,20 +179,23 @@ Finally, the program computes several diagnostic ratios, which provide insights 
 
 The core calculations rely on precise implementations of fundamental mathematical functions:
 
-* **Complete Gamma Function ($\Gamma(z)$):** This is a generalization of the factorial function. In the implementation, `std::tgamma` is used.
-    ```math
-    \Gamma(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
-    ```
+* **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
-* **Unnormalized Lower Incomplete Gamma Function ($\gamma(a,x)$):** This function is computed using a hybrid numerical approach (series expansion for small $x$, continued fraction for large $x$) for stability and accuracy.
-    ```math
-    \gamma(a, x) = \int_0^x t^{a-1} e^{-t} dt
-    ```
+```math
+Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
+```
 
-* **Unnormalized Upper Incomplete Gamma Function ($\Gamma(a,x)$):** This is calculated as $\Gamma(a) - \gamma(a,x)$.
-    ```math
-    \Gamma(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
-    ```
+* **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
+
+```math
+γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
+```
+
+* **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
+
+```math
+Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
+```
 
 ## Building and Running
 
