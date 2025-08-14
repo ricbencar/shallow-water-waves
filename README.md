@@ -54,12 +54,18 @@ This condition ensures that the cumulative distribution function is continuous a
 ## Features
 
 * **Dual Interface**: Offers both a command-line interface for quick calculations and scripting, and a graphical user interface for ease of use.
-* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k_1=2.0$, $k_2=3.6$). This two-part distribution is designed to reflect the different physical regimes governing smaller (unbroken) and larger (breaking) waves.
-* **Key Parameter Calculation**: Computes mean square wave height ($H_{rms}$), free-surface variance ($m_0$), and dimensional/dimensionless transitional wave heights ($H_{tr}$, $\tilde{H}_{tr}$).
-* **Dimensionless Wave-Height Ratios**: Calculates $\tilde{H}_N$ (wave height with $1/N$ exceedance probability) and $\tilde{H}_{1/N}$ (mean of the highest $1/N$-part of wave heights) for various characteristic wave heights ($H_1, H_2, H_{1/3}, H_{1/10}, H_{1/50}, H_{1/100}, H_{1/1000}$). These are determined by solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring the normalized $H_{rms}$ of the distribution equals one. The solution employs a robust numerical strategy using a Newton-Raphson matrix method for simultaneous root-finding, and precise implementations of incomplete gamma functions.
+
+* **Composite Weibull Distribution Model**: Implements a robust model for shallow-foreshore wave-height distribution with empirically determined exponents ($k\_1=2.0$, $k\_2=3.6$). This two-part distribution is designed to reflect the different physical regimes governing smaller (unbroken) and larger (breaking) waves.
+
+* **Key Parameter Calculation**: Computes free-surface variance ($m\_0$), mean square wave height ($H\_{rms}$), and dimensional/dimensionless transitional wave heights ($H\_{tr\_dim}$, $\tilde{H}\_{tr}$).
+
+* **Dimensionless Wave-Height Ratios**: Calculates $\tilde{H}\_N$ (wave height with $1/N$ exceedance probability) and $\tilde{H}\_{1/N}$ (mean of the highest $1/N$-part of wave heights) for various characteristic wave heights ($H\_1, H\_2, H\_{1/3}, H\_{1/10}, H\_{1/50}, H\_{1/100}, H\_{1/1000}$). These are determined by solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring the normalized $H\_{rms}$ of the distribution equals one. The solution employs a robust numerical strategy using a Newton-Raphson matrix method for simultaneous root-finding, and precise implementations of incomplete gamma functions.
+
 * **Dimensional Wave Heights**: Converts dimensionless ratios to actual wave heights in meters.
-* **Diagnostic Ratios**: Provides insights into the wave height distribution shape through various characteristic wave height ratios.
-* **Detailed Reporting**: Generates a comprehensive report of input parameters, calculated values, and diagnostic ratios, which is also saved to `report.txt`.
+
+* **Diagnostic Ratios**: Provides insights into the wave height distribution shape through various diagnostic ratios.
+
+* **Detailed Reporting**: Generates a comprehensive report of input parameters, calculated values, and diagnostic ratios.
 
 ## Input Parameters
 
@@ -122,7 +128,7 @@ The dimensionless transitional parameter ($\tilde{H}_{tr}$) normalizes the dimen
 \tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
 ```
 
-### 5. Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
+### 5. Dimensionless Wave-Height Ratios ($\tilde{H}\_N$ and $\tilde{H}\_{1/N}$)
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H\_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
