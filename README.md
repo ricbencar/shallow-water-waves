@@ -106,7 +106,7 @@ This relationship, which demonstrates an increase with the degree of saturation 
 ### 3. Dimensional Transitional Wave Height ($H_{tr}$)
 
 The dimensional transitional wave height ($H_{tr}$) marks the point where the wave height distribution significantly changes due to depth-induced breaking. It is calculated using the local water depth ($d$) and the beach slope ($m$):
-The tangent of the beach slope ($\tan(\alpha)$) is derived from the input $m$:
+The tangent of the beach slope (`$ \tan(\alpha) $`) is derived from the input $m$:
 
 ```math
 \tan(\alpha) = \frac{1}{m}
