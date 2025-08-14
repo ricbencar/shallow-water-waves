@@ -84,7 +84,7 @@ Based on the provided inputs, the program performs a series of calculations to d
 The process begins by calculating the mean square wave height ($H_{rms}$) from the input significant wave height ($H_{m0}$) and water depth ($d$) using the **van Vledder (1991)** distribution. This provides a more physically grounded starting point for shallow water conditions. The formula is:
 
 ```math
-\large H_{rms} = H_{m0} \sqrt{ \frac{\Gamma\left(\frac{2}{k} + 1\right)}{\Gamma\left(\frac{1}{k} + 1\right)} }
+\Large H_{rms} = H_{m0} \sqrt{ \frac{\Gamma\left(\frac{2}{k} + 1\right)}{\Gamma\left(\frac{1}{k} + 1\right)} }
 ```
 
 where the parameter $k$ is dependent on the depth-induced saturation:
