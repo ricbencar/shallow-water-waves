@@ -165,7 +165,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 \Large \tilde{H}_{1/N} \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] + NH_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{H_{tr}}{H_2}\right)^{k_2}\right)
 ```
 
-where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
+	where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
 
 * **Case 2:** $\tilde{H}\_N \ge \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}\_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
 
