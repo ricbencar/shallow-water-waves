@@ -14,7 +14,7 @@ Through these applications, users can input essential wave parameters to perform
 The Composite Weibull distribution is a two-part distribution specifically designed for shallow water environments, capturing the distinct physical regimes of unbroken and breaking waves. It is described by the following cumulative distribution function (CDF) for normalized wave heights ($\tilde{h} = h / H_{rms}$):
 
 ```math
-F(\tilde{h}) = \begin{cases} 
+\Large F(\tilde{h}) = \begin{cases} 
 1 - \exp\left[ - \left( \frac{\tilde{h}}{\tilde{H}_1} \right)^{k_1} \right], & \tilde{h} < \tilde{H}_{tr} \\
 1 - \exp\left[ - \left( \frac{\tilde{h}}{\tilde{H}_2} \right)^{k_2} \right], & \tilde{h} \geq \tilde{H}_{tr} 
 \end{cases}
@@ -38,7 +38,7 @@ The parameters $\tilde{H}_1$ and $\tilde{H}_2$ are determined by solving a syste
 
 1.  **Normalized** $H\_{rms}$ **Constraint (from Groenendijk, 1998, Equation 7.11):**
    ```math
-   \tilde{H}_{rms} = 1 = \sqrt{
+   \Large \tilde{H}_{rms} = 1 = \sqrt{
    \tilde{H}_1^{2} \, \gamma\left( \frac{2}{k_1} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} \right)
    + \tilde{H}_2^{2} \, \Gamma\left( \frac{2}{k_2} + 1, \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2} \right)
 }
@@ -47,7 +47,7 @@ This equation ensures that the overall root-mean-square of the normalized compos
 
 2.  **Continuity Condition (from Groenendijk, 1998, Equation 3.4):**
    ```math
-   \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
+   \Large \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
    ```
 This condition ensures that the cumulative distribution function is continuous at the transitional wave height $\tilde{H}_{tr}$.
 
@@ -98,7 +98,7 @@ k = \frac{2}{1 - (H_{m0} / d)}
 Next, the free-surface variance ($m_0$, the zeroth spectral moment) is back-calculated from the newly computed $H_{rms}$ and the water depth $d$. This is done by numerically solving the following equation for $\sqrt{m_0}$:
 
 ```math
-H_{rms} = \left(2.69 + \frac{3.24}{d} \sqrt{m_0}\right) \sqrt{m_0}
+\Large H_{rms} = \left(2.69 + \frac{3.24}{d} \sqrt{m_0}\right) \sqrt{m_0}
 ```
 
 This relationship, which demonstrates an increase with the degree of saturation ($\Psi = \sqrt{m_0}/d$), is inverted to find $m_0$.
@@ -115,7 +115,7 @@ The tangent of the beach slope ($\tan{a}$) is derived from the input $m$:
 Then, $H_{tr}$ is computed as:
 
 ```math
-H_{tr} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
+\Large H_{tr} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
 ```
 
 For example, if $m=100$, then $\tan(\alpha)=1/100=0.01$, and $H_{tr}=(0.35+5.8 \cdot 0.01) \cdot d=0.408 \cdot d$. This relationship indicates that steeper slopes tend to result in higher $H_{tr}$ values, implying that fewer waves deviate from the Rayleigh distribution on steeper foreshores.
@@ -125,7 +125,7 @@ For example, if $m=100$, then $\tan(\alpha)=1/100=0.01$, and $H_{tr}=(0.35+5.8 \
 The dimensionless transitional parameter ($\tilde{H}_{tr}$) normalizes the dimensional transitional wave height by the mean square wave height:
 
 ```math
-\tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
+\Large \tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
 ```
 
 ### 5. Dimensionless Wave-Height Ratios ($\tilde{H}\_N$ and $\tilde{H}\_{1/N}$)
@@ -174,7 +174,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 The calculated dimensionless wave-height ratios ($\tilde{H}\_N$ or $\tilde{H}\_{1/N}$) are then converted back to dimensional wave heights (in meters) by multiplying them by the mean square wave height ($H\_{rms}$):
 
 ```math
-H = \tilde{H} \cdot H_{rms}
+\Large H = \tilde{H} \cdot H_{rms}
 ```
 
 ### 7. Diagnostic Ratios
@@ -188,19 +188,19 @@ The core calculations rely on precise implementations of fundamental mathematica
 * **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
 ```math
-Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
+\Large Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
 ```
 
 * **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
 ```math
-γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
+\Large γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
 ```
 
 * **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
 
 ```math
-Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
+\Large Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
 ```
 
 ## Building and Running
