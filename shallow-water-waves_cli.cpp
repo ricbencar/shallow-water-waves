@@ -11,10 +11,9 @@
  * and slopeM (beach slope 1:m). Otherwise, the program
  * prompts the user for these values.
  * 2. Computes the following intermediate values:
- * - Root-mean-square wave height (Hrms) using the van Vledder (1991)
- * distribution based on Hm0 and d.
- * - Free-surface variance (m0) is then back-calculated by solving the
- * equation: Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0).
+ * - Free-surface variance (m0) is calculated directly using m0 = (Hm0/4)^2.
+ * - Root-mean-square wave height (Hrms) is then calculated from m0
+ * using the equation: Hrms = (2.69 + 3.24*sqrt(m0)/d)*sqrt(m0).
  * - A dimensional transitional wave height: Htr = (0.35 + 5.8*(1/m)) * d.
  * - The dimensionless transitional parameter: H̃_tr = Htr / Hrms.
  *
@@ -28,6 +27,20 @@
  * 4. A detailed report is then generated (and written to "report.txt") with
  * the input parameters, intermediate values, calculated ratios and computed
  * dimensional wave heights, as well as diagnostic ratios.
+ *
+ * Overshoot-prevention logic:
+ * To prevent the composite Weibull distribution from predicting wave heights
+ * greater than the theoretical Rayleigh distribution (which is valid for deep
+ * water), the following logic is applied:
+ *
+ * a) H_tr Threshold Switch: If the dimensionless transitional height (Htr/Hrms)
+ * is greater than 2.75, the conditions are considered deep-water dominant.
+ * The program bypasses the B&G calculation and uses established Rayleigh
+ * distribution values for all H1/N statistics.
+ *
+ * b) Capping Statistical Parameters: If the B&G calculation is performed, the
+ * resulting dimensional values for all H1/N are capped at their
+ * theoretical Rayleigh limits (e.g., H1/3 <= Hm0, H1/10 <= 1.273*Hm0, etc.).
  *
  * Compilation Instructions (example using g++ on Windows):
  *
@@ -78,6 +91,9 @@ struct WaveAnalysisResults {
     double Hm0;
     double d;
     double slopeM;
+
+    // OVERSHOOT-PREVENTION: Added to track which model is used.
+    std::string distribution_type;
 
     // Calculated Parameters
     double Hrms;
@@ -320,40 +336,6 @@ bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms
 // --- Core Calculation Logic ---
 
 /**
- * @brief Calculates Hrms from the van Vledder (1991) distribution.
- */
-static inline double calculate_hrms_van_vledder(double hm0, double d) {
-    if (d <= 0.0 || hm0 <= 0.0) throw std::invalid_argument("Hm0 and d must be positive.");
-    if (hm0 >= d) return hm0; // Physical limit
-
-    double k = 2.0 / (1.0 - (hm0 / d));
-    double gamma_num = std::tgamma((2.0 / k) + 1.0);
-    double gamma_den = std::tgamma((1.0 / k) + 1.0);
-
-    if (gamma_den == 0.0) throw std::runtime_error("Gamma function denominator is zero.");
-    return hm0 * std::sqrt(gamma_num / gamma_den);
-}
-
-/**
- * @brief Calculates free-surface variance (m0) from Hrms and water depth (d).
- */
-static inline double calculate_m0_from_hrms(double Hrms, double d) {
-    if (d <= 0.0) throw std::invalid_argument("Water depth (d) must be positive.");
-    if (Hrms <= 0.0) return 0.0;
-
-    // Solves quadratic equation: a*x^2 + b*x + c = 0, where x = sqrt(m0)
-    double a = 3.24 / d;
-    double b = 2.69;
-    double c = -Hrms;
-    double discriminant = b * b - 4.0 * a * c;
-
-    if (discriminant < 0.0) throw std::runtime_error("Negative discriminant in m0 calculation.");
-
-    double sqrt_m0 = (-b + std::sqrt(discriminant)) / (2.0 * a);
-    return (sqrt_m0 > 0.0) ? (sqrt_m0 * sqrt_m0) : 0.0;
-}
-
-/**
  * @brief Performs the full wave analysis, populating the results structure.
  * @param results A reference to the results structure to be filled.
  * @return `true` on success, `false` on failure.
@@ -361,42 +343,85 @@ static inline double calculate_m0_from_hrms(double Hrms, double d) {
 bool perform_wave_analysis(WaveAnalysisResults& results) {
     try {
         // Step 1: Calculate primary parameters
-        results.Hrms = calculate_hrms_van_vledder(results.Hm0, results.d);
-        results.m0 = calculate_m0_from_hrms(results.Hrms, results.d);
+        results.m0 = std::pow(results.Hm0 / 4.0, 2.0);
+        const double sqrt_m0 = std::sqrt(results.m0);
+        results.Hrms = (2.69 + 3.24 * sqrt_m0 / results.d) * sqrt_m0;
+
         results.tanAlpha = 1.0 / results.slopeM;
         results.Htr_dim = (0.35 + 5.8 * results.tanAlpha) * results.d;
         results.Htr_tilde = (results.Hrms > 0.0) ? (results.Htr_dim / results.Hrms) : 0.0;
 
-        // Step 2: Solve for H1/Hrms and H2/Hrms
-        if (!newtonRaphsonSystemSolver(results.Htr_tilde, results.H1_Hrms, results.H2_Hrms, 100)) {
-            return false; // Solver failed
+        // OVERSHOOT-PREVENTION: Method 1 - H_tr Threshold Switch
+        if (results.Htr_tilde > 2.75) {
+            results.distribution_type = "Rayleigh";
+            
+            // Use standard Rayleigh distribution values with higher precision
+            results.H1_3_dim = results.Hm0;
+            results.H1_10_dim = 1.273 * results.Hm0;
+            results.H1_50_dim = 1.519 * results.Hm0;
+            results.H1_100_dim = 1.666 * results.Hm0;
+            results.H1_250_dim = 1.861 * results.Hm0;
+            results.H1_1000_dim = 2.032 * results.Hm0;
+            
+            // Back-calculate dimensionless ratios for the report
+            if (results.Hrms > 0.0) {
+                results.H1_3_Hrms = results.H1_3_dim / results.Hrms;
+                results.H1_10_Hrms = results.H1_10_dim / results.Hrms;
+                results.H1_50_Hrms = results.H1_50_dim / results.Hrms;
+                results.H1_100_Hrms = results.H1_100_dim / results.Hrms;
+                results.H1_250_Hrms = results.H1_250_dim / results.Hrms;
+                results.H1_1000_Hrms = results.H1_1000_dim / results.Hrms;
+            }
+        } else {
+            results.distribution_type = "B&G";
+
+            // Step 2: Solve for H1/Hrms and H2/Hrms
+            if (!newtonRaphsonSystemSolver(results.Htr_tilde, results.H1_Hrms, results.H2_Hrms, 100)) {
+                return false; // Solver failed
+            }
+
+            // Step 3: Calculate H1/N quantiles
+            results.H1_3_Hrms = calculate_H1N(3.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+            results.H1_10_Hrms = calculate_H1N(10.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+            results.H1_50_Hrms = calculate_H1N(50.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+            results.H1_100_Hrms = calculate_H1N(100.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+            results.H1_250_Hrms = calculate_H1N(250.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+            results.H1_1000_Hrms = calculate_H1N(1000.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+
+            // Step 4: Convert to dimensional values
+            results.H1_dim = results.H1_Hrms * results.Hrms;
+            results.H2_dim = results.H2_Hrms * results.Hrms;
+            results.H1_3_dim = results.H1_3_Hrms * results.Hrms;
+            results.H1_10_dim = results.H1_10_Hrms * results.Hrms;
+            results.H1_50_dim = results.H1_50_Hrms * results.Hrms;
+            results.H1_100_dim = results.H1_100_Hrms * results.Hrms;
+            results.H1_250_dim = results.H1_250_Hrms * results.Hrms;
+            results.H1_1000_dim = results.H1_1000_Hrms * results.Hrms;
+
+            // OVERSHOOT-PREVENTION: Method 2 & 3 - Capping all H1/N statistical parameters with higher precision
+            results.H1_3_dim = std::min(results.H1_3_dim, results.Hm0);
+            results.H1_10_dim = std::min(results.H1_10_dim, 1.273 * results.Hm0);
+            results.H1_50_dim = std::min(results.H1_50_dim, 1.519 * results.Hm0);
+            results.H1_100_dim = std::min(results.H1_100_dim, 1.666 * results.Hm0);
+            results.H1_250_dim = std::min(results.H1_250_dim, 1.861 * results.Hm0);
+            results.H1_1000_dim = std::min(results.H1_1000_dim, 2.032 * results.Hm0);
         }
 
-        // Step 3: Calculate H1/N quantiles
-        results.H1_3_Hrms = calculate_H1N(3.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
-        results.H1_10_Hrms = calculate_H1N(10.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
-        results.H1_50_Hrms = calculate_H1N(50.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
-        results.H1_100_Hrms = calculate_H1N(100.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
-        results.H1_250_Hrms = calculate_H1N(250.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
-        results.H1_1000_Hrms = calculate_H1N(1000.0, results.H1_Hrms, results.H2_Hrms, results.Htr_tilde);
+        // Step 5: Calculate diagnostic ratios (always do this last)
+        if (results.H1_3_dim > 0.0) { // Use capped dimensional value for check
+            // Recalculate dimensionless ratios from potentially capped values for accurate reporting
+            double H1_3_Hrms_capped = results.H1_3_dim / results.Hrms;
+            double H1_10_Hrms_capped = results.H1_10_dim / results.Hrms;
+            double H1_50_Hrms_capped = results.H1_50_dim / results.Hrms;
+            double H1_100_Hrms_capped = results.H1_100_dim / results.Hrms;
+            double H1_250_Hrms_capped = results.H1_250_dim / results.Hrms;
+            double H1_1000_Hrms_capped = results.H1_1000_dim / results.Hrms;
 
-        // Step 4: Convert to dimensional values
-        results.H1_dim = results.H1_Hrms * results.Hrms;
-        results.H2_dim = results.H2_Hrms * results.Hrms;
-        results.H1_3_dim = results.H1_3_Hrms * results.Hrms;
-        results.H1_10_dim = results.H1_10_Hrms * results.Hrms;
-        results.H1_50_dim = results.H1_50_Hrms * results.Hrms;
-        results.H1_100_dim = results.H1_100_Hrms * results.Hrms;
-        results.H1_250_dim = results.H1_250_Hrms * results.Hrms;
-        results.H1_1000_dim = results.H1_1000_Hrms * results.Hrms;
-
-        // Step 5: Calculate diagnostic ratios
-        if (results.H1_3_Hrms != 0.0) {
-            results.ratio_1_10_div_1_3 = results.H1_10_Hrms / results.H1_3_Hrms;
-            results.ratio_1_50_div_1_3 = results.H1_50_Hrms / results.H1_3_Hrms;
-            results.ratio_1_100_div_1_3 = results.H1_100_Hrms / results.H1_3_Hrms;
-            results.ratio_1_250_div_1_3 = results.H1_250_Hrms / results.H1_3_Hrms;
-            results.ratio_1_1000_div_1_3 = results.H1_1000_Hrms / results.H1_3_Hrms;
+            results.ratio_1_10_div_1_3 = H1_10_Hrms_capped / H1_3_Hrms_capped;
+            results.ratio_1_50_div_1_3 = H1_50_Hrms_capped / H1_3_Hrms_capped;
+            results.ratio_1_100_div_1_3 = H1_100_Hrms_capped / H1_3_Hrms_capped;
+            results.ratio_1_250_div_1_3 = H1_250_Hrms_capped / H1_3_Hrms_capped;
+            results.ratio_1_1000_div_1_3 = H1_1000_Hrms_capped / H1_3_Hrms_capped;
         } else {
             results.ratio_1_10_div_1_3 = 0.0;
             results.ratio_1_50_div_1_3 = 0.0;
@@ -430,6 +455,9 @@ std::wstring format_report(const WaveAnalysisResults& r) {
        << L"Hm0 (m)         : " << r.Hm0 << L"\n"
        << L"d (m)           : " << r.d << L"\n"
        << L"Beach slope (m) : " << r.slopeM << L"   (tan(alpha) = " << r.tanAlpha << L")\n\n"
+
+       // OVERSHOOT-PREVENTION: Report which distribution was used.
+       << L"Distribution Used : " << std::wstring(r.distribution_type.begin(), r.distribution_type.end()) << L"\n\n"
 
        << L"===========================\n"
        << L"   CALCULATED PARAMETERS\n"
