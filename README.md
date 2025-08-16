@@ -253,7 +253,9 @@ The CLI application calculates shallow-foreshore wave-height distribution parame
 
 **Compilation Instructions (g++):** [cite: shallow-water-waves_cli.cpp]
 ```bash
-g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion -Wsign-conversion -static -static-libgcc -static-libstdc++ -o shallow-water-waves_cli shallow-water-waves_cli.cpp
+g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion \
+-Wsign-conversion -static -static-libgcc -static-libstdc++ -o \
+shallow-water-waves_cli shallow-water-waves_cli.cpp
 ```
 
 **Usage:**
@@ -274,7 +276,8 @@ You can run the application by providing parameters as command-line arguments or
 
 **Compilation Instructions (gfortran):** [cite: shallow-water-waves_cli.f90]
 ```bash
-gfortran -O3 -march=native -std=f2018 -Wall -Wextra -pedantic -fno-underscoring -o shallow-water-waves_cli_f shallow-water-waves_cli.f90
+gfortran -O3 -march=native -std=f2018 -Wall -Wextra -pedantic \
+-fno-underscoring -o shallow-water-waves_cli_f shallow-water-waves_cli.f90
 ```
 
 **Usage:**
@@ -298,7 +301,9 @@ The GUI application provides a native Windows interface for the same calculation
 
 **Compilation Instructions (g++ for Windows):** [cite: shallow-water-waves_gui.cpp]
 ```bash
-g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion -Wsign-conversion -municode shallow-water-waves_gui.cpp -o shallow-water-waves_gui -mwindows -static -static-libgcc -static-libstdc++
+g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion \
+-Wsign-conversion -municode shallow-water-waves_gui.cpp -o \
+shallow-water-waves_gui -mwindows -static -static-libgcc -static-libstdc++
 ```
 
 **Usage:**
@@ -314,7 +319,8 @@ This program computes and tabulates normalized wave height parameters over a ran
 
 **Compilation Instructions (g++):** [cite: carvalho2025_table.cpp]
 ```bash
-g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -static -o carvalho2025_table carvalho2025_table.cpp
+g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -static \
+-o carvalho2025_table carvalho2025_table.cpp
 ```
 
 **Usage:**
@@ -326,7 +332,8 @@ g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -static -o carvalho2025
 
 **Compilation Instructions (gfortran):** [cite: carvalho2025_table.f90]
 ```bash
-gfortran -O3 -march=native -std=f2008 -Wall -Wextra -pedantic -fno-underscoring -o carvalho2025_table carvalho2025_table.f90
+gfortran -O3 -march=native -std=f2008 -Wall -Wextra -pedantic \
+-fno-underscoring -o carvalho2025_table carvalho2025_table.f90
 ```
 
 **Usage:**
