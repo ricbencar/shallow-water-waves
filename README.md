@@ -189,22 +189,7 @@ The second safeguard is applied after the CWD solution has been found and conver
 
 ### Required Input Parameters
 
-The software requires three input parameters to define the local environmental conditions.
-
-- **Parameter:** Significant Wave Height  
-  **Symbol:** \(H_{m0}\)  
-  **Description:** The spectral significant wave height, defined as \(4\sqrt{m_0}\).  
-  **Units:** meters (m)
-
-- **Parameter:** Water Depth  
-  **Symbol:** \(d\)  
-  **Description:** The local still water depth at the point of interest.  
-  **Units:** meters (m)
-
-- **Parameter:** Beach Slope  
-  **Symbol:** \(m\)  
-  **Description:** The denominator of the beach slope, expressed as 1:\(m\).  
-  **Units:** dimensionless
+The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as \(H_{m0}\), which represents the spectral significant wave height and is defined as \(4\sqrt{m_0}\). Its units are meters (m). The second parameter is the Water Depth, symbolized by \(d\), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
 
 ### Execution via Command-Line and Graphical Interfaces
 
