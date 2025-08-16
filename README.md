@@ -209,7 +209,7 @@ The report is organized into several sections. The **Inputs** section lists the 
 
 The **Dimensionless Ratios** section includes ratios like $\tilde{H}\_{1/3}$, $\tilde{H}\_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H\_{1/3}$, $(H\_{1/10}$, etc., measured in meters for engineering applications.
 
-The **Diagnostic Ratios** section features ratios like $H\_{1/3}/H\_{m0}$ and $H\_{rms} \sqrt{8m_0}$, which are used to compare the model output against theoretical Rayleigh values. A value of $(H\_{rms} \sqrt{8m\_0}$ less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of $(H\_{1/3}/H\_{m0}$ less than 1 signifies the effect of depth-induced breaking.
+The **Diagnostic Ratios** section features ratios like $H\_{1/3}/H\_{m0}$ which are used to compare the model output against theoretical Rayleigh values. A value of $(H\_{rms}/\sqrt{m0}$ less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of $(H\_{1/3}/H\_{m0}$ less than 1 signifies the effect of depth-induced breaking.
 
 ## Model Applicability, Limitations, and Broader Context
 
