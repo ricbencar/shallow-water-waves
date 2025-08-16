@@ -124,7 +124,7 @@ The core numerical task of the software is to determine the dimensionless scale 
     \Large \tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right) = 1
    ```
    
-   where $\gamma(a,x)$ and $\Gamma(a,x)$ are the lower and upper incomplete gamma functions, respectively.
+   where $\gamma(a,x)$ and $\Gamma(a,x)$ are the non-normalized lower and upper incomplete gamma functions, respectively.
 
 The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Once these are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
 
@@ -132,16 +132,9 @@ The software employs a numerical root-finding algorithm, such as a Newton-Raphso
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
+The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4).
 
-```math
-\sqrt{
-\tilde{H}_1^2 \cdot \gamma\left(\frac{2}{k_1} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + 
-\tilde{H}_2^2 \cdot \Gamma\left(\frac{2}{k_2} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
-} - 1 = 0
-```
-
-where $k_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $\tilde{H}_2$ is related to $\tilde{H}_1$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
+$\tilde{H}_2$ is related to $\tilde{H}_1$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
 
 ```math
 \Large \tilde{H}_2 = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{-k_1/k_2}
