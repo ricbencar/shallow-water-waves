@@ -137,9 +137,9 @@ The core numerical task of the software is to determine the dimensionless scale 
     which simplifies to:
 \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2 
 = \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}
-
+```
 2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
-    ```math
+    ```latex
     1 = \tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
     ```
     where $\gamma(a,x)$ and $\Gamma(a,x)$ are the lower and upper incomplete gamma functions, respectively.
