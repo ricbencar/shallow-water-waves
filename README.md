@@ -65,7 +65,7 @@ The CWD is grounded in physical reality through empirically derived formulas for
 
 #### Free-surface Variance ($m_0$)
 
-The variance of the free-surface elevation, $m_0$, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H\_{m0}$, using the standard definition (Battjes & Groenendijk, 2000) which is valid for all water depths, both deep and shallow water depths:
+The variance of the free-surface elevation, $m_0$, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H\_{m0}$, for both deep and shallow waters, using the standard definition (Battjes & Groenendijk, 2000):
 
 ```math
 \Large m_0 = \left(\frac{H_{m0}}{4}\right)^2
