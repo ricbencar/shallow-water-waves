@@ -1,4 +1,4 @@
-# shallow-water-waves: Wave Height Distributions on Shallow Foreshores
+# Wave Height Distributions on Shallow Foreshores
 
 ## Technical Overview and Scientific Context
 
@@ -229,30 +229,15 @@ The model's core assumption about the dissipation mechanism does not hold, leadi
 
 More recent, extensive field data analyses have placed the Battjes and Groenendijk model within the broader context of other shallow-water wave height distributions. Studies have shown that the model provides a good fit for the most severe, depth-limited sea states (typically where the relative wave height $H_s/d > 0.45$) on sloping beaches (Karmpadakis et al., 2020). However, for moderately energetic conditions or different bathymetries, other models may provide more accurate results. Users should be aware that no single model has been found to be universally superior across all shallow-water conditions, and the choice of model may depend on the specific characteristics of the sea state being analyzed (Karmpadakis et al., 2020).
 
-- **Model:** Rayleigh (1885)
-  **Key Assumption / Basis:** Narrow-banded, linear Gaussian sea surface  
-  **Optimal Conditions for Application:** Deep water (no seabed interaction)  
-  **Known Limitations:** Fails completely in shallow water; unbounded (Longuet-Higgins, 1952).
+The Rayleigh model, introduced in 1885, is based on the assumption of a narrow-banded, linear Gaussian sea surface. It performs optimally in deep water conditions where there is no interaction with the seabed. However, this model has significant limitations, as it fails completely in shallow water environments. Its applicability is restricted to deep waters, and it is known to be unbounded, as highlighted by Longuet-Higgins in 1952.
 
-- **Model:** Glukhovskiy (1966)  
-  **Key Assumption / Basis:** Weibull distribution with depth-dependent shape parameter  
-  **Optimal Conditions for Application:** Moderately energetic shallow-water conditions  
-  **Known Limitations:** Tends to overestimate extreme wave heights (van Vledder, 1991).
+The Glukhovskiy model from 1966 relies on the Weibull distribution with a depth-dependent shape parameter to characterize wave heights. It is best suited for moderately energetic shallow-water conditions, where the wave dynamics are influenced by the seabed. Nonetheless, it tends to overestimate extreme wave heights, a limitation documented by van Vledder in 1991.
 
-- **Model:** Battjes & Groenendijk (2000)  
-  **Key Assumption / Basis:** Composite Weibull (two populations); "Point model"  
-  **Optimal Conditions for Application:** Severely depth-limited sea states (`H_s/d > 0.45`) on plane, sloping beaches (1:20 to 1:250)  
-  **Known Limitations:** Non-conservative underestimation on flat bottoms; ignores wave history (Caires & Van Gent, 2012).
+Battjes and Groenendijk's 2000 model employs a composite Weibull distribution, representing two populations, and is referred to as a "Point model." It is most effective in scenarios involving severely depth-limited sea states, specifically when the ratio of significant wave height to water depth exceeds 0.45, on plane or sloping beaches with slopes ranging from 1:20 to 1:250. However, this model tends to underestimate wave heights on flat bottoms, which can lead to non-conservative predictions. Additionally, it neglects the influence of wave history, as discussed by Caires and Van Gent in 2012.
 
-- **Model:** Mendez et al. (2004)  
-  **Key Assumption / Basis:** Wave energy propagation with breaking  
-  **Optimal Conditions for Application:** Alternative for moderately energetic conditions  
-  **Known Limitations:** Shape parameter bounded for low Iribarren numbers (Mendez et al., 2004).
+The 2004 model by Mendez and colleagues is based on the concept of wave energy propagation with breaking. It serves as an alternative approach for conditions characterized by moderate energy levels. Despite its usefulness, it has limitations, including a bounded shape parameter for low Iribarren numbers, as described by Mendez et al. in 2004.
 
-- **Model:** Karmpadakis et al. (2022)  
-  **Key Assumption / Basis:** Continuous distribution based on nonlinearity, directionality  
-  **Optimal Conditions for Application:** Intermediate and shallow water over flat/horizontal beds  
-  **Known Limitations:** Developed for short-crested seas; may require upscaling from lab scale (Karmpadakis et al., 2022).
+Finally, the model developed by Karmpadakis et al. in 2022 is founded on a continuous distribution that incorporates nonlinearity and wave directionality. It is particularly suitable for intermediate and shallow waters over flat or horizontal seabeds. Nonetheless, this model was developed for short-crested seas and may require upscaling from laboratory scales to real-world applications, which could introduce additional uncertainties.
 
 # Building and Running
 
@@ -307,7 +292,7 @@ The Fortran version runs identically to the C++ version.
 
 ***
 
-### Graphical User Interface (GUI) 🖱️
+### Graphical User Interface (GUI)
 
 The GUI application provides a native Windows interface for the same calculations. [cite: shallow-water-waves_gui.cpp]
 
