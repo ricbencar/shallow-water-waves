@@ -131,29 +131,18 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 The core numerical task of the software is to determine the dimensionless scale parameters, $\tilde{H}_1$ and $\tilde{H}_2$, for a given value of $\tilde{H}_{tr}$. These two unknowns are found by solving a system of two coupled, non-linear equations that enforce the mathematical consistency of the CWD (Battjes & Groenendijk, 2000):
 
 1.  **Continuity Constraint**: The probability must be continuous at the transitional height $H_{tr}$. In dimensionless form, with $k_1=2$ and $k_2=3.6$, this becomes:
-
-   $$
-   \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2\right]
-   =
-   \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}\right]
-   $$
-
-   which simplifies to:
-
-   $$
-   \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2
-   =
-   \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}
-   $$
-
+    ```math
+    \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2\right] = \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}\right]
+    ```
+    which simplifies to:
+    ```math
+    \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2 = \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}
+    ```
 2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
-
-   $$
-   1 \;=\; \tilde{H}_1^2 \,\gamma\!\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right)
-   \;+\; \tilde{H}_2^2 \,\Gamma\!\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
-   $$
-
-   where $\gamma(a,x)$ and $\Gamma(a,x)$ are the lower and upper incomplete gamma functions, respectively.
+    ```math
+    1 = \tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
+    ```
+    where $\gamma(a,x)$ and $\Gamma(a,x)$ are the lower and upper incomplete gamma functions, respectively.
 
 The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Once these are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
 
