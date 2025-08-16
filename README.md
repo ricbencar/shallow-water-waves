@@ -68,7 +68,7 @@ The CWD is grounded in physical reality through empirically derived formulas for
 The variance of the free-surface elevation, $m_0$, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H_{m0}$, using the standard definition (Battjes & Groenendijk, 2000):
 
 ```math
-m_0 = \left(\frac{H_{m0}}{4}\right)^2
+\Large m_0 = \left(\frac{H_{m0}}{4}\right)^2
 ```
 
 #### Root-Mean-Square Wave Height ($H_{rms}$)
@@ -76,7 +76,7 @@ m_0 = \left(\frac{H_{m0}}{4}\right)^2
 The root-mean-square wave height, $H_{rms}$, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow water, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
 
 ```math
-H_{rms} = (2.69 + 3.24\frac{\sqrt{m_0}}{d})\sqrt{m_0}
+\Large H_{rms} = (2.69 + 3.24\frac{\sqrt{m_0}}{d})\sqrt{m_0}
 ```
 
 The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8m_0} \approx 2.828\sqrt{m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
@@ -88,7 +88,7 @@ While this improves realism for broad-banded seas, it also causes the model's di
 The transitional wave height, $H_{tr}$, represents the physical threshold that separates the two wave populations. It is conceptualized as a limiting height for non-breaking waves, influenced by both the local water depth and the steepness of the beach slope. The primary formula for $H_{tr}$ is (Battjes & Groenendijk, 2000):
 
 ```math
-H_{tr} = (0.35 + 5.8\tan\alpha)d
+\Large H_{tr} = (0.35 + 5.8\tan\alpha)d
 ```
 
 where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., for a 1:50 slope, $\tan\alpha = 0.02$). The inclusion of the slope term is physically significant. A steeper slope results in a higher value of $H_{tr}$, which implies that a smaller fraction of the waves are considered to be in the breaking-dominated regime. This accounts for the spatial lag inherent in the breaking process: on a steep slope, a wave may reach a depth where breaking is initiated but has not yet had sufficient time or distance to fully dissipate its energy and reduce its height (Battjes & Groenendijk, 2000).
@@ -144,7 +144,7 @@ f(\tilde{H}_1, \tilde{H}_2, \tilde{H}_{tr}) = \sqrt{
 where $k_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $\tilde{H}_2$ is related to $\tilde{H}_1$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
 
 ```math
-\tilde{H}_2 = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{-k_1/k_2}
+\Large \tilde{H}_2 = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{-k_1/k_2}
 ```
 
 Here, $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
@@ -153,9 +153,9 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 
 * $\tilde{H}\_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}\_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}\_{tr}$, then $\tilde{H}\_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
 
-* If $\tilde{H}\_{N,candidate} < \tilde{H}\_{tr}$: $\tilde{H}\_N = \tilde{H}\_1 \cdot (\ln(N))^{1/k\_1}$
+* If $\tilde{H}\_{N,candidate} < \tilde{H}\_{tr}$: $\Large \tilde{H}\_N = \tilde{H}\_1 \cdot (\ln(N))^{1/k\_1}$
 
-* If $\tilde{H}\_{N,candidate} \ge \tilde{H}\_{tr}$: $\tilde{H}\_N = \tilde{H}\_2 \cdot (\ln(N))^{1/k\_2}$
+* If $\tilde{H}\_{N,candidate} \ge \tilde{H}\_{tr}$: $\Large \tilde{H}\_N = \tilde{H}\_2 \cdot (\ln(N))^{1/k\_2}$
 
 * $\tilde{H}\_{1/N}$ **(Mean of the Highest** $1/N$**-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H\_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}\_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
 
@@ -189,7 +189,7 @@ The second safeguard is applied after the CWD solution has been found and conver
 
 ### Required Input Parameters
 
-The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as \(H_{m0}\), which represents the spectral significant wave height and is defined as \(4\sqrt{m_0}\). Its units are meters (m). The second parameter is the Water Depth, symbolized by \(d\), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
+The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as \(H_{m0}\), which represents the spectral significant wave height and is defined as $4\sqrt{m_0}$). Its units are meters (m). The second parameter is the Water Depth, symbolized by \(d\), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
 
 ### Execution via Command-Line and Graphical Interfaces
 
@@ -216,27 +216,11 @@ The GUI application (`shallow-water-waves_gui`) provides a user-friendly window 
 
 Both the CLI and GUI applications generate a detailed text file named `report.txt` in the execution directory. This file contains a comprehensive summary of the calculation.
 
-- **Section:** Inputs  
-  **Field:** `$H_{m0}$`, `$d$`, `slope`  
-  **Description & Significance:** Echoed user-provided parameters for verification.
+The report is organized into several sections. The **Inputs** section lists the parameters \(H_{m0}\), \(d\), and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as \(m_0\), \(H_{rms}\), \(H_{tr}\), and \(\tilde{H}_{tr}\), with \(\tilde{H}_{tr}\) being the most critical value that determines the shape of the wave height distribution.
 
-- **Section:** Intermediate Values  
-  **Field:** `$m_0$`, `$H_{rms}$`, `$H_{tr}$`, `$\tilde{H}_{tr}$`  
-  **Description & Significance:** Key physical and dimensionless parameters. `$\tilde{H}_{tr}$` is the most critical value determining the distribution's shape.
+The **Dimensionless Ratios** section includes ratios like \(\tilde{H}_{1/3}\), \(\tilde{H}_{1/10}\), etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as \(H_{1/3}\), \(H_{1/10}\), etc., measured in meters for engineering applications.
 
-- **Section:** Dimensionless Ratios  
-  **Field:** `$\tilde{H}_{1/3}$`, `$\tilde{H}_{1/10}$`, etc.  
-  **Description & Significance:** The solved dimensionless statistical ratios. These represent the normalized shape of the wave height distribution.
-
-- **Section:** Final Wave Heights  
-  **Field:** `$H_{1/3}$`, `$H_{1/10}$`, etc.  
-  **Description & Significance:** The primary dimensional output in meters for engineering applications.
-
-- **Section:** Diagnostic Ratios  
-  **Field:** `$H_{1/3}/H_{m0}$`, `$H_{rms}/\sqrt{8m_0}$`  
-  **Description & Significance:** Ratios for comparing model output against theoretical Rayleigh values.  
-- A value of `$H_{rms}/\sqrt{8m_0}$ < 1` indicates the influence of the broad-band spectrum correction.  
-- A value of `$H_{1/3}/H_{m0}$ < 1` indicates the effect of depth-induced breaking.
+The **Diagnostic Ratios** section features ratios like \(H_{1/3}/H_{m0}\) and \(H_{rms}/\sqrt{8m_0}\), which are used to compare the model output against theoretical Rayleigh values. A value of \(H_{rms}/\sqrt{8m_0}\) less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of \(H_{1/3}/H_{m0}\) less than 1 signifies the effect of depth-induced breaking.
 
 ## Model Applicability, Limitations, and Broader Context
 
