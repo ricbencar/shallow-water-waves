@@ -76,7 +76,7 @@ m_0 = \left(\frac{H_{m0}}{4}\right)^2
 The root-mean-square wave height, $H_{rms}$, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow water, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
 
 ```math
-H_{rms} = \(2.69 + 3.24\frac{\sqrt{m_0}}{d})\sqrt{m_0}
+H_{rms} = (2.69 + 3.24\frac{\sqrt{m_0}}{d})\sqrt{m_0}
 ```
 
 The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8m_0} \approx 2.828\sqrt{m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value. While this improves realism for broad-banded seas, it also causes the model's dimensional predictions to diverge from pure Rayleigh theory. This divergence was explicitly analyzed by Caires & Van Gent (2012), who demonstrated how this parameterization causes the model to produce predictions that do not smoothly converge to the Rayleigh values in deep water and can lead to physically inconsistent results, a behavior that necessitates the "capping" logic described in the computational methodology section.
@@ -90,26 +90,6 @@ H_{tr} = (0.35 + 5.8\tan\alpha)d
 ```
 
 where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., for a 1:50 slope, $\tan\alpha = 0.02$). The inclusion of the slope term is physically significant. A steeper slope results in a higher value of $H_{tr}$, which implies that a smaller fraction of the waves are considered to be in the breaking-dominated regime. This accounts for the spatial lag inherent in the breaking process: on a steep slope, a wave may reach a depth where breaking is initiated but has not yet had sufficient time or distance to fully dissipate its energy and reduce its height (Battjes & Groenendijk, 2000).
-
-- **Parameter:** Free-surface Variance ($m_0$)  
-  **Formula:** $(H_{m0}/4)^2$  
-  **Citation:** Standard Definition  
-  **Notes:** Relates spectral significant wave height to total energy.
-
-- **Parameter:** RMS Wave Height ($H_{rms}$)  
-  **Formula:** $\(2.69+3.24\sqrt{m_0}/d)\sqrt{m_0}$  
-  **Citation:** Battjes & Groenendijk (2000)  
-  **Notes:** Deep-water limit (2.69) accounts for broad-banded spectra.
-
-- **Parameter:** Transitional Height ($H_{tr}$)  
-  **Formula:** $(0.35+5.8\tan\alpha)d$  
-  **Citation:** Battjes & Groenendijk (2000)  
-  **Notes:** Slope term ($\tan\alpha$) accounts for spatial lag in breaking.
-
-- **Parameter:** Dimensionless $H_{tr}$ ($\tilde{H}_{tr}$)  
-  **Formula:** $\frac{H_{tr}}{H_{rms}}$
-  **Citation:** Definition  
-  **Notes:** Single parameter defining the normalized distribution shape.               |
 
 ## Computational Methodology and Numerical Implementation
 
