@@ -107,7 +107,7 @@ where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., fo
   **Notes:** Slope term ($\tan\alpha$) accounts for spatial lag in breaking.
 
 - **Parameter:** Dimensionless $H_{tr}$ ($\tilde{H}_{tr}$)  
-  **Formula:** $\frac{H_{tr}}{H_{rms}}$ 
+  **Formula:** $\frac{H_{tr}}{H_{rms}}$
   **Citation:** Definition  
   **Notes:** Single parameter defining the normalized distribution shape.               |
 
@@ -117,11 +117,11 @@ where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., fo
 
 The software follows a structured, multi-step algorithm to compute the wave height distribution from a given set of environmental parameters (Battjes & Groenendijk, 2000).
 
-1.  **Input Acquisition**: The program obtains the three required input parameters: spectral significant wave height ($H_{m0}$), local water depth ($d$), and beach slope denominator ($m$ for a 1:$m$ slope), either from command-line arguments or from interactive user prompts.
+1.  **Input Acquisition**: The program obtains the three required input parameters: spectral significant wave height ($H_{m0}$), local water depth ($d$), and beach slope denominator ($m$ for a 1:m slope), either from command-line arguments or from interactive user prompts.
 2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
-3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}_{tr} = H_{tr}/H_{rms}$, is calculated. This single value determines the shape of the entire normalized wave height distribution.
+3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}$, is calculated. This single value determines the shape of the entire normalized wave height distribution.
 4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
-5.  **CWD Solution**: If $$\tilde{H}_{tr} \le 2.75$$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ($\tilde{H}_1, \tilde{H}_2$). From these, it computes the required statistical wave height ratios (e.g., $\tilde{H}_{1/3}, \tilde{H}_{1/10}$).
+5.  **CWD Solution**: If $$\tilde{H}_{tr} \le 2.75$$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ($$\tilde{H}_1, \quad \tilde{H}_2$$). From these, it computes the required statistical wave height ratios (e.g., $\tilde{H}_{\frac{1}{3}}, \ \tilde{H}_{\frac{1}{10}}$).
 6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in meters.
 7.  **Physical Consistency Capping**: The final dimensional wave heights are capped at their theoretical Rayleigh limits (e.g., $H_{1/3}$ is capped at $H_{m0}$). This step ensures the output remains physically plausible and conservative (Caires & Van Gent, 2012).
 8.  **Report Generation**: All inputs, intermediate values, dimensionless ratios, and final dimensional results are formatted into a comprehensive report and written to the output file `report.txt`.
@@ -131,13 +131,13 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 The core numerical task of the software is to determine the dimensionless scale parameters, $\tilde{H}_1$ and $\tilde{H}_2$, for a given value of $\tilde{H}_{tr}$. These two unknowns are found by solving a system of two coupled, non-linear equations that enforce the mathematical consistency of the CWD (Battjes & Groenendijk, 2000):
 
 1.  **Continuity Constraint**: The probability must be continuous at the transitional height $H_{tr}$. In dimensionless form, with $k_1=2$ and $k_2=3.6$, this becomes:
-    ```math
-    \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2\right] = \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}\right]
+```math
+\exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2\right] = \exp\left[-\left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}\right]
     ```
     which simplifies to:
-    ```math
-    \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2 = \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}
-    ```
+```math
+\left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^2 = \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{3.6}
+```
 2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
     ```math
     1 = \tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
