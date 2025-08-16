@@ -65,7 +65,7 @@ The CWD is grounded in physical reality through empirically derived formulas for
 
 #### Free-surface Variance ($m_0$)
 
-The variance of the free-surface elevation, $m_0$, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H\_{m0}$, using the standard definition (Battjes & Groenendijk, 2000):
+The variance of the free-surface elevation, $m_0$, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H\_{m0}$, using the standard definition (Battjes & Groenendijk, 2000) which is valid for all water depths, both deep and shallow water depths:
 
 ```math
 \Large m_0 = \left(\frac{H_{m0}}{4}\right)^2
@@ -79,7 +79,7 @@ The root-mean-square wave height, $H_{rms}$, is the fundamental scaling paramete
 \Large \frac{H_{rms}}{\sqrt{m_0}} = 2.69 + 3.24 \frac{\sqrt{m_0}}{d}
 ```
 
-The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8m_0} \approx 2.828\sqrt{m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
+The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
 
 While this improves realism for broad-banded seas, it also causes the model's dimensional predictions to diverge from pure Rayleigh theory. This divergence was explicitly analyzed by Caires & Van Gent (2012), who demonstrated how this parameterization causes the model to produce predictions that do not smoothly converge to the Rayleigh values in deep water and can lead to physically inconsistent results, a behavior that necessitates the "capping" logic described in the computational methodology section.
 
@@ -151,7 +151,7 @@ Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribu
 **Case 1:** $\tilde{H}\_N < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}\_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
 
 ```math
-\Large \tilde{H}_{1/N} \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] + NH_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{H_{tr}}{H_2}\right)^{k_2}\right)
+\Large \tilde{H}_{1/N} = \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] + NH_2 \Gamma\left(\frac{1}{k_2}+1, \left(\frac{H_{tr}}{H_2}\right)^{k_2}\right)
 ```
 
 where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
@@ -209,7 +209,7 @@ The report is organized into several sections. The **Inputs** section lists the 
 
 The **Dimensionless Ratios** section includes ratios like $\tilde{H}\_{1/3}$, $\tilde{H}\_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H\_{1/3}$, $(H\_{1/10}$, etc., measured in meters for engineering applications.
 
-The **Diagnostic Ratios** section features ratios like $H\_{1/3}/H\_{m0}$ and $H\_{rms}/\sqrt{8m_0}$, which are used to compare the model output against theoretical Rayleigh values. A value of \(H\_{rms}/\sqrt{8m\_0}\) less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of \(H\_{1/3}/H\_{m0}\) less than 1 signifies the effect of depth-induced breaking.
+The **Diagnostic Ratios** section features ratios like $H\_{1/3}/H\_{m0}$ and $H\_{rms} \sqrt{8m_0}$, which are used to compare the model output against theoretical Rayleigh values. A value of $(H\_{rms} \sqrt{8m\_0}$ less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of $(H\_{1/3}/H\_{m0}$ less than 1 signifies the effect of depth-induced breaking.
 
 ## Model Applicability, Limitations, and Broader Context
 
