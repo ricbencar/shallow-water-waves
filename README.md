@@ -76,7 +76,7 @@ The variance of the free-surface elevation, $m_0$, represents the total energy i
 The root-mean-square wave height, $H_{rms}$, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow water, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
 
 ```math
-\Large H_{rms} = \left(2.69 + \frac{3.24}{d} \sqrt{m_0}\right) \sqrt{m_0}
+\Large H_{rms} \frac sqrt{m_0} = \left(2.69 + \frac{3.24}{d} \sqrt{m_0}\right)
 ```
 
 The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8m_0} \approx 2.828\sqrt{m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
