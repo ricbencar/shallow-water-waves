@@ -15,7 +15,7 @@ However, as waves propagate from deep water onto a shallow foreshore, the physic
 1.  **Nonlinear Shoaling and Triad Interactions**: As the water depth decreases, waves begin to interact with the seabed. This interaction, known as shoaling, increases wave heights and enhances nonlinear effects. Specifically, triad wave-wave interactions transfer energy to higher harmonics, distorting the wave profile into a non-Gaussian shape characterized by peaked crests and shallow, flat troughs. Consequently, the sea surface can no longer be considered a linear Gaussian process (Battjes & Groenendijk, 2000).
 2.  **Depth-Induced Breaking**: The most significant process in shallow water is depth-induced wave breaking. The water depth imposes a physical upper limit on the height a wave can attain. In a random sea state, the largest waves, which would have continued to propagate in deep water, are forced to break, dissipating a significant amount of their energy into turbulence (Battjes & Groenendijk, 2000). This process effectively truncates the upper tail of the wave height distribution, meaning that extremely high waves become far less probable than predicted by the unbounded Rayleigh model (Battjes & Groenendijk, 2000).
 
-The accuracy loss of the Rayleigh distribution in the nearshore zone has profound engineering significance. An accurate statistical description of wave heights is critical for the design of coastal structures. Design criteria concerning wave forces, structural stability, wave run-up, and overtopping rates all depend on characteristic wave heights, such as the significant wave height ($H_s$) or heights with a low probability of exceedance (e.g., $H_{1\%}$, $H_{0.1\%}$). Using the Rayleigh distribution in these conditions can lead to a significant overestimation of the highest waves, resulting in overly conservative and expensive designs, or in some cases, a mischaracterization of the wave energy distribution (Battjes & Groenendijk, 2000).
+The accuracy loss of the Rayleigh distribution in the nearshore zone has profound engineering significance. An accurate statistical description of wave heights is critical for the design of coastal structures. Design criteria concerning wave forces, structural stability, wave run-up, and overtopping rates all depend on characteristic wave heights, such as the significant wave height ($H_s$) or heights with a low probability of exceedance (e.g., $H_{1\%\}$, $H_{0.1\%\}$). Using the Rayleigh distribution in these conditions can lead to a significant overestimation of the highest waves, resulting in overly conservative and expensive designs, or in some cases, a mischaracterization of the wave energy distribution (Battjes & Groenendijk, 2000).
 
 ### The "Point Model" Assumption: Domain of Applicability and Governing Principles
 
@@ -107,7 +107,7 @@ where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., fo
   **Notes:** Slope term ($\tan\alpha$) accounts for spatial lag in breaking.
 
 - **Parameter:** Dimensionless $H_{tr}$ ($\tilde{H}_{tr}$)  
-  **Formula:** $H_{tr}/H_{rms}$  
+  **Formula:** $\frac{H_{tr}}{H_{rms}}$ 
   **Citation:** Definition  
   **Notes:** Single parameter defining the normalized distribution shape.               |
 
@@ -121,7 +121,7 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
 3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}_{tr} = H_{tr}/H_{rms}$, is calculated. This single value determines the shape of the entire normalized wave height distribution.
 4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
-5.  **CWD Solution**: If $\tilde{H}_{tr} \le 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ($\tilde{H}_1, \tilde{H}_2$). From these, it computes the required statistical wave height ratios (e.g., $\tilde{H}_{1/3}, \tilde{H}_{1/10}$).
+5.  **CWD Solution**: If $$\tilde{H}_{tr} \le 2.75$$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ($\tilde{H}_1, \tilde{H}_2$). From these, it computes the required statistical wave height ratios (e.g., $\tilde{H}_{1/3}, \tilde{H}_{1/10}$).
 6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in meters.
 7.  **Physical Consistency Capping**: The final dimensional wave heights are capped at their theoretical Rayleigh limits (e.g., $H_{1/3}$ is capped at $H_{m0}$). This step ensures the output remains physically plausible and conservative (Caires & Van Gent, 2012).
 8.  **Report Generation**: All inputs, intermediate values, dimensionless ratios, and final dimensional results are formatted into a comprehensive report and written to the output file `report.txt`.
