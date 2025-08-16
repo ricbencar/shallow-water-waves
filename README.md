@@ -135,7 +135,7 @@ The dimensionless wave-height ratios are critical outputs of the model. The calc
 The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
 
 ```math
-f(\tilde{H}_1, \tilde{H}_2, \tilde{H}_{tr}) = \sqrt{
+\sqrt{
 \tilde{H}_1^2 \cdot \gamma\left(\frac{2}{k_1} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + 
 \tilde{H}_2^2 \cdot \Gamma\left(\frac{2}{k_2} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
 } - 1 = 0
@@ -189,7 +189,7 @@ The second safeguard is applied after the CWD solution has been found and conver
 
 ### Required Input Parameters
 
-The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as \(H_{m0}\), which represents the spectral significant wave height and is defined as $4\sqrt{m_0}$). Its units are meters (m). The second parameter is the Water Depth, symbolized by \(d\), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
+The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as $H_{m0}$, which represents the spectral significant wave height and is defined as $4\sqrt{m_0}$). Its units are meters (m). The second parameter is the Water Depth, symbolized by \(d\), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
 
 ### Execution via Command-Line and Graphical Interfaces
 
@@ -216,11 +216,11 @@ The GUI application (`shallow-water-waves_gui`) provides a user-friendly window 
 
 Both the CLI and GUI applications generate a detailed text file named `report.txt` in the execution directory. This file contains a comprehensive summary of the calculation.
 
-The report is organized into several sections. The **Inputs** section lists the parameters \(H_{m0}\), \(d\), and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as \(m_0\), \(H_{rms}\), \(H_{tr}\), and \(\tilde{H}_{tr}\), with \(\tilde{H}_{tr}\) being the most critical value that determines the shape of the wave height distribution.
+The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}_{tr}$, with $\tilde{H}_{tr}$ being the most critical value that determines the shape of the wave height distribution.
 
-The **Dimensionless Ratios** section includes ratios like \(\tilde{H}_{1/3}\), \(\tilde{H}_{1/10}\), etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as \(H_{1/3}\), \(H_{1/10}\), etc., measured in meters for engineering applications.
+The **Dimensionless Ratios** section includes ratios like $\tilde{H}_{1/3}$, $\tilde{H}_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H_{1/3}$, $(H_{1/10}$, etc., measured in meters for engineering applications.
 
-The **Diagnostic Ratios** section features ratios like \(H_{1/3}/H_{m0}\) and \(H_{rms}/\sqrt{8m_0}\), which are used to compare the model output against theoretical Rayleigh values. A value of \(H_{rms}/\sqrt{8m_0}\) less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of \(H_{1/3}/H_{m0}\) less than 1 signifies the effect of depth-induced breaking.
+The **Diagnostic Ratios** section features ratios like $H_{1/3}/H_{m0}$ and $H_{rms}/\sqrt{8m_0}$, which are used to compare the model output against theoretical Rayleigh values. A value of \(H_{rms}/\sqrt{8m_0}\) less than 1 indicates the influence of the broad-band spectrum correction, while a ratio of \(H_{1/3}/H_{m0}\) less than 1 signifies the effect of depth-induced breaking.
 
 ## Model Applicability, Limitations, and Broader Context
 
