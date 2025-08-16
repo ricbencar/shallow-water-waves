@@ -101,9 +101,7 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 
 1.  **Input Acquisition**: The program obtains the three required input parameters: spectral significant wave height ($H_{m0}$), local water depth ($d$), and beach slope denominator ($m$ for a 1:m slope), either from command-line arguments or from interactive user prompts.
 2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
-3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $$
-\tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}
-$$, is calculated. This single value determines the shape of the entire normalized wave height distribution.
+3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $$\tilde{H}_{tr} = \frac{H_{tr}}{H_{rms}}$$, is calculated. This single value determines the shape of the entire normalized wave height distribution.
 4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
 5.  **CWD Solution**: If $$\tilde{H}_{tr} \le 2.75$$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ($$\tilde{H}_1, \quad \tilde{H}_2$$). From these, it computes the required statistical wave height ratios (e.g., $\tilde{H}_{\frac{1}{3}}, \ \tilde{H}_{\frac{1}{10}}$).
 6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in meters.
@@ -132,9 +130,7 @@ The software employs a numerical root-finding algorithm, such as a Newton-Raphso
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4).
-
-$\tilde{H}_2$ is related to $\tilde{H}_1$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
+The core of this calculation is finding the values of $\tilde{H}_{1}$ and $\tilde{H}_{1}$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). $\tilde{H}_{2}$ is related to $\tilde{H}_{1}$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
 
 ```math
 \Large \tilde{H}_2 = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{-k_1/k_2}
