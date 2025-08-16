@@ -43,7 +43,7 @@ The Composite Weibull Distribution (CWD) is the mathematical formalization of th
 The cumulative distribution function (CDF), $F(H)$, which gives the probability that a wave height is less than or equal to a value $H$, is defined by the CWD as (Battjes & Groenendijk, 2000):
 
 ```math
-F(H) = 
+\Large F(H) = 
 \begin{cases} 
 F_1(H) = 1 - \exp\left[-\left(\frac{H}{H_1}\right)^{k_1}\right] & H \le H_{tr} \\
 F_2(H) = 1 - \exp\left[-\left(\frac{H}{H_2}\right)^{k_2}\right] & H > H_{tr}
