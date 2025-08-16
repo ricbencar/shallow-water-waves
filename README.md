@@ -76,7 +76,7 @@ The variance of the free-surface elevation, $m_0$, represents the total energy i
 The root-mean-square wave height, $H_{rms}$, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow water, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
 
 ```math
-\Large H_{rms} = (2.69 + 3.24\frac{\sqrt{m_0}}{d})\sqrt{m_0}
+\Large H_{rms} = \left(2.69 + \frac{3.24}{d} \sqrt{m_0}\right) \sqrt{m_0}
 ```
 
 The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8m_0} \approx 2.828\sqrt{m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
@@ -88,7 +88,7 @@ While this improves realism for broad-banded seas, it also causes the model's di
 The transitional wave height, $H_{tr}$, represents the physical threshold that separates the two wave populations. It is conceptualized as a limiting height for non-breaking waves, influenced by both the local water depth and the steepness of the beach slope. The primary formula for $H_{tr}$ is (Battjes & Groenendijk, 2000):
 
 ```math
-\Large H_{tr} = (0.35 + 5.8\tan\alpha)d
+\Large H_{tr} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
 ```
 
 where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., for a 1:50 slope, $\tan\alpha = 0.02$). The inclusion of the slope term is physically significant. A steeper slope results in a higher value of $H_{tr}$, which implies that a smaller fraction of the waves are considered to be in the breaking-dominated regime. This accounts for the spatial lag inherent in the breaking process: on a steep slope, a wave may reach a depth where breaking is initiated but has not yet had sufficient time or distance to fully dissipate its energy and reduce its height (Battjes & Groenendijk, 2000).
@@ -121,7 +121,7 @@ The core numerical task of the software is to determine the dimensionless scale 
 
 2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
    ```math
-    1 = \tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
+    \Large \tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right) = 1
    ```
    
    where $\gamma(a,x)$ and $\Gamma(a,x)$ are the lower and upper incomplete gamma functions, respectively.
