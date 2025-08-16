@@ -128,9 +128,9 @@ The software employs a numerical root-finding algorithm, such as a Newton-Raphso
 
 ### Dimensionless Wave-Height Ratios ($\tilde{H}\_N$ and $\tilde{H}\_{1/N}$)
 
-The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
+The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H\_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). $\tilde{H}_{2}$ is related to $\tilde{H}_{1}$ and $\tilde{H}_{tr}$ by the continuity condition between the two Weibull distributions:
+The core of this calculation is finding the values of $\tilde{H}\_1$ and $\tilde{H}\_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). $\tilde{H}\_{2}$ is related to $\tilde{H}\_{1}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
 
 ```math
 \Large \tilde{H}_2 = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{-k_1/k_2}
