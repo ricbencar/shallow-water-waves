@@ -181,6 +181,28 @@ The first safeguard is a check on the dimensionless transitional height, $\tilde
 
 The second safeguard is applied after the CWD solution has been found and converted to dimensional wave heights. Each calculated statistical wave height is compared to its theoretical maximum value under the Rayleigh distribution, and capped if it exceeds this limit. For example, the calculated $H_{1/3}$ is not allowed to exceed the input $H_{m0}$. This capping is necessary to correct for potential inconsistencies arising from the model's specific parameterization of $H_{rms}$, a behavior analyzed by Caires & Van Gent (2012). As previously discussed, the model's $H_{rms}$ can differ from the theoretical Rayleigh $H_{rms}$ for the same sea state. This can lead to situations where the CWD predicts a dimensional wave height that is physically implausible (e.g., an average of the top third of waves being larger than the spectrally defined significant wave height). This final check ensures that the software's output remains conservative and physically consistent (Caires & Van Gent, 2012).
 
+## Supporting Mathematical Functions
+
+The core calculations rely on precise implementations of fundamental mathematical functions:
+
+* **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
+
+```math
+Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
+```
+
+* **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
+
+```math
+γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
+```
+
+* **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
+
+```math
+Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
+```
+
 ## Model Applicability, Limitations, and Broader Context
 
 ### Domain of Validity Based on Calibration Data
@@ -311,28 +333,6 @@ gfortran -O3 -march=native -std=f2008 -Wall -Wextra -pedantic \
 **Usage:**
 ```bash
 ./carvalho2025_table_f
-```
-
-## Supporting Mathematical Functions
-
-The core calculations rely on precise implementations of fundamental mathematical functions:
-
-* **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
-
-```math
-Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
-```
-
-* **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
-
-```math
-γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
-```
-
-* **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
-
-```math
-Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
 ```
 
 ## Software Usage and Output Interpretation
