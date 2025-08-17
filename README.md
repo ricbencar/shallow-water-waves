@@ -132,7 +132,7 @@ The core numerical task of the software is to determine the dimensionless scale 
    ```
 2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
    ```math
-    \Large \tilde{H}_1^2 \cdot \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2  \cdot \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right) = 1
+    \Large \sqrt{\tilde{H}_1^2 \cdot \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2  \cdot \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)} = 1
    ```
    
    where $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
@@ -143,22 +143,7 @@ The software employs a numerical root-finding algorithm, such as a Newton-Raphso
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H\_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
-
-```math
-\Large \sqrt{
-\tilde{H}_{1_{Hrms}}^2 \cdot \gamma\left(\frac{2}{k_1} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{1_{Hrms}}}\right)^{k_1}\right) + 
-\tilde{H}_{2_{Hrms}}^2 \cdot \Gamma\left(\frac{2}{k_2} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{2_{Hrms}}}\right)^{k_2}\right)
-} - 1 = 0
-```
-
-where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k\_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $H\_{2\_{Hrms}}$ is related to $H\_{1\_{Hrms}}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
-
-```math
-\Large H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}
-```
-
-Here, $γ(a,x)$ and $Γ(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
+The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4)
 
 Once $\tilde{H}_1$ (the normalized scale parameter of the first Weibull distribution) and $\tilde{H}_2$ (the normalized scale parameter of the second Weibull distribution) are determined, two types of dimensionless wave heights can be calculated:
 
