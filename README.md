@@ -169,18 +169,6 @@ where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
 \Large \tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
 ```
 
-### Consistency Checks and Physical Constraints
-
-To ensure the model's predictions remain physically realistic and consistent with established theory, the software implements a two-tiered "overshoot prevention" logic. This logic is a direct and necessary consequence of the model's empirical formulation, particularly its parameterization of $H_{rms}$ (Battjes & Groenendijk, 2000; Caires & Van Gent, 2012).
-
-#### The $\tilde{H}_{tr} > 2.75$ Threshold Switch
-
-The first safeguard is a check on the dimensionless transitional height, $\tilde{H}\_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}\_{tr}$. An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
-
-#### Capping of Statistical Parameters
-
-The second safeguard is applied after the CWD solution has been found and converted to dimensional wave heights. Each calculated statistical wave height is compared to its theoretical maximum value under the Rayleigh distribution, and capped if it exceeds this limit. For example, the calculated $H_{1/3}$ is not allowed to exceed the input $H_{m0}$. This capping is necessary to correct for potential inconsistencies arising from the model's specific parameterization of $H_{rms}$, a behavior analyzed by Caires & Van Gent (2012). As previously discussed, the model's $H_{rms}$ can differ from the theoretical Rayleigh $H_{rms}$ for the same sea state. This can lead to situations where the CWD predicts a dimensional wave height that is physically implausible (e.g., an average of the top third of waves being larger than the spectrally defined significant wave height). This final check ensures that the software's output remains conservative and physically consistent (Caires & Van Gent, 2012).
-
 ## Supporting Mathematical Functions
 
 The core calculations rely on precise implementations of fundamental mathematical functions:
@@ -202,6 +190,18 @@ The core calculations rely on precise implementations of fundamental mathematica
 ```math
 Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
 ```
+
+### Consistency Checks and Physical Constraints
+
+To ensure the model's predictions remain physically realistic and consistent with established theory, the software implements a two-tiered "overshoot prevention" logic. This logic is a direct and necessary consequence of the model's empirical formulation, particularly its parameterization of $H_{rms}$ (Battjes & Groenendijk, 2000; Caires & Van Gent, 2012).
+
+#### The $\tilde{H}_{tr} > 2.75$ Threshold Switch
+
+The first safeguard is a check on the dimensionless transitional height, $\tilde{H}\_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}\_{tr}$. An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
+
+#### Capping of Statistical Parameters
+
+The second safeguard is applied after the CWD solution has been found and converted to dimensional wave heights. Each calculated statistical wave height is compared to its theoretical maximum value under the Rayleigh distribution, and capped if it exceeds this limit. For example, the calculated $H_{1/3}$ is not allowed to exceed the input $H_{m0}$. This capping is necessary to correct for potential inconsistencies arising from the model's specific parameterization of $H_{rms}$, a behavior analyzed by Caires & Van Gent (2012). As previously discussed, the model's $H_{rms}$ can differ from the theoretical Rayleigh $H_{rms}$ for the same sea state. This can lead to situations where the CWD predicts a dimensional wave height that is physically implausible (e.g., an average of the top third of waves being larger than the spectrally defined significant wave height). This final check ensures that the software's output remains conservative and physically consistent (Caires & Van Gent, 2012).
 
 ## Model Applicability, Limitations, and Broader Context
 
