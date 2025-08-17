@@ -87,14 +87,6 @@ The variance of the **free-surface elevation, $m_0$**, represents the total ener
 \Large m_0 = \left(\frac{H_{m0}}{4}\right)^2
 ```
 
-```math
-\[
-\Large
-m_0 = \left(\frac{H_{m0}}{4}\right)^2
-\]
-```
-
-
 #### Root-Mean-Square Wave Height ($H_{rms}$)
 
 The **root-mean-square wave height, $H_{rms}$**, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow waters, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
