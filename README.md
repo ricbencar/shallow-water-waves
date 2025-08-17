@@ -146,7 +146,7 @@ The dimensionless wave-height ratios are critical outputs of the model. The calc
 The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy the normalized $H\_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4):
 
 ```math
-f(\tilde{H}_{1_{Hrms}}, \tilde{H}_{2_{Hrms}}, \tilde{H}_{tr}) = \sqrt{
+\Large \sqrt{
 \tilde{H}_{1_{Hrms}}^2 \cdot \gamma\left(\frac{2}{k_1} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{1_{Hrms}}}\right)^{k_1}\right) + 
 \tilde{H}_{2_{Hrms}}^2 \cdot \Gamma\left(\frac{2}{k_2} + 1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_{2_{Hrms}}}\right)^{k_2}\right)
 } - 1 = 0
@@ -155,7 +155,7 @@ f(\tilde{H}_{1_{Hrms}}, \tilde{H}_{2_{Hrms}}, \tilde{H}_{tr}) = \sqrt{
 where $k\_1=2.0$ (representing a Rayleigh-shaped first part of the distribution based on empirical observations for smaller waves) and $k\_2=3.6$ (an empirically determined exponent for the second part, characterizing larger, breaking waves) are global exponents for the Composite Weibull distribution. $H\_{2\_{Hrms}}$ is related to $H\_{1\_{Hrms}}$ and $\tilde{H}\_{tr}$ by the continuity condition between the two Weibull distributions:
 
 ```math
-H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}
+\Large H_{2\_{Hrms}} = \tilde{H}_{tr} \cdot \left(\frac{\tilde{H}_{tr}}{H_{1\_{Hrms}}}\right)^{k_1/k_2}
 ```
 
 Here, $γ(a,x)$ and $Γ(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
@@ -192,7 +192,7 @@ To ensure the model's predictions remain physically realistic and consistent wit
 
 #### The $\tilde{H}_{tr} > 2.75$ Threshold Switch
 
-The first safeguard is a check on the dimensionless transitional height, $\tilde{H}_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}_{tr}$. An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
+The first safeguard is a check on the dimensionless transitional height, $\tilde{H}_tr$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}_{tr}$. An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
 
 #### Capping of Statistical Parameters
 
