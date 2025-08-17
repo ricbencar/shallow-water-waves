@@ -176,19 +176,19 @@ The core calculations rely on precise implementations of fundamental mathematica
 * **Complete Gamma Function (Γ(z)):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function (ln(Γ(a))), `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
 
 ```math
-Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
+\Large Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
 ```
 
 * **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
 ```math
-γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
+\Large γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
 ```
 
 * **Unnormalized Upper Incomplete Gamma Function (Γ(a,x)):** This is calculated as Γ(a) - Γ(a,x).
 
 ```math
-Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
+\Large Γ(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
 ```
 
 ### Consistency Checks and Physical Constraints
