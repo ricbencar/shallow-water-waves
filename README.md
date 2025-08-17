@@ -1,4 +1,4 @@
-# "shallow-water-waves": Wave Height Distributions on Shallow Foreshores
+# shallow-water-waves: Wave Height Distributions on Shallow Foreshores
 
 ## Technical Overview and Scientific Context
 
