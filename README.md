@@ -70,7 +70,7 @@ The parameters of this distribution were determined through extensive analysis o
 -   $k_1 = 2.0$: This exponent confirms that the distribution for the smaller, non-breaking waves ($H \le H_{tr}$) is modeled as a Rayleigh distribution, which is a special case of the Weibull distribution where the shape parameter is 2 (Battjes & Groenendijk, 2000).
 -   $k_2 = 3.6$: This empirically derived shape parameter describes the much steeper decline in probability for the larger, depth-limited waves ($H > H_{tr}$). It reflects the physical reality that wave breaking strongly suppresses the occurrence of very high waves (Battjes & Groenendijk, 2000).
 
-The remaining parameters—the scale parameters $H_1$ and $H_2$, and the transitional wave height $H_{tr}$—are not fixed but are determined by the local physical conditions. A continuity constraint is imposed such that $F_1(\tilde{H}_{tr}) = F_2(\tilde{H}_{tr})$ (Battjes & Groenendijk, 2000).
+The remaining parameters—the scale parameters $H_1$ and $H_2$, and the transitional wave height $H_{tr}$—are not fixed but are determined by the local physical conditions. A continuity constraint is imposed such that $F_1(\tilde{H}\_{tr}) = F_2(\tilde{H}\_{tr})$ (Battjes & Groenendijk, 2000).
 
 Because the shape parameters $k_1$ and $k_2$ are not equal, the derivative of the CDF, which is the probability density function (PDF), is discontinuous at the transition point $H_{tr}$. This is acknowledged as a modeling compromise; it is "physically not realistic but it is nevertheless accepted because all integral statistical properties of the wave heights are well behaved" (Battjes & Groenendijk, 2000).
 
@@ -124,7 +124,7 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 
 ### Numerical Solution of the CWD Governing Equations
 
-The core numerical task of the software is to determine the dimensionless scale parameters, $\tilde{H}_1$ and $\tilde{H}_2$, for a given value of $\tilde{H}_{tr}$. These two unknowns are found by solving a system of two coupled, non-linear equations that enforce the mathematical consistency of the CWD (Battjes & Groenendijk, 2000):
+The core numerical task of the software is to determine the dimensionless scale parameters, $\tilde{H}\_1$ and $\tilde{H}\_2$, for a given value of $\tilde{H}_{tr}$. These two unknowns are found by solving a system of two coupled, non-linear equations that enforce the mathematical consistency of the CWD (Battjes & Groenendijk, 2000):
 
 1.  **Continuity Constraint**: The probability must be continuous at the transitional height $H_{tr}$. In dimensionless form, with $k_1=2$ and $k_2=3.6$, this becomes:
    ```math
@@ -139,7 +139,7 @@ The core numerical task of the software is to determine the dimensionless scale 
 
 The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Once these are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
 
-### Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
+### Dimensionless Wave-Height Ratios ($\tilde{H}\_N$ and $\tilde{H}\_{1/N}$)
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H\_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
@@ -192,7 +192,7 @@ To ensure the model's predictions remain physically realistic and consistent wit
 
 #### The $\tilde{H}_{tr} > 2.75$ Threshold Switch
 
-The first safeguard is a check on the dimensionless transitional height, $\tilde{H}_tr$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}_{tr}$. An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
+The first safeguard is a check on the dimensionless transitional height, $\tilde{H}\_tr$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}\_{tr}$. An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
 
 #### Capping of Statistical Parameters
 
