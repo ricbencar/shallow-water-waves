@@ -40,12 +40,11 @@
 !
 ! b) Capping Statistical Parameters: If the B&G calculation is performed, the
 !    resulting dimensional values for all H1/N are capped at their
-!    theoretical Rayleigh limits (e.g., H1/3 <= Hm0, H1/10 <= 1.27*Hm0, etc.).
+!    theoretical Rayleigh limits (e.g., H1/3 <= 1.001075*Hm0, H1/10 <= 1.272734*Hm0, etc.).
 !
 ! Compilation Instructions (example using gfortran):
 !
-! gfortran -O3 -march=native -std=f2018 -Wall -Wextra -pedantic \
-! -fno-underscoring -o shallow-water-waves_cli shallow-water-waves_cli.f90
+! gfortran -O3 -march=native -std=f2018 -Wall -Wextra -pedantic -Wconversion -static -fno-underscoring -o shallow-water-waves_cli shallow-water-waves_cli.f90
 !
 ! To run with command-line arguments (e.g., Hm0=2.5, d=5, slopeM=100):
 ! ./shallow-water-waves_cli 2.5 5 100
@@ -321,12 +320,14 @@ CONTAINS
         ! OVERSHOOT-PREVENTION: Method 1 - H_tr Threshold Switch
         IF (results%Htr_tilde > 2.75_dp) THEN
             results%distribution_type = "Rayleigh"
-            results%H1_3_dim = results%Hm0
-            results%H1_10_dim = 1.273_dp * results%Hm0
-            results%H1_50_dim = 1.519_dp * results%Hm0
-            results%H1_100_dim = 1.666_dp * results%Hm0
-            results%H1_250_dim = 1.861_dp * results%Hm0
-            results%H1_1000_dim = 2.032_dp * results%Hm0
+            ! Use theoretically exact H(1/N)/Hm0 ratios for a pure Rayleigh distribution.
+            results%H1_3_dim    = 1.001075736951740_dp * results%Hm0
+            results%H1_10_dim   = 1.272734273369137_dp * results%Hm0
+            results%H1_50_dim   = 1.560113379974762_dp * results%Hm0
+            results%H1_100_dim  = 1.668233372358517_dp * results%Hm0
+            results%H1_250_dim  = 1.801017222497626_dp * results%Hm0
+            results%H1_1000_dim = 1.984835590575388_dp * results%Hm0
+
             IF (results%Hrms > 0.0_dp) THEN
                 results%H1_3_Hrms = results%H1_3_dim / results%Hrms
                 results%H1_10_Hrms = results%H1_10_dim / results%Hrms
@@ -361,12 +362,13 @@ CONTAINS
             results%H1_1000_dim = results%H1_1000_Hrms * results%Hrms
 
             ! OVERSHOOT-PREVENTION: Method 2 - Capping
-            results%H1_3_dim = MIN(results%H1_3_dim, results%Hm0)
-            results%H1_10_dim = MIN(results%H1_10_dim, 1.273_dp * results%Hm0)
-            results%H1_50_dim = MIN(results%H1_50_dim, 1.519_dp * results%Hm0)
-            results%H1_100_dim = MIN(results%H1_100_dim, 1.666_dp * results%Hm0)
-            results%H1_250_dim = MIN(results%H1_250_dim, 1.861_dp * results%Hm0)
-            results%H1_1000_dim = MIN(results%H1_1000_dim, 2.032_dp * results%Hm0)
+            ! Use theoretically exact H(1/N)/Hm0 ratios for a pure Rayleigh distribution.
+            results%H1_3_dim    = MIN(results%H1_3_dim,    1.001075736951740_dp * results%Hm0)
+            results%H1_10_dim   = MIN(results%H1_10_dim,   1.272734273369137_dp * results%Hm0)
+            results%H1_50_dim   = MIN(results%H1_50_dim,   1.560113379974762_dp * results%Hm0)
+            results%H1_100_dim  = MIN(results%H1_100_dim,  1.668233372358517_dp * results%Hm0)
+            results%H1_250_dim  = MIN(results%H1_250_dim,  1.801017222497626_dp * results%Hm0)
+            results%H1_1000_dim = MIN(results%H1_1000_dim, 1.984835590575388_dp * results%Hm0)
         END IF
 
         ! Step 5: Calculate diagnostic ratios (always do this last)
@@ -421,19 +423,19 @@ CONTAINS
                 ERROR STOP 4
             END IF
         ELSE
-            WRITE(*,*) "Enter Hm0 (m): "
+            WRITE(*, '(A)', ADVANCE='NO') "Enter Hm0 (m): "
             READ(*,*,IOSTAT=iostat_val) Hm0_out
             IF (iostat_val /= 0) THEN
                 WRITE(*,*) "Input error for Hm0."
                 ERROR STOP 5
             END IF
-            WRITE(*,*) "Enter water depth d (m): "
+            WRITE(*, '(A)', ADVANCE='NO') "Enter water depth d (m): "
             READ(*,*,IOSTAT=iostat_val) d_out
             IF (iostat_val /= 0) THEN
                 WRITE(*,*) "Input error for d."
                 ERROR STOP 6
             END IF
-            WRITE(*,*) "Enter beach slope (m): "
+            WRITE(*, '(A)', ADVANCE='NO') "Enter beach slope (m): "
             READ(*,*,IOSTAT=iostat_val) slopeM_out
             IF (iostat_val /= 0) THEN
                 WRITE(*,*) "Input error for slopeM."
@@ -496,21 +498,22 @@ CONTAINS
         WRITE(temp_line, '(A)') "==========================="
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
+        WRITE(num_str, '(F20.4)') results%m0
+        WRITE(temp_line, '(A, A)') "Free-surface variance m0 (m^2)   : ", TRIM(ADJUSTL(num_str))
+        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
+
         WRITE(num_str, '(F20.4)') results%Hrms
         WRITE(temp_line, '(A, A)') "Mean square wave height Hrms (m) : ", TRIM(ADJUSTL(num_str))
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(num_str, '(F20.4)') results%m0
-        WRITE(temp_line, '(A, A)') "Free-surface variance m0 (m^2)   : ", TRIM(ADJUSTL(num_str))
+        WRITE(num_str, '(F20.4)') results%Htr_dim
+        WRITE(temp_line, '(A, A)') "Transitional wave height Htr (m) : ", TRIM(ADJUSTL(num_str))
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
         WRITE(num_str, '(F20.4)') results%Htr_tilde
         WRITE(temp_line, '(A, A)') "Dimensionless H~_tr (Htr/Hrms)   : ", TRIM(ADJUSTL(num_str))
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
 
-        WRITE(num_str, '(F20.4)') results%Htr_dim
-        WRITE(temp_line, '(A, A)') "Transitional wave height Htr (m) : ", TRIM(ADJUSTL(num_str))
-        report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
         report_str = TRIM(report_str) // NEW_LINE('A') ! Blank line
 
         ! Section: DIMENSIONLESS WAVE HEIGHTS (H/Hrms)
@@ -569,7 +572,7 @@ CONTAINS
         WRITE(num_str, '(F20.4)') results%H2_dim
         WRITE(temp_line, '(A, A)') "H2 (m)        : ", TRIM(ADJUSTL(num_str))
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')
-        
+
         WRITE(num_str, '(F20.4)') results%H1_3_dim
         WRITE(temp_line, '(A, A)') "H1/3 (m)      : ", TRIM(ADJUSTL(num_str))
         report_str = TRIM(report_str) // TRIM(temp_line) // NEW_LINE('A')

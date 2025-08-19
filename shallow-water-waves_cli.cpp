@@ -355,13 +355,13 @@ bool perform_wave_analysis(WaveAnalysisResults& results) {
         if (results.Htr_tilde > 2.75) {
             results.distribution_type = "Rayleigh";
             
-            // Use standard Rayleigh distribution values with higher precision
-            results.H1_3_dim = results.Hm0;
-            results.H1_10_dim = 1.273 * results.Hm0;
-            results.H1_50_dim = 1.519 * results.Hm0;
-            results.H1_100_dim = 1.666 * results.Hm0;
-            results.H1_250_dim = 1.861 * results.Hm0;
-            results.H1_1000_dim = 2.032 * results.Hm0;
+            // Use theoretically exact H(1/N)/Hm0 ratios for a pure Rayleigh distribution.
+            results.H1_3_dim    = 1.001075736951740 * results.Hm0;
+            results.H1_10_dim   = 1.272734273369137 * results.Hm0;
+            results.H1_50_dim   = 1.560113379974762 * results.Hm0;
+            results.H1_100_dim  = 1.668233372358517 * results.Hm0;
+            results.H1_250_dim  = 1.801017222497626 * results.Hm0;
+            results.H1_1000_dim = 1.984835590575388 * results.Hm0;
             
             // Back-calculate dimensionless ratios for the report
             if (results.Hrms > 0.0) {
@@ -397,14 +397,15 @@ bool perform_wave_analysis(WaveAnalysisResults& results) {
             results.H1_100_dim = results.H1_100_Hrms * results.Hrms;
             results.H1_250_dim = results.H1_250_Hrms * results.Hrms;
             results.H1_1000_dim = results.H1_1000_Hrms * results.Hrms;
-
-            // OVERSHOOT-PREVENTION: Method 2 & 3 - Capping all H1/N statistical parameters with higher precision
-            results.H1_3_dim = std::min(results.H1_3_dim, results.Hm0);
-            results.H1_10_dim = std::min(results.H1_10_dim, 1.273 * results.Hm0);
-            results.H1_50_dim = std::min(results.H1_50_dim, 1.519 * results.Hm0);
-            results.H1_100_dim = std::min(results.H1_100_dim, 1.666 * results.Hm0);
-            results.H1_250_dim = std::min(results.H1_250_dim, 1.861 * results.Hm0);
-            results.H1_1000_dim = std::min(results.H1_1000_dim, 2.032 * results.Hm0);
+            
+            // OVERSHOOT-PREVENTION: Method 2 - Capping
+            // Use theoretically exact H(1/N)/Hm0 ratios for a pure Rayleigh distribution.
+            results.H1_3_dim    = std::min(results.H1_3_dim,    1.001075736951740 * results.Hm0);
+            results.H1_10_dim   = std::min(results.H1_10_dim,   1.272734273369137 * results.Hm0);
+            results.H1_50_dim   = std::min(results.H1_50_dim,   1.560113379974762 * results.Hm0);
+            results.H1_100_dim  = std::min(results.H1_100_dim,  1.668233372358517 * results.Hm0);
+            results.H1_250_dim  = std::min(results.H1_250_dim,  1.801017222497626 * results.Hm0);
+            results.H1_1000_dim = std::min(results.H1_1000_dim, 1.984835590575388 * results.Hm0);
         }
 
         // Step 5: Calculate diagnostic ratios (always do this last)
@@ -462,10 +463,10 @@ std::wstring format_report(const WaveAnalysisResults& r) {
        << L"===========================\n"
        << L"   CALCULATED PARAMETERS\n"
        << L"===========================\n"
-       << L"Mean square wave height Hrms (m) : " << r.Hrms << L"\n"
        << L"Free-surface variance m0 (m^2)   : " << r.m0 << L"\n"
-       << L"Dimensionless H~_tr (Htr/Hrms)   : " << r.Htr_tilde << L"\n"
-       << L"Transitional wave height Htr (m) : " << r.Htr_dim << L"\n\n"
+       << L"Mean square wave height Hrms (m) : " << r.Hrms << L"\n"
+       << L"Transitional wave height Htr (m) : " << r.Htr_dim << L"\n"
+       << L"Dimensionless H~_tr (Htr/Hrms)   : " << r.Htr_tilde << L"\n\n"
 
        << L"=========================================\n"
        << L"   DIMENSIONLESS WAVE HEIGHTS (H/Hrms)\n"
