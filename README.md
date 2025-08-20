@@ -190,7 +190,7 @@ The core of this calculation is finding the values of $\tilde{H}\_{1}$ and $\til
 
 * $\tilde{H}\_{1/N}$ **(Mean of the Highest** $1/N$**-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
 
-**Case 1:** $\tilde{H}_{N} < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
+**Case 1:** $\tilde{H}\_N < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
 
 ```math
 \Large \tilde{H}_{1/N} = N \cdot H_1 \cdot \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] +
@@ -200,7 +200,7 @@ The core of this calculation is finding the values of $\tilde{H}\_{1}$ and $\til
 ```
 where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
 
-**Case 2:** $\tilde{H}_{N} \ge \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
+**Case 2:** $\tilde{H}\_N \ge \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
 
 ```math
 \Large \tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
@@ -236,7 +236,7 @@ To ensure the model's predictions remain physically realistic and consistent wit
 
 The first safeguard is a check on the dimensionless transitional height, $\tilde{H}\_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}\_{tr}$.
 
-An analysis of this table reveals that **for all values of $\tilde{H}_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
+An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
 
 #### Capping of Statistical Parameters
 
