@@ -6,7 +6,9 @@
 
 The software tool **"shallow-water-waves" (Github: https://github.com/ricbencar/shallow-water-waves)** provides a computational implementation of the wave height distribution model developed by Jurjen A. Battjes and Heiko W. Groenendijk (Battjes & Groenendijk, 2000).
 
-It also implements a two-tiered "overshoot prevention" logic to ensure results are physically realistic and consistent with established theory (Caires & Van Gent, 2012). The primary function of this tool is to compute local wave height statistics on shallow foreshores—the gently sloping nearshore regions where wave dynamics are strongly influenced by the seabed.
+It also implements a two-tiered "overshoot prevention" logic to ensure results are physically realistic and consistent with established theory (Caires & Van Gent, 2012).
+
+The primary function of this tool is to compute local wave height statistics on shallow foreshores—the gently sloping nearshore regions where wave dynamics are strongly influenced by the seabed.
 
 The model's output provides quantitative data for a wide range of coastal engineering applications, including the design and risk assessment of dikes, breakwaters, and other coastal defense structures where parameters such as wave run-up and overtopping rates are critical design considerations.
 
@@ -87,14 +89,14 @@ The CWD is grounded in physical reality through empirically derived formulas for
 
 The variance of the **free-surface elevation, $m_0$**, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H_{m0}$ using the standard definition (Battjes & Groenendijk, 2000), which is valid both deep and shallow waters:
 ```math
-{\Large m_0 = \left(\frac{H_{m0}}{4}\right)^2}
+{\Large $m_0 = \left(\frac{H_{m0}}{4}\right)^2$}
 ```
 
 #### Root-Mean-Square Wave Height ($H_{rms}$)
 
 The **root-mean-square wave height, $H_{rms}$**, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow waters, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
 ```math
-{\Large \frac{H_{rms}}{\sqrt{m_0}} = 2.69 + 3.24 \frac{\sqrt{m_0}}{d}}0
+{\Large \frac{H_{rms}}{\sqrt{m_0}} = 2.69 + 3.24 \frac{\sqrt{m_0}}{d}}
 ```
 
 The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8 \cdot m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
@@ -118,9 +120,9 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 
 1.  **Input Acquisition**: The program obtains the three required input parameters: spectral significant wave height ($H_{m0}$), local water depth ($d$), and beach slope denominator ($m$ for a 1:m slope), either from command-line arguments or from interactive user prompts.
 2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
-3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}\_{tr}$ = $H_{tr}$ / $H_{rms}$ is calculated. This single value determines the shape of the entire normalized wave height distribution.
+3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}\_{tr} = H_{tr}$ / $H_{rms}$ is calculated. This single value determines the shape of the entire normalized wave height distribution.
 4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
-5.  **CWD Solution**: If $\tilde{H}\_{tr} ≤ 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters $H_1$ and $H_2$. From these, it computes the required statistical wave height ratios, e.g., $H_{1/3}$, $H_{1/10}$, $H_{1/50}$, $H_{1/100}$, etc.
+5.  **CWD Solution**: If $\tilde{H}\_{tr} ≤ 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ${H}_1$ and ${H}_2$. From these, it computes the required statistical wave height ratios, e.g., $H_{1/3}$, $H_{1/10}$, $H_{1/50}$, $H_{1/100}$, etc.
 6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in meters.
 7.  **Physical Consistency Capping**: The final dimensional wave heights are capped at their theoretical Rayleigh limits (e.g., $H_{1/3}$ is capped at $H_{m0}$). This step ensures the output remains physically plausible and conservative (Caires & Van Gent, 2012).
 8.  **Report Generation**: All inputs, intermediate values, dimensionless ratios, and final dimensional results are formatted into a comprehensive report and written to the output file `report.txt`.
@@ -129,7 +131,7 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 
 The core numerical task of the software is to determine the dimensionless scale parameters, $\tilde{H}\_{1}$ and $\tilde{H}\_{2}$, for a given value of $\tilde{H}\_{tr}$. These two unknowns are found by solving a system of two coupled, non-linear equations that enforce the mathematical consistency of the CWD (Battjes & Groenendijk, 2000):
 
-1.  **Continuity Constraint**: The probability must be continuous at the transitional height $H_{tr}$. In dimensionless form, with $k_1=2$ and $k_2=3.6$, this becomes:
+1.  **Continuity Constraint**: The probability must be continuous at the transitional height $H_{tr}$. In dimensionless form this becomes (with $k_1=2$ and $k_2=3.6$):
    ```math
    \Large \left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
    ```
@@ -140,7 +142,7 @@ The core numerical task of the software is to determine the dimensionless scale 
    
    where $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
 
-The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Given an initial guess of these two variables $\tilde{H}_1^{(0)}$ and $\tilde{H}_2^{(0)}$, the next iteration is found by solving the linear system:
+The software employs a numerical root-finding algorithm, the Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Given an initial guess of these two variables $\tilde{H}_1^{(0)$ and $\tilde{H}_2^{(0)$, the next iteration is found by solving the linear system:
 
 ```math
 \Large J(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}) 
@@ -174,13 +176,13 @@ This process is repeated until the values of F1 and F2 are close to zero.
 
 Once $\tilde{H}_1$ and $\tilde{H}_2$ are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
 
-### Dimensionless Wave-Height Ratios ($\tilde{H}\_N$ and $\tilde{H}\_{1/N}$)
+### Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}\_{1}$ and $\tilde{H}\_{2}$ that satisfy simultaneously the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). Once $\tilde{H}_1$ and $\tilde{H}_2$ (the normalized scale parameters of the first and second Weibull distributions, respectively) are determined, two types of dimensionless wave heights can be calculated:
+The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy simultaneously the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). Once $\tilde{H}_1$ and $\tilde{H}_2$ (the normalized scale parameters of the first and second Weibull distributions, respectively) are determined, two types of dimensionless wave heights can be calculated:
 
-* $\tilde{H}\_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}\_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}\_{tr}$, then $\tilde{H}\_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
+* $\tilde{H}_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
 
     * If $\tilde{H}\_{N,candidate} < \tilde{H}\_{tr}$: $\tilde{H}\_N = \tilde{H}1 \cdot (\ln(N))^{1/k1}$
 
@@ -188,7 +190,7 @@ The core of this calculation is finding the values of $\tilde{H}\_{1}$ and $\til
 
 * $\tilde{H}\_{1/N}$ **(Mean of the Highest** $1/N$**-part of Wave Heights):** This represents the average height of the highest $N$-th fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ (from the previous step) falls within the first or second part of the Composite Weibull distribution.
 
-**Case 1:** $\tilde{H}\_N < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
+**Case 1:** $\tilde{H}_{N} < \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
 
 ```math
 \Large \tilde{H}_{1/N} = N \cdot H_1 \cdot \left[ \Gamma\left(\frac{1}{k_1}+1, \ln(N)\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{H_{tr}}{H_1}\right)^{k_1}\right) \right] +
@@ -198,7 +200,7 @@ The core of this calculation is finding the values of $\tilde{H}\_{1}$ and $\til
 ```
 where $Γ(a,x)$ is the unnormalized upper incomplete gamma function.
 
-**Case 2:** $\tilde{H}\_N \ge \tilde{H}\_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
+**Case 2:** $\tilde{H}_{N} \ge \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
 
 ```math
 \Large \tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
@@ -214,7 +216,7 @@ The core calculations rely on precise implementations of fundamental mathematica
 \Large Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
 ```
 
-* **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
+* **Unnormalized Lower Incomplete Gamma Function ($\gamma(a,x)$):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
 ```math
 \Large γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
@@ -234,7 +236,7 @@ To ensure the model's predictions remain physically realistic and consistent wit
 
 The first safeguard is a check on the dimensionless transitional height, $\tilde{H}\_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}\_{tr}$.
 
-An analysis of this table reveals that **for all values of $\tilde{H}\_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}\_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
+An analysis of this table reveals that **for all values of $\tilde{H}_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
 
 #### Capping of Statistical Parameters
 
@@ -252,7 +254,9 @@ The Battjes and Groenendijk model was developed, calibrated, and validated using
 
 While effective within its intended domain, subsequent research has identified important limitations and conditions under which the model's predictions should be used with caution. The most significant limitation identified in the literature is the model's performance on flat or very gently sloping seabeds. **The research of Caires & Van Gent (2012) demonstrated that when the Battjes and Groenendijk model is applied to flat-bottom conditions—an environment outside its original calibration range—it systematically underestimates high wave heights by as much as 15%**.
 
-This underperformance is a direct consequence of the model's physical assumptions. The parameterization of the transitional wave height, $H_{tr}$, is fundamentally tied to the beach slope, $\tan\alpha$. The slope dictates the rate of depth change, which drives the continuous, gradual energy dissipation process assumed by the model. On a flat bottom, where $\tan\alpha$ is zero, the model predicts a low $H_{tr}$ and consequently a heavily truncated wave height distribution, implying intense wave breaking. However, the physical reality is different; on a flat bottom, the ratio of significant wave height to depth can be higher, and the breaking process is more intermittent rather than continuous (Caires & Van Gent, 2012).
+This underperformance is a direct consequence of the model's physical assumptions. The parameterization of the transitional wave height, $H_{tr}$, is fundamentally tied to the beach slope, $\tan\alpha$. The slope dictates the rate of depth change, which drives the continuous, gradual energy dissipation process assumed by the model.
+
+On a flat bottom, where $\tan\alpha$ is zero, the model predicts a low $H_{tr}$ and consequently a heavily truncated wave height distribution, implying intense wave breaking. However, the physical reality is different; on a flat bottom, the ratio of significant wave height to depth can be higher, and the breaking process is more intermittent rather than continuous (Caires & Van Gent, 2012).
 
 The model's core assumption about the dissipation mechanism does not hold, leading to a predictable and non-conservative underestimation of extreme wave heights. This has critical implications for engineering design on shallow continental shelves or over large shoals, where the risk of extreme waves may be significantly higher than the model predicts (Caires & Van Gent, 2012).
 
@@ -390,7 +394,7 @@ The CLI application (`shallow-water-waves_cli`) can be executed in two modes:
 
 -   **Argument-based execution**: Provide the three input parameters as command-line arguments in the order $H_{m0}$, $d$, $m$.
     ```
-    ./shallow-water-waves_cli 2.0 5.0 50
+    ./shallow-water-waves_cli 2.0 5.0 100
     ```
 -   **Interactive execution**: Run the executable without arguments. The program will then prompt the user to enter each value interactively.
     ```
@@ -405,9 +409,9 @@ The GUI application (`shallow-water-waves_gui`) provides a user-friendly window 
 
 Both the CLI and GUI applications generate a detailed text file named `report.txt` in the execution directory. This file contains a comprehensive summary of the calculation.
 
-The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}\_{tr}$, with $\tilde{H}\_{tr}$ being the most critical value that determines the shape of the wave height distribution.
+The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}_{tr}$, with $\tilde{H}_{tr}$ being the most critical value that determines the shape of the wave height distribution.
 
-The **Dimensionless Ratios** section includes ratios like $\tilde{H}\_{1/3}$, $\tilde{H}\_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H_{1/3}$, $H_{1/10}$, etc., measured in meters for engineering applications.
+The **Dimensionless Ratios** section includes ratios like $\tilde{H}_{1/3}$, $\tilde{H}_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H_{1/3}$, $H_{1/10}$, etc., measured in meters for engineering applications.
 
 The **Diagnostic Ratios** section features ratios which are used to compare the model output against theoretical Rayleigh values.
 
