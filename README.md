@@ -122,7 +122,7 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
 3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}\_{tr} = H_{tr}$ / $H_{rms}$ is calculated. This single value determines the shape of the entire normalized wave height distribution.
 4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
-5.  **CWD Solution**: If $\tilde{H}\_{tr} ≤ 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ${H}_{1}$ and ${H}_{2}$. From these, it computes the required statistical wave height ratios, e.g., ${H}_{1/3}$, ${H}_{1/10}$, ${H}_{1/50}$, ${H}_{1/100}$, etc.
+5.  **CWD Solution**: If $\tilde{H}\_{tr} ≤ 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters H1 and H2. From these, it computes the required statistical wave height ratios, e.g., H(1/3), H(1/10), H(1/50), H(1/100), etc.
 6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in meters.
 7.  **Physical Consistency Capping**: The final dimensional wave heights are capped at their theoretical Rayleigh limits (e.g., $H_{1/3}$ is capped at $H_{m0}$). This step ensures the output remains physically plausible and conservative (Caires & Van Gent, 2012).
 8.  **Report Generation**: All inputs, intermediate values, dimensionless ratios, and final dimensional results are formatted into a comprehensive report and written to the output file `report.txt`.
@@ -142,7 +142,7 @@ The core numerical task of the software is to determine the dimensionless scale 
    
    where $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
 
-The software employs a numerical root-finding algorithm, the Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Given an initial guess of these two variables $\tilde{H}_1^{(0)$ and $\tilde{H}_2^{(0)$, the next iteration is found by solving the linear system:
+The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Given an initial guess of these two variables $\tilde{H}_1^{(0)}$ and $\tilde{H}_2^{(0)}$, the next iteration is found by solving the linear system:
 
 ```math
 \Large J(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}) 
@@ -176,13 +176,13 @@ This process is repeated until the values of F1 and F2 are close to zero.
 
 Once $\tilde{H}_1$ and $\tilde{H}_2$ are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
 
-### Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
+### Dimensionless Wave-Height Ratios ($\tilde{H}\_N$ and $\tilde{H}\_{1/N}$)
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
-The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy simultaneously the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). Once $\tilde{H}_1$ and $\tilde{H}_2$ (the normalized scale parameters of the first and second Weibull distributions, respectively) are determined, two types of dimensionless wave heights can be calculated:
+The core of this calculation is finding the values of $\tilde{H}\_{1}$ and $\tilde{H}\_{2}$ that satisfy simultaneously the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). Once $\tilde{H}_1$ and $\tilde{H}_2$ (the normalized scale parameters of the first and second Weibull distributions, respectively) are determined, two types of dimensionless wave heights can be calculated:
 
-* $\tilde{H}_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
+* $\tilde{H}\_N$ **(Wave Height with** $1/N$ **Exceedance Probability):** This is the wave height ($H$) such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate $\tilde{H}\_N$ from the first part of the distribution. If this candidate is less than $\tilde{H}\_{tr}$, then $\tilde{H}\_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
 
     * If $\tilde{H}\_{N,candidate} < \tilde{H}\_{tr}$: $\tilde{H}\_N = \tilde{H}1 \cdot (\ln(N))^{1/k1}$
 
@@ -216,7 +216,7 @@ The core calculations rely on precise implementations of fundamental mathematica
 \Large Γ(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
 ```
 
-* **Unnormalized Lower Incomplete Gamma Function ($\gamma(a,x)$):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
+* **Unnormalized Lower Incomplete Gamma Function (γ(a,x)):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
 
 ```math
 \Large γ(a, x) = \int_0^x t^{a-1} e^{-t} dt
@@ -409,9 +409,9 @@ The GUI application (`shallow-water-waves_gui`) provides a user-friendly window 
 
 Both the CLI and GUI applications generate a detailed text file named `report.txt` in the execution directory. This file contains a comprehensive summary of the calculation.
 
-The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}_{tr}$, with $\tilde{H}_{tr}$ being the most critical value that determines the shape of the wave height distribution.
+The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}\_{tr}$, with $\tilde{H}\_{tr}$ being the most critical value that determines the shape of the wave height distribution.
 
-The **Dimensionless Ratios** section includes ratios like $\tilde{H}_{1/3}$, $\tilde{H}_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H_{1/3}$, $H_{1/10}$, etc., measured in meters for engineering applications.
+The **Dimensionless Ratios** section includes ratios like $\tilde{H}\_{1/3}$, $\tilde{H}\_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H_{1/3}$, $H_{1/10}$, etc., measured in meters for engineering applications.
 
 The **Diagnostic Ratios** section features ratios which are used to compare the model output against theoretical Rayleigh values.
 
