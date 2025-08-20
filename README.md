@@ -372,7 +372,7 @@ pip install numpy scipy pandas notebook matplotlib
 
 This program computes and tabulates normalized wave height parameters over a range of conditions ($H\_{tr}/H\_{rms}$), generating the file `carvalho2025_table.txt`. It does not require user input.
 
-#### C++ Version (`carvalho2025\_table.cpp`)
+#### C++ Version (`carvalho2025_table.cpp`)
 
 **Compilation Instructions (g++):**
 ```bash
@@ -385,7 +385,7 @@ g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -static \
 ./carvalho2025_table
 ```
 
-#### Fortran Version (`carvalho2025\_table.f90`)
+#### Fortran Version (`carvalho2025_table.f90`)
 
 **Compilation Instructions (gfortran):**
 ```bash
@@ -410,7 +410,7 @@ The software can be run from the command line or through a graphical user interf
 
 #### Command-Line Interface (CLI)
 
-The CLI application (`shallow-water-waves\_cli`) can be executed in two modes:
+The CLI application (`shallow-water-waves_cli`) can be executed in two modes:
 
 -   **Argument-based execution**: Provide the three input parameters as command-line arguments in the order $H\_{m0}$, $d$, $m$.
     ```
@@ -423,7 +423,7 @@ The CLI application (`shallow-water-waves\_cli`) can be executed in two modes:
 
 #### Graphical User Interface (GUI)
 
-The GUI application (`shallow-water-waves\_gui`) provides a user-friendly window with input fields for the three parameters. After entering the values, clicking the "Calculate" button will perform the computation and display the results directly in the interface.
+The GUI application (`shallow-water-waves_gui`) provides a user-friendly window with input fields for the three parameters. After entering the values, clicking the "Calculate" button will perform the computation and display the results directly in the interface.
 
 ### Analysis of the Generated Report File
 
