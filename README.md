@@ -338,21 +338,41 @@ The GUI application provides a native Windows interface for the same calculation
 
 **Compilation Instructions (g++ for Windows):**
 ```bash
-g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion \
--Wsign-conversion -municode shallow-water-waves_gui.cpp -o \
+g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic \
+-Wconversion -Wsign-conversion -municode shallow-water-waves_gui.cpp -o \
 shallow-water-waves_gui -mwindows -static -static-libgcc -static-libstdc++
 ```
 
 **Usage:**
-Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the $H_{m0}$, $d$, and Beach slope $m$ values in the text fields and click "Compute" to see the results. The report is also saved to `report.txt`.
+Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the $H\_{m0}$, $d$, and Beach slope $m$ values in the text fields and click "Compute" to see the results. The report is also saved to `report.txt`.
+
+***
+
+### Jupyter Notebook Interface (shallow-water-waves.ipynb)
+
+This notebook provides a detailed implementation and explanation of the wave height distribution model. It is structured to be both an interactive computational tool and an educational document.
+
+#### Prerequisites
+
+Before running the notebook, ensure you have the required Python libraries installed by running the following command in your terminal or command prompt:
+
+```bash
+pip install numpy scipy pandas notebook matplotlib
+```
+
+#### Usage
+
+1.  **Follow the Notebook Sequentially**: Each section builds upon the last, explaining the theory and then providing the code that implements it.
+2.  **Run the Code Cells**: Execute the code cells in order as you progress through the notebook.
+3.  **Modify Inputs**: In the final section, change the input parameters to match your scenario and run the last cell to see the results.
 
 ***
 
 ### Carvalho (2025) Table Generator
 
-This program computes and tabulates normalized wave height parameters over a range of conditions ($H_{tr}/H_{rms}$), generating the file `carvalho2025_table.txt`. It does not require user input.
+This program computes and tabulates normalized wave height parameters over a range of conditions ($H\_{tr}/H\_{rms}$), generating the file `carvalho2025_table.txt`. It does not require user input.
 
-#### C++ Version (`carvalho2025_table.cpp`)
+#### C++ Version (`carvalho2025\_table.cpp`)
 
 **Compilation Instructions (g++):**
 ```bash
@@ -365,7 +385,7 @@ g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -static \
 ./carvalho2025_table
 ```
 
-#### Fortran Version (`carvalho2025_table.f90`)
+#### Fortran Version (`carvalho2025\_table.f90`)
 
 **Compilation Instructions (gfortran):**
 ```bash
@@ -382,7 +402,7 @@ gfortran -O3 -march=native -std=f2008 -Wall -Wextra -pedantic \
 
 ### Required Input Parameters
 
-The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as $H_{m0}$, which represents the spectral significant wave height and is defined as $4\sqrt{m_0}$). Its units are meters (m). The second parameter is the Water Depth, symbolized by (d), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
+The software requires three input parameters to define the local environmental conditions. The first parameter is the Significant Wave Height, denoted as $H\_{m0}$, which represents the spectral significant wave height and is defined as $4\sqrt{m_0}$). Its units are meters (m). The second parameter is the Water Depth, symbolized by (d), indicating the local still water depth at the point of interest, also measured in meters (m). The third parameter is the Beach Slope, represented as \(m\), which is the denominator of the beach slope expressed as a ratio 1:(m), and is dimensionless.
 
 ### Execution via Command-Line and Graphical Interfaces
 
@@ -390,9 +410,9 @@ The software can be run from the command line or through a graphical user interf
 
 #### Command-Line Interface (CLI)
 
-The CLI application (`shallow-water-waves_cli`) can be executed in two modes:
+The CLI application (`shallow-water-waves\_cli`) can be executed in two modes:
 
--   **Argument-based execution**: Provide the three input parameters as command-line arguments in the order $H_{m0}$, $d$, $m$.
+-   **Argument-based execution**: Provide the three input parameters as command-line arguments in the order $H\_{m0}$, $d$, $m$.
     ```
     ./shallow-water-waves_cli 2.0 5.0 100
     ```
@@ -403,15 +423,15 @@ The CLI application (`shallow-water-waves_cli`) can be executed in two modes:
 
 #### Graphical User Interface (GUI)
 
-The GUI application (`shallow-water-waves_gui`) provides a user-friendly window with input fields for the three parameters. After entering the values, clicking the "Calculate" button will perform the computation and display the results directly in the interface.
+The GUI application (`shallow-water-waves\_gui`) provides a user-friendly window with input fields for the three parameters. After entering the values, clicking the "Calculate" button will perform the computation and display the results directly in the interface.
 
 ### Analysis of the Generated Report File
 
 Both the CLI and GUI applications generate a detailed text file named `report.txt` in the execution directory. This file contains a comprehensive summary of the calculation.
 
-The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}\_{tr}$, with $\tilde{H}\_{tr}$ being the most critical value that determines the shape of the wave height distribution.
+The report is organized into several sections. The **Inputs** section lists the parameters $H\_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H\_{m0}$, $H\_{rms}$, $H\_{tr}$, and $\tilde{H}\_{tr}$, with $\tilde{H}\_{tr}$ being the most critical value that determines the shape of the wave height distribution.
 
-The **Dimensionless Ratios** section includes ratios like $\tilde{H}\_{1/3}$, $\tilde{H}\_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H_{1/3}$, $H_{1/10}$, etc., measured in meters for engineering applications.
+The **Dimensionless Ratios** section includes ratios like $\tilde{H}\_{1/3}$, $\tilde{H}\_{1/10}$, etc., representing the normalized shape of the wave height distribution. The **Final Wave Heights** section provides primary dimensional outputs such as $H\_{1/3}$, $H\_{1/10}$, etc., measured in meters for engineering applications.
 
 The **Diagnostic Ratios** section features ratios which are used to compare the model output against theoretical Rayleigh values.
 
