@@ -89,7 +89,7 @@ The CWD is grounded in physical reality through empirically derived formulas for
 
 The variance of the **free-surface elevation, $m_0$**, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H_{m0}$ using the standard definition (Battjes & Groenendijk, 2000), which is valid both deep and shallow waters:
 ```math
-{\Large $m_0 = \left(\frac{H_{m0}}{4}\right)^2$}
+{\Large m_0 = \left(\frac{H_{m0}}{4}\right)^2}
 ```
 
 #### Root-Mean-Square Wave Height ($H_{rms}$)
@@ -122,7 +122,7 @@ The software follows a structured, multi-step algorithm to compute the wave heig
 2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
 3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}\_{tr} = H_{tr}$ / $H_{rms}$ is calculated. This single value determines the shape of the entire normalized wave height distribution.
 4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
-5.  **CWD Solution**: If $\tilde{H}\_{tr} ≤ 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ${H}_1$ and ${H}_2$. From these, it computes the required statistical wave height ratios, e.g., $H_{1/3}$, $H_{1/10}$, $H_{1/50}$, $H_{1/100}$, etc.
+5.  **CWD Solution**: If $\tilde{H}\_{tr} ≤ 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters ${H}_{1}$ and ${H}_{2}$. From these, it computes the required statistical wave height ratios, e.g., ${H}_{1/3}$, ${H}_{1/10}$, ${H}_{1/50}$, ${H}_{1/100}$, etc.
 6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in meters.
 7.  **Physical Consistency Capping**: The final dimensional wave heights are capped at their theoretical Rayleigh limits (e.g., $H_{1/3}$ is capped at $H_{m0}$). This step ensures the output remains physically plausible and conservative (Caires & Van Gent, 2012).
 8.  **Report Generation**: All inputs, intermediate values, dimensionless ratios, and final dimensional results are formatted into a comprehensive report and written to the output file `report.txt`.
