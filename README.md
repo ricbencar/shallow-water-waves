@@ -85,7 +85,7 @@ This approach prioritizes the accurate prediction of integrated quantities used 
 
 The CWD is grounded in physical reality through empirically derived formulas for its key parameters. These relationships, developed from wave flume experiments, connect the statistical model to measurable properties of the nearshore environment (Battjes & Groenendijk, 2000). Those properties are the following:
 
-#### Free-surface Variance ($m_0$)
+#### Free-surface Variance
 
 The variance of the **free-surface elevation, $m_0$**, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H_{m0}$ using the standard definition (Battjes & Groenendijk, 2000), which is valid both deep and shallow waters:
 
@@ -93,7 +93,7 @@ $$
 m_0 = \left(\frac{H_{m0}}{4}\right)^2
 $$
 
-#### Root-Mean-Square Wave Height ($H_{rms}$)
+#### Root-Mean-Square Wave Height
 
 The **root-mean-square wave height, $H_{rms}$**, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow waters, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
 
@@ -105,7 +105,7 @@ The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intens
 
 While this approach improves realism for broad-banded seas, it also causes the model's dimensional predictions to diverge from pure Rayleigh theory. This divergence was explicitly analyzed by Caires & Van Gent (2012), who demonstrated how **this parameterization causes the model to make predictions that do not smoothly converge to the Rayleigh values in deep water and can lead to physically inconsistent results, a behavior that necessitates a "capping" logic** described in the computational methodology section.
 
-#### Transitional Wave Height ($H_{tr}$)
+#### Transitional Wave Height
 
 The **transitional wave height, $H_{tr}$**, represents the physical threshold that separates the two wave populations. It is conceptualized as a limiting height for non-breaking waves, influenced by both the local water depth and the steepness of the beach slope. The primary formula for $H_{tr}$ is (Battjes & Groenendijk, 2000):
 
@@ -143,23 +143,23 @@ $$
 2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
 
 $$
-\sqrt{\tilde{H}_1^2 \, \gamma\!\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \, \Gamma\!\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)} = 1
+\tilde{H}_1^2 \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right)
++ \tilde{H}_2^2 \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
+= 1
 $$
 
 where $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
 
-The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Given an initial guess of these two variables $\tilde{H}_1^{(0)}$ and $\tilde{H}_2^{(0)}$, the next iteration is found by solving the linear system:
-
 $$
-J\bigl(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}\bigr)
+J(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)})
 \begin{pmatrix}
 \Delta \tilde{H}_1 \\
 \Delta \tilde{H}_2
 \end{pmatrix}
 = -
 \begin{pmatrix}
-F_1\bigl(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}\bigr) \\
-F_2\bigl(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}\bigr)
+F_1(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}) \\
+F_2(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)})
 \end{pmatrix}
 $$
 
@@ -172,43 +172,49 @@ J = \begin{pmatrix}
 \end{pmatrix}
 $$
 
-The solution is updated as:
-
 $$
-\tilde{H}_1^{(i+1)} = \tilde{H}_1^{(i)} + \Delta \tilde{H}_1, \qquad
+\tilde{H}_1^{(i+1)} = \tilde{H}_1^{(i)} + \Delta \tilde{H}_1, \;
+\tilde{H}_2^{(i+1)} = \tilde{H}_2^{(i)} + \Delta \tilde{H}_2
+$$
 \tilde{H}_2^{(i+1)} = \tilde{H}_2^{(i)} + \Delta \tilde{H}_2
 $$
 
-This process is repeated until the values of F1 and F2 are close to zero.
+This process is repeated until the values of $F_1$ and $F_2$ are close to zero.
 
 Once $\tilde{H}_1$ and $\tilde{H}_2$ are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
 
-### Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
+### Dimensionless Wave-Height Ratios
 
 The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
 
 The core of this calculation is finding the values of $\tilde{H}_1$ and $\tilde{H}_2$ that satisfy simultaneously the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). Once $\tilde{H}_1$ and $\tilde{H}_2$ (the normalized scale parameters of the first and second Weibull distributions, respectively) are determined, two types of dimensionless wave heights can be calculated:
 
-* **$\tilde{H}_N$ (Wave Height with $1/N$ Exceedance Probability):** This is the normalized wave height such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate value from the first part of the distribution. If this candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part; otherwise, it is taken from the second part.
+* **$\tilde{H}_N$ (wave height with $1/N$ exceedance probability):** This is the normalized wave height such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate value from the first part of the distribution. If this candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part; otherwise, it is taken from the second part.
 
-    * If $\tilde{H}_{N,\mathrm{candidate}} < \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_1 \cdot (\ln N)^{1/k_1}$
+    * If $\tilde{H}_{N,candidate} < \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_1 \cdot (\ln(N))^{1/k_1}$
 
-    * If $\tilde{H}_{N,\mathrm{candidate}} \ge \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_2 \cdot (\ln N)^{1/k_2}$
+    * If $\tilde{H}_{N,candidate} \ge \tilde{H}_{tr}$: $\tilde{H}_N = \tilde{H}_2 \cdot (\ln(N))^{1/k_2}$
 
-* **$\tilde{H}_{1/N}$ (Mean of the Highest $1/N$ Fraction of Wave Heights):** This represents the average height of the highest $1/N$ fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ falls within the first or second part of the Composite Weibull distribution.
-
-**Case 1:** $\tilde{H}_N < \tilde{H}_{tr}$ (the wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk, 1998, Equation A.10):
+* **$\tilde{H}_{1/N}$ (mean of the highest $1/N$ fraction of wave heights):** This represents the average height of the highest $1/N$ fraction of waves (for example, $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ falls within the first or second part of the Composite Weibull distribution.
 
 $$
-\tilde{H}_{1/N} = N \cdot \tilde{H}_1 \left[ \Gamma\left(\frac{1}{k_1}+1, \ln N\right) - \Gamma\left(\frac{1}{k_1}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) \right] + N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
+\tilde{H}_{1/N}
+=
+N \cdot \tilde{H}_1 \left[
+\Gamma\left(1+\frac{1}{k_1}, \ln(N)\right)
+-
+\Gamma\left(1+\frac{1}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right)
+\right]
++
+N \cdot \tilde{H}_2 \cdot \Gamma\left(1+\frac{1}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
 $$
 
 where $\Gamma(a,x)$ is the unnormalized upper incomplete gamma function.
 
-**Case 2:** $\tilde{H}_N \ge \tilde{H}_{tr}$ (the wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk, 1998, Equation A.17):
+**Case 2:** $\tilde{H}_N \ge \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
 
 $$
-\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln N\right)
+\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
 $$
 
 ## Supporting Mathematical Functions
@@ -237,7 +243,7 @@ $$
 
 To ensure the model's predictions remain physically realistic and consistent with established theory, the software implements a two-tiered "overshoot prevention" logic. This logic is a direct and necessary consequence of the model's empirical formulation, particularly its parameterization of $H_{rms}$ (Battjes & Groenendijk, 2000; Caires & Van Gent, 2012).
 
-#### The $\tilde{H}_{tr} > 2.75$ Threshold Switch
+#### Threshold Switch at $\tilde{H}_{tr} > 2.75$
 
 The first safeguard is a check on the dimensionless transitional height, $\tilde{H}_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}_{tr}$.
 
