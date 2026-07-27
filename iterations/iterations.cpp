@@ -233,11 +233,7 @@ void solve_linear_system_2x2(long double J11, long double J12, long double J21, 
  */
 void get_initial_guesses(long double Htr_Hrms, long double &H1_initial, long double &H2_initial) {
     H1_initial = std::pow(std::tanh(6.739139344110821 * Htr_Hrms - 0.01265095590917251), -0.6551633251836707) / std::pow(std::tanh(std::sinh(0.6947756601426412 * Htr_Hrms + 0.7908718490781483)), 5.484052848550241);
-
     H2_initial = 1.059259665431797 + (0.2059286860468916 * Htr_Hrms) / (1.0 + 3.865701948059343 * std::pow(Htr_Hrms, -3.479682433107255));
-
-    if (H1_initial <= 0.0L) H1_initial = numeric_limits<long double>::min();
-    if (H2_initial <= 0.0L) H2_initial = numeric_limits<long double>::min();
 }
 
 /**
