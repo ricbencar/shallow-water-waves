@@ -261,9 +261,7 @@ $$
 Because $P(H>H_N)=1/N$,
 
 $$
-H_{1/N}
-=
-N\int_{H_N}^{\infty}h\,f_H(h)\,dh.
+H_{1/N} = N\int_{H_N}^{\infty}h\,f_H(h)\,dh.
 $$
 
 
@@ -356,10 +354,7 @@ $$
 the general non-central moment is
 
 $$
-E\left[H^r\right]
-=
-H_{rms}^{\,r}
-\Gamma\left(1+\frac{r}{2}\right).
+E\left[H^r\right] = H_{rms}^{\,r} \Gamma\left(1+\frac{r}{2}\right).
 $$
 
 
@@ -414,12 +409,7 @@ $$
 Substitution into the conditional-mean integral gives
 
 $$
-H_{1/N}
-=
-N\int_{H_N}^{\infty}
-h\,
-\frac{2h}{H_{rms}^2}
-\exp\left[-\left(\frac{h}{H_{rms}}\right)^2\right]dh.
+H_{1/N} = N\int_{H_N}^{\infty} h\, \frac{2h}{H_{rms}^2} \exp\left[-\left(\frac{h}{H_{rms}}\right)^2\right]dh.
 $$
 
 
@@ -433,10 +423,7 @@ $$
 the result is
 
 $$
-H_{1/N}
-=
-N H_{rms}
-\Gamma\left(\frac{3}{2},\ln N\right).
+H_{1/N} = N H_{rms} \Gamma\left(\frac{3}{2},\ln N\right).
 $$
 
 
@@ -451,13 +438,7 @@ This exact expression is the source of the Rayleigh constants tabulated above.
 The governing equations are solved in terms of wave heights normalized by $H_{rms}$:
 
 $$
-\widetilde H=\frac{H}{H_{rms}},
-\qquad
-\widetilde H_1=\frac{H_1}{H_{rms}},
-\qquad
-\widetilde H_2=\frac{H_2}{H_{rms}},
-\qquad
-\widetilde H_{tr}=\frac{H_{tr}}{H_{rms}}.
+\widetilde H=\frac{H}{H_{rms}}, \qquad \widetilde H_1=\frac{H_1}{H_{rms}}, \qquad \widetilde H_2=\frac{H_2}{H_{rms}}, \qquad \widetilde H_{tr}=\frac{H_{tr}}{H_{rms}}.
 $$
 
 
@@ -475,16 +456,7 @@ $$
 For the Composite Weibull Distribution,
 
 $$
-Q(H)=
-\begin{cases}
-\exp\left[-\left(\dfrac{H}{H_1}\right)^{k_1}\right],
-&
-H\leq H_{tr},
-\\[8pt]
-\exp\left[-\left(\dfrac{H}{H_2}\right)^{k_2}\right],
-&
-H>H_{tr}.
-\end{cases}
+Q(H)= \begin{cases} \exp\left[-\left(\dfrac{H}{H_1}\right)^{k_1}\right], & H\leq H_{tr}, \\[8pt] \exp\left[-\left(\dfrac{H}{H_2}\right)^{k_2}\right], & H>H_{tr}. \end{cases}
 $$
 
 
@@ -495,11 +467,7 @@ Continuity of the CDF automatically implies continuity of the exceedance probabi
 Define
 
 $$
-x_1=
-\left(\frac{\widetilde H_{tr}}{\widetilde H_1}\right)^{k_1},
-\qquad
-x_2=
-\left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2}.
+x_1= \left(\frac{\widetilde H_{tr}}{\widetilde H_1}\right)^{k_1}, \qquad x_2= \left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2}.
 $$
 
 
@@ -531,19 +499,14 @@ For $N<N_{tr}$, the exceedance threshold lies below the transition and the mean-
 The two scale parameters are not independent. From
 
 $$
-\left(\frac{H_{tr}}{H_1}\right)^{k_1}
-=
-\left(\frac{H_{tr}}{H_2}\right)^{k_2},
+\left(\frac{H_{tr}}{H_1}\right)^{k_1} = \left(\frac{H_{tr}}{H_2}\right)^{k_2},
 $$
 
 
 one may write
 
 $$
-H_2
-=
-H_{tr}
-\left(\frac{H_1}{H_{tr}}\right)^{k_1/k_2}.
+H_2 = H_{tr} \left(\frac{H_1}{H_{tr}}\right)^{k_1/k_2}.
 $$
 
 
@@ -554,13 +517,7 @@ The implementation nevertheless solves for both normalized scales simultaneously
 For any real moment order $r>-k_1$, the normalized piecewise moment can be expressed as
 
 $$
-E\left[\widetilde H^r\right]
-=
-\widetilde H_1^{\,r}
-\gamma\left(1+\frac{r}{k_1},x_1\right)
-+
-\widetilde H_2^{\,r}
-\Gamma\left(1+\frac{r}{k_2},x_2\right).
+E\left[\widetilde H^r\right] = \widetilde H_1^{\,r} \gamma\left(1+\frac{r}{k_1},x_1\right) + \widetilde H_2^{\,r} \Gamma\left(1+\frac{r}{k_2},x_2\right).
 $$
 
 
@@ -757,19 +714,14 @@ $$
 The empirical $H_{rms}$ relation can then be written as
 
 $$
-\frac{H_{rms}}{d}
-=
-\left(2.69+3.24\mu\right)\mu.
+\frac{H_{rms}}{d} = \left(2.69+3.24\mu\right)\mu.
 $$
 
 
 Combining this expression with the transition-height formula gives a direct dimensionless expression for the governing transition:
 
 $$
-\widetilde H_{tr}
-=
-\frac{0.35+5.8/M}
-{\left(2.69+3.24\mu\right)\mu}.
+\widetilde H_{tr} = \frac{0.35+5.8/M} {\left(2.69+3.24\mu\right)\mu}.
 $$
 
 
@@ -832,18 +784,14 @@ The implementation evaluates these expressions for $N=3$, $10$, $50$, $100$, $25
 The lower-branch candidate threshold is
 
 $$
-\widetilde H_{N,1}
-=
-\widetilde H_1(\ln N)^{1/k_1}.
+\widetilde H_{N,1} = \widetilde H_1(\ln N)^{1/k_1}.
 $$
 
 
 The same decision may be written using $x_{tr}$:
 
 $$
-\ln N < x_{tr}
-\quad\Longleftrightarrow\quad
-\widetilde H_N<\widetilde H_{tr}.
+\ln N < x_{tr} \quad\Longleftrightarrow\quad \widetilde H_N<\widetilde H_{tr}.
 $$
 
 
@@ -854,11 +802,7 @@ Thus the branch is selected from a comparison between the requested exceedance l
 For a Weibull branch with scale $H_s$ and exponent $k$,
 
 $$
-f(H)
-=
-\frac{k}{H_s}
-\left(\frac{H}{H_s}\right)^{k-1}
-\exp\left[-\left(\frac{H}{H_s}\right)^k\right].
+f(H) = \frac{k}{H_s} \left(\frac{H}{H_s}\right)^{k-1} \exp\left[-\left(\frac{H}{H_s}\right)^k\right].
 $$
 
 
@@ -872,18 +816,14 @@ $$
 gives
 
 $$
-H=H_su^{1/k},
-\qquad
-dH=\frac{H_s}{k}u^{1/k-1}du.
+H=H_su^{1/k}, \qquad dH=\frac{H_s}{k}u^{1/k-1}du.
 $$
 
 
 Consequently,
 
 $$
-\int Hf(H)\,dH
-=
-H_s\int u^{1/k}e^{-u}\,du.
+\int Hf(H)\,dH = H_s\int u^{1/k}e^{-u}\,du.
 $$
 
 
@@ -935,9 +875,7 @@ The MATLAB implementation follows the same algorithmic structure. The notebook u
 Some libraries return the regularized functions
 
 $$
-P(a,x)=\frac{\gamma(a,x)}{\Gamma(a)},
-\qquad
-Q(a,x)=\frac{\Gamma(a,x)}{\Gamma(a)}.
+P(a,x)=\frac{\gamma(a,x)}{\Gamma(a)}, \qquad Q(a,x)=\frac{\Gamma(a,x)}{\Gamma(a)}.
 $$
 
 
@@ -1019,19 +957,7 @@ The C++ and Fortran versions solve the $2\times2$ Newton system directly. The MA
 With
 
 $$
-\mathbf J
-=
-\begin{bmatrix}
-J_{11} & J_{12}\\
-J_{21} & J_{22}
-\end{bmatrix},
-\qquad
-\mathbf F
-=
-\begin{bmatrix}
-F_1\\
-F_2
-\end{bmatrix},
+\mathbf J = \begin{bmatrix} J_{11} & J_{12}\\ J_{21} & J_{22} \end{bmatrix}, \qquad \mathbf F = \begin{bmatrix} F_1\\ F_2 \end{bmatrix},
 $$
 
 
@@ -1045,16 +971,12 @@ $$
 The correction solving $\mathbf J\Delta\mathbf x=-\mathbf F$ is
 
 $$
-\Delta \widetilde H_1
-=
-\frac{-F_1J_{22}+F_2J_{12}}{D},
+\Delta \widetilde H_1 = \frac{-F_1J_{22}+F_2J_{12}}{D},
 $$
 
 
 $$
-\Delta \widetilde H_2
-=
-\frac{-J_{11}F_2+J_{21}F_1}{D}.
+\Delta \widetilde H_2 = \frac{-J_{11}F_2+J_{21}F_1}{D}.
 $$
 
 
@@ -1395,30 +1317,19 @@ $$
 
 
 $$
-H_{rms}
-=
-\left(2.69+3.24\frac{0.625}{20}\right)0.625
-=
-1.74453125\ \mathrm{m},
+H_{rms} = \left(2.69+3.24\frac{0.625}{20}\right)0.625 = 1.74453125\ \mathrm{m},
 $$
 
 
 $$
-H_{tr}
-=
-\left(0.35+\frac{5.8}{100}\right)20
-=
-8.16\ \mathrm{m},
+H_{tr} = \left(0.35+\frac{5.8}{100}\right)20 = 8.16\ \mathrm{m},
 $$
 
 
 and
 
 $$
-\widetilde H_{tr}
-=
-\frac{8.16}{1.74453125}
-\approx4.6772.
+\widetilde H_{tr} = \frac{8.16}{1.74453125} \approx4.6772.
 $$
 
 
@@ -1809,22 +1720,14 @@ For a converged B&G solution, the following identities should be checked.
 Continuity:
 
 $$
-\left(\frac{\widetilde H_{tr}}{\widetilde H_1}\right)^{k_1}
--
-\left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2}
-\approx0.
+\left(\frac{\widetilde H_{tr}}{\widetilde H_1}\right)^{k_1} - \left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2} \approx0.
 $$
 
 
 Second moment:
 
 $$
-\widetilde H_1^2
-\gamma\left(1+\frac{2}{k_1},x_1\right)
-+
-\widetilde H_2^2
-\Gamma\left(1+\frac{2}{k_2},x_2\right)
-\approx1.
+\widetilde H_1^2 \gamma\left(1+\frac{2}{k_1},x_1\right) + \widetilde H_2^2 \Gamma\left(1+\frac{2}{k_2},x_2\right) \approx1.
 $$
 
 
@@ -1845,9 +1748,7 @@ $$
 Dimensional-normalized consistency:
 
 $$
-H_{1/N}
-=
-\widetilde H_{1/N}H_{rms}.
+H_{1/N} = \widetilde H_{1/N}H_{rms}.
 $$
 
 
