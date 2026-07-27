@@ -1,452 +1,1794 @@
-# Wave Height Distributions on Shallow Foreshores Calculator
+# Wave Height Distributions on Shallow Foreshores
 
-## Technical Overview and Scientific Context
+This document describes a multi-language engineering calculator for the local distribution of individual wave heights on shallow foreshores, based primarily on the **Composite Weibull Distribution** of Battjes and Groenendijk (2000).
 
-### Purpose and Functionality of the Computational Tool
+The project computes characteristic individual-wave statistics from three local inputs:
 
-The software tool **Shallow Water Waves** provides a computational implementation of the wave height distribution model developed by Jurjen A. Battjes and Heiko W. Groenendijk (Battjes & Groenendijk, 2000).
+- spectral significant wave height, $H_{m0}$;
+- local still-water depth, $d$;
+- foreshore slope written as $1:M$, with $\tan\alpha=1/M$.
 
-It also implements a two-tiered "overshoot prevention" logic to ensure results are physically realistic and consistent with established theory (Caires & Van Gent, 2012).
+The same computational model is provided as a C++ command-line program, a native Windows C++ graphical interface, a Fortran command-line program, a MATLAB function, and an interactive Jupyter notebook.
 
-The primary function of this tool is to compute local wave height statistics on shallow foreshores—the gently sloping nearshore regions where wave dynamics are strongly influenced by the seabed.
-
-The model's output provides quantitative data for a wide range of coastal engineering applications, including the design and risk assessment of dikes, breakwaters, and other coastal defense structures where parameters such as wave run-up and overtopping rates are critical design considerations.
-
-The software is available as both a command-line interface (CLI) for integration into automated analysis workflows and a graphical user interface (GUI) for interactive, case-by-case analysis.
-
-### Rayleigh Distribution Not Applicable in Shallow Water
-
-The statistical description of wave heights is a foundational element of coastal engineering. **In deep water, where the seabed has negligible influence on wave propagation, the short-term distribution of individual wave heights is described with reasonable accuracy by the Rayleigh distribution** (John William Strutt, 1885), a model first derived for sea waves by M. S. Longuet-Higgins (Longuet-Higgins, 1952).
-
-This distribution is theoretically derived from the assumption that the sea surface elevation can be modeled as a Gaussian random process with a narrow energy spectrum. Under these conditions, all characteristic wave heights (e.g., the significant wave height, the average of the highest 10% of waves) are related by known constants, which simplifies design calculations.
-
-However, as waves propagate from deep water onto a shallow foreshore, the physical processes that govern their behavior change substantially, rendering the fundamental assumptions of the Rayleigh distribution invalid. Two key phenomena are responsible for this departure (Battjes & Groenendijk, 2000):
-
-1.  **Nonlinear Shoaling and Triad Interactions**: As the water depth decreases, waves begin to interact with the seabed. This interaction, known as shoaling, increases wave heights and enhances nonlinear effects. Specifically, triad wave-wave interactions transfer energy to higher harmonics, distorting the wave profile into a non-Gaussian shape characterized by peaked crests and shallow, flat troughs. Consequently, the sea surface can no longer be considered a linear Gaussian process.
-2.  **Depth-Induced Breaking**: The most significant process in shallow water is depth-induced wave breaking. The water depth imposes a physical upper limit on the height a wave can attain. In a random sea state, the largest waves, which would have continued to propagate in deep water, are forced to break, dissipating a significant amount of their energy into turbulence (Battjes & Groenendijk, 2000). This process effectively truncates the upper tail of the wave height distribution, meaning that extremely high waves become far less probable than predicted by the unbounded Rayleigh model.
-
-The accuracy loss of the Rayleigh distribution in the nearshore zone has signigicant engineering significance. An accurate statistical description of wave heights is essential for the design of coastal structures. Design criteria concerning wave forces, structural stability, wave run-up, and overtopping rates all depend on characteristic wave heights, such as the significant wave height ($H_s$) or heights with a low probability of exceedance (e.g., $H_{1/100}$ or $H_{max}$).
-
-Using the Rayleigh distribution in these conditions can lead to a significant overestimation of the highest waves, resulting in overly conservative and expensive designs, or in some cases, a mischaracterization of the wave energy distribution (Battjes & Groenendijk, 2000).
-
-### Point Model Assumptions, Applicability and Principles
-
-The Battjes and Groenendijk model, and by extension this software, is built upon a "point model" philosophy. This is a critical, simplifying assumption that dictates the model's structure, inputs, and domain of applicability. As stated in the original publication:
-
-**"The parameterisation is based on the assumption of slow evolution, such that the distribution depends on local parameters only, regardless of the history of the waves in deeper water (a so-called point model)"** (Battjes & Groenendijk, 2000).
-
-This means the model predicts the complete wave height distribution at a single, specific point using only the parameters that describe the conditions at that selected point:
-
--   The local water depth, $d$.
--   The local total wave energy, represented by the variance of the surface elevation, $m_0$.
--   The local bottom slope, $\tan(\alpha)$.
-
-The underlying assumption is that the wave field has propagated over a sufficient distance on a bathymetry of simple, slowly varying geometry, allowing it to reach a state of local equilibrium with the seabed. This approach makes the model computationally efficient and effective for its intended application on plane beaches.
-
-However, this assumption is also the direct source of the model's primary limitation: **the model cannot account for the "memory" of the wave field in situations with complex or rapidly changing bathymetry, such as in the presence of offshore bars and troughs, where the wave height distribution at one point is strongly influenced by conditions at another** (Battjes & Groenendijk, 2000).
-
-Furthermore, this assumption is the direct cause of the model's documented underperformance on flat or very gently sloping seabeds, a critical constraint discussed in detail by Caires & Van Gent (2012). Understanding this "point model" basis is essential for correctly applying the software and interpreting its results.
-
-## Composite Weibull Distribution (CWD) Theoretical Foundation
-
-### Two-Population Hypothesis for Shallow-Water Waves
-
-To address the shortcomings of the Rayleigh distribution in shallow water, Battjes and Groenendijk proposed a model based on a realistic physical hypothesis: the wave field on a shallow foreshore can be conceptualized as a mixture of two distinct statistical populations:
-
--   **Non-Breaking Waves**: This group consists of the smaller waves in the spectrum whose heights are not strongly affected by the limited water depth. They propagate relatively undisturbed, and their statistical distribution is assumed to adhere to the Rayleigh model.
--   **Breaking/Broken Waves**: This group comprises the larger waves whose heights are actively limited by the local depth. These waves have either already broken or are in the process of breaking, causing their statistical distribution to deviate sharply from the Rayleigh form, with a much lower probability of very high waves.
-
-The Composite Weibull Distribution (CWD) is the mathematical formalization of this two-population concept. It combines two separate Weibull distributions, each representing one of the populations, and matches them at a "transitional wave height," $H_{tr}$, which acts as the demarcation point between the two regimes (Battjes & Groenendijk, 2000).
-
-### Mathematical Formulation of the CWD
-
-The cumulative distribution function (CDF), $F(H)$, which gives the probability that a wave height is less than or equal to a value $H$, is defined by the CWD as (Battjes & Groenendijk, 2000):
-
-For $H \le H_{tr}$:
-
-$$
-F(H) = F_1(H) = 1 - \exp\left[-\left(\frac{H}{H_1}\right)^{k_1}\right]
-$$
-
-For $H > H_{tr}$:
-
-$$
-F(H) = F_2(H) = 1 - \exp\left[-\left(\frac{H}{H_2}\right)^{k_2}\right]
-$$
-
-The parameters of this distribution were determined through extensive analysis of laboratory wave flume data (Battjes & Groenendijk, 2000). The **shape parameters $k_1$ and $k_2$** are fixed constants:
-
--   $k_1 = 2.0$: This exponent confirms that the distribution for the smaller, non-breaking waves ($H \le H_{tr}$) is modeled as a Rayleigh distribution, which is a special case of the Weibull distribution where the shape parameter is 2 (Battjes & Groenendijk, 2000).
--   $k_2 = 3.6$: This empirically derived shape parameter describes the much steeper decline in probability for the larger, depth-limited waves ($H > H_{tr}$). It reflects the physical reality that wave breaking strongly suppresses the occurrence of very high waves (Battjes & Groenendijk, 2000).
-
-The remaining parameters—the scale parameters $H_1$ and $H_2$, and the transitional wave height $H_{tr}$—are not fixed but are determined by the local physical conditions. A continuity constraint is imposed such that $F_1(\tilde{H}_{tr}) = F_2(\tilde{H}_{tr})$ (Battjes & Groenendijk, 2000).
-
-Because the shape parameters $k_1$ and $k_2$ are not equal, the derivative of the CDF, which is the probability density function (PDF), is discontinuous at the transition point $H_{tr}$. This is acknowledged as a modeling compromise; it is "physically not realistic but it is nevertheless accepted because all integral statistical properties of the wave heights are well behaved" (Battjes & Groenendijk, 2000).
-
-This approach prioritizes the accurate prediction of integrated quantities used in engineering design (such as $H_{1/100}$ or $H_{max}$) over maintaining a mathematically smooth PDF.
-
-### Empirical Parameterization of Physical Variables
-
-The CWD is grounded in physical reality through empirically derived formulas for its key parameters. These relationships, developed from wave flume experiments, connect the statistical model to measurable properties of the nearshore environment (Battjes & Groenendijk, 2000). Those properties are the following:
-
-#### Free-surface Variance ($m_0$)
-
-The variance of the **free-surface elevation, $m_0$**, represents the total energy in the sea state and is calculated from the spectral significant wave height, $H_{m0}$ using the standard definition (Battjes & Groenendijk, 2000), which is valid both deep and shallow waters:
-
-$$
-m_0 = \left(\frac{H_{m0}}{4}\right)^2
-$$
-
-#### Root-Mean-Square Wave Height ($H_{rms}$)
-
-The **root-mean-square wave height, $H_{rms}$**, is the fundamental scaling parameter for the entire distribution. In deep water, $H_{rms}$ is directly proportional to the standard deviation of the sea surface elevation ($\sqrt{m_0}$). However, in shallow waters, this relationship is modified by nonlinear effects. The empirically derived formula used in the model is (Battjes & Groenendijk, 2000):
-
-$$
-\frac{H_{rms}}{\sqrt{m_0}} = 2.69 + 3.24 \frac{\sqrt{m_0}}{d}
-$$
-
-The parameter $\sqrt{m_0}/d$ is a dimensionless measure of the local wave intensity, or degree of saturation. The choice of the constant 2.69 is a deliberate and crucial feature of the model. For a purely linear, narrow-banded sea state, the theoretical relationship is $H_{rms} = \sqrt{8 \cdot m_0}$ (Battjes & Groenendijk, 2000). However, Battjes and Groenendijk (2000), citing field data analysis by Goda (1979), selected 2.69 as the deep-water limit (i.e., as $d \to \infty$) to better represent real, broad-banded ocean waves. This decision means that even in deep water, the $H_{rms}$ calculated by this model is approximately 5% lower than the theoretical Rayleigh value.
-
-While this approach improves realism for broad-banded seas, it also causes the model's dimensional predictions to diverge from pure Rayleigh theory. This divergence was explicitly analyzed by Caires & Van Gent (2012), who demonstrated how **this parameterization causes the model to make predictions that do not smoothly converge to the Rayleigh values in deep water and can lead to physically inconsistent results, a behavior that necessitates a "capping" logic** described in the computational methodology section.
-
-#### Transitional Wave Height ($H_{tr}$)
-
-The **transitional wave height, $H_{tr}$**, represents the physical threshold that separates the two wave populations. It is conceptualized as a limiting height for non-breaking waves, influenced by both the local water depth and the steepness of the beach slope. The primary formula for $H_{tr}$ is (Battjes & Groenendijk, 2000):
-
-$$
-H_{tr} = (0.35 + 5.8 \cdot \tan(\alpha)) \cdot d
-$$
-
-where $d$ is the local water depth and $\tan\alpha$ is the beach slope (e.g., for a 1:100 slope, $\tan\alpha = 0.01$). The inclusion of the slope term is physically significant. A steeper slope results in a higher value of $H_{tr}$, which implies that a smaller fraction of the waves are considered to be in the breaking-dominated regime. This accounts for the spatial lag inherent in the breaking process: on a steep slope, a wave may reach a depth where breaking is initiated but has not yet had sufficient time or distance to fully dissipate its energy and reduce its height (Battjes & Groenendijk, 2000).
-
-## Computational Methodology and Numerical Implementation
-
-### Algorithmic Workflow
-
-The software follows a structured, multi-step algorithm to compute the wave height distribution from a given set of environmental parameters (Battjes & Groenendijk, 2000).
-
-1.  **Input Acquisition**: The program obtains the three required input parameters: spectral significant wave height ($H_{m0}$), local water depth ($d$), and beach slope denominator ($m$ for a 1:m slope), either from command-line arguments or from interactive user prompts.
-2.  **Intermediate Parameter Calculation**: It computes the core physical parameters ($m_0$, $H_{rms}$, $H_{tr}$) using the empirical formulas detailed in the theoretical foundation section.
-3.  **Dimensionless Transformation**: The key dimensionless shape parameter, $\tilde{H}_{tr} = H_{tr} / H_{rms}$, is calculated. This single value determines the shape of the entire normalized wave height distribution.
-4.  **Deep-Water Bypass**: The program evaluates if $\tilde{H}_{tr} > 2.75$. If this condition is met, it signifies that depth-limitation effects are negligible. The program then bypasses the CWD solver and directly uses the well-established theoretical ratios for the Rayleigh distribution.
-5.  **CWD Solution**: If $\tilde{H}_{tr} \le 2.75$, the program proceeds to solve the system of non-linear equations derived from the CWD to find the dimensionless scale parameters $\tilde{H}_1$ and $\tilde{H}_2$. From these, it computes the required statistical wave-height ratios, e.g., $H_{1/3}$, $H_{1/10}$, $H_{1/50}$, and $H_{1/100}$.
-6.  **Dimensional Conversion**: The calculated dimensionless ratios are multiplied by the dimensional $H_{rms}$ value to obtain the final wave heights in metres.
-7.  **Physical Consistency Capping**: The final dimensional wave heights are capped at their theoretical Rayleigh limits (e.g., $H_{1/3}$ is capped at $H_{m0}$). This step ensures the output remains physically plausible and conservative (Caires & Van Gent, 2012).
-8.  **Report Generation**: All inputs, intermediate values, dimensionless ratios, and final dimensional results are formatted into a comprehensive report and written to the output file `report.txt`.
-
-### Numerical Solution of the CWD Governing Equations
-
-The core numerical task of the software is to determine the dimensionless scale parameters $\tilde{H}_1$ and $\tilde{H}_2$ for a given value of $\tilde{H}_{tr}$. These two unknowns are found by solving a system of two coupled, non-linear equations that enforce the mathematical consistency of the CWD (Battjes & Groenendijk, 2000):
-
-1.  **Continuity Constraint**: The probability must be continuous at the transitional height $H_{tr}$. In dimensionless form this becomes (with $k_1 = 2$ and $k_2 = 3.6$):
-
-$$
-\left( \frac{\tilde{H}_{tr}}{\tilde{H}_1} \right)^{k_1} = \left( \frac{\tilde{H}_{tr}}{\tilde{H}_2} \right)^{k_2}
-$$
-
-2.  **Normalization Constraint**: The mean square of the normalized wave heights (the second moment of the probability density function) must equal one. This is expressed using incomplete gamma functions:
-
-$$
-\tilde{H}_1^2 \, \gamma\left(1+\frac{2}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) + \tilde{H}_2^2 \, \Gamma\left(1+\frac{2}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right) = 1
-$$
-
-where $\gamma(a,x)$ and $\Gamma(a,x)$ are the unnormalized lower and upper incomplete gamma functions, respectively.
-
-The software employs a numerical root-finding algorithm, such as a Newton-Raphson matrix method, to simultaneously solve this system for $\tilde{H}_1$ and $\tilde{H}_2$. Given an initial guess of these two variables $\tilde{H}_1^{(0)}$ and $\tilde{H}_2^{(0)}$, the next iteration is found by solving the linear system:
-
-$$
-J\left(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}\right) \cdot \left(\Delta \tilde{H}_1,\; \Delta \tilde{H}_2\right)^{T} = -\left(F_1\left(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}\right),\; F_2\left(\tilde{H}_1^{(i)}, \tilde{H}_2^{(i)}\right)\right)^{T}
-$$
-
-where $J$ is the $2 \times 2$ Jacobian matrix whose entries are $\partial F_j / \partial \tilde{H}_k$.
-
-The solution is updated as:
-
-$$
-\tilde{H}_1^{(i+1)} = \tilde{H}_1^{(i)} + \Delta \tilde{H}_1
-$$
-
-$$
-\tilde{H}_2^{(i+1)} = \tilde{H}_2^{(i)} + \Delta \tilde{H}_2
-$$
-
-This process is repeated until the values of $F_1$ and $F_2$ are sufficiently close to zero.
-
-Once $\tilde{H}_1$ and $\tilde{H}_2$ are known, any desired statistical property of the distribution can be calculated (Battjes & Groenendijk, 2000).
-
-### Dimensionless Wave-Height Ratios ($\tilde{H}_N$ and $\tilde{H}_{1/N}$)
-
-The dimensionless wave-height ratios are critical outputs of the model. The calculation involves solving a system of two non-linear equations derived from the Composite Weibull distribution, ensuring that the normalized $H_{rms}$ of the distribution equals one. This is achieved using a Newton-Raphson matrix method for simultaneous root-finding.
-
-The core of this calculation is finding the values of $\tilde{H}_{1}$ and $\tilde{H}_{2}$ that satisfy simultaneously the normalized $H_{rms}$ equation (Equation 7.11 from Groenendijk, 1998) and the continuity condition between the two Weibull distributions (Equation 3.4). Once $\tilde{H}_1$ and $\tilde{H}_2$ (the normalized scale parameters of the first and second Weibull distributions, respectively) are determined, two types of dimensionless wave heights can be calculated:
-
-* **$\tilde{H}_N$ (wave height with $1/N$ exceedance probability):** This is the normalized wave height such that the probability of a wave exceeding it is $1/N$. It is calculated by first determining a candidate value from the first part of the distribution. If that candidate is less than $\tilde{H}_{tr}$, then $\tilde{H}_N$ is taken from the first part. Otherwise, it is taken from the second part of the distribution.
-
-    * If $\tilde{H}_{N,\mathrm{candidate}} < \tilde{H}_{tr}$, then $\tilde{H}_N = \tilde{H}_1 \cdot (\ln N)^{1/k_1}$.
-
-    * If $\tilde{H}_{N,\mathrm{candidate}} \ge \tilde{H}_{tr}$, then $\tilde{H}_N = \tilde{H}_2 \cdot (\ln N)^{1/k_2}$.
-
-* **$\tilde{H}_{1/N}$ (mean of the highest $1/N$ fraction of wave heights):** This represents the average height of the highest $1/N$ fraction of waves (e.g., $H_{1/3}$ for significant wave height). The calculation depends on whether $\tilde{H}_N$ falls within the first or second part of the Composite Weibull distribution.
-
-**Case 1:** $\tilde{H}_N < \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is smaller than the transitional wave height). This scenario implies that the integration for $\tilde{H}_{1/N}$ spans both parts of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.10):
-
-$$
-\tilde{H}_{1/N} = N \cdot \tilde{H}_1 \left[ \Gamma\left(1+\frac{1}{k_1}, \ln N\right) - \Gamma\left(1+\frac{1}{k_1}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_1}\right)^{k_1}\right) \right] + N \cdot \tilde{H}_2 \cdot \Gamma\left(1+\frac{1}{k_2}, \left(\frac{\tilde{H}_{tr}}{\tilde{H}_2}\right)^{k_2}\right)
-$$
-
-where $\Gamma(a,x)$ is the unnormalized upper incomplete gamma function.
-
-**Case 2:** $\tilde{H}_N \ge \tilde{H}_{tr}$ (The wave height with $1/N$ exceedance probability is greater than or equal to the transitional wave height). In this case, the integration for $\tilde{H}_{1/N}$ only involves the second part of the Composite Weibull distribution. The formula used is (Groenendijk 1998, Equation A.17):
-
-$$
-\tilde{H}_{1/N} = N \cdot \tilde{H}_2 \cdot \Gamma\left(\frac{1}{k_2}+1, \ln(N)\right)
-$$
-
-## Supporting Mathematical Functions
-
-The core calculations rely on precise implementations of fundamental mathematical functions:
-
-* **Complete Gamma Function ($\Gamma(z)$):** This is a generalization of the factorial function to real and complex numbers. In the implementation, `std::tgamma` is used. For calculating the logarithm of the complete gamma function, $\ln(\Gamma(a))$, `std::lgamma` is employed for improved numerical stability, especially for large values of $a$.
-
-$$
-\Gamma(a) = \int_0^{\infty} t^{a-1} e^{-t} dt \quad (a > 0)
-$$
-
-* **Unnormalized Lower Incomplete Gamma Function ($\gamma(a,x)$):** This function is computed using a hybrid numerical approach for stability and accuracy. For small values of $x$ (specifically, $x < a + 1.0$), a series expansion is used. For larger values of $x$, a continued-fraction expansion is employed. This adaptive strategy ensures robust and precise computation across different input ranges.
-
-$$
-\gamma(a, x) = \int_0^x t^{a-1} e^{-t} dt
-$$
-
-* **Unnormalized Upper Incomplete Gamma Function ($\Gamma(a,x)$):** This is calculated as $\Gamma(a) - \gamma(a,x)$.
-
-$$
-\Gamma(a, x) = \int_x^{\infty} t^{a-1} e^{-t} dt
-$$
-
-### Consistency Checks and Physical Constraints
-
-To ensure the model's predictions remain physically realistic and consistent with established theory, the software implements a two-tiered "overshoot prevention" logic. This logic is a direct and necessary consequence of the model's empirical formulation, particularly its parameterization of $H_{rms}$ (Battjes & Groenendijk, 2000; Caires & Van Gent, 2012).
-
-#### The $\tilde{H}_{tr} > 2.75$ Threshold Switch
-
-The first safeguard is a check on the dimensionless transitional height, $\tilde{H}_{tr}$. If this value exceeds 2.75, the program bypasses the CWD solver entirely and defaults to using standard Rayleigh distribution statistics. This is not an arbitrary choice but a computationally efficient shortcut based on the model's documented behavior. The lookup table provided by Battjes and Groenendijk (2000, Table 2) shows the numerical solutions for various statistical wave height ratios as a function of $\tilde{H}_{tr}$.
-
-An analysis of this table reveals that **for all values of $\tilde{H}_{tr}$ greater than approximately 2.75, the solutions of the CWD converge to and become numerically indistinguishable from the theoretical values of the Rayleigh distribution (e.g., $\tilde{H}_{1/3} \approx 1.416$)** (Caires & Van Gent, 2012). Therefore, this threshold identifies the regime where depth-limitation effects are negligible. By applying the known Rayleigh solution directly, the software avoids unnecessary computation while remaining true to the model's behavior.
-
-#### Capping of Statistical Parameters
-
-The second safeguard is applied after the CWD solution has been found and converted to dimensional wave heights. Each calculated statistical wave height is compared to its theoretical maximum value under the Rayleigh distribution, and capped if it exceeds this limit. For example, the calculated $H_{1/3}$ is not allowed to exceed the input $H_{m0}$. This capping is necessary to correct for potential inconsistencies arising from the model's specific parameterization of $H_{rms}$, a behavior analyzed by Caires & Van Gent (2012).
-
-As previously discussed, the model's $H_{rms}$ can differ from the theoretical Rayleigh $H_{rms}$ for the same sea state. This can lead to situations where the CWD predicts a dimensional wave height that is physically implausible (e.g., an average of the top third of waves being larger than the spectrally defined significant wave height). This final check ensures that the software's output remains conservative and physically consistent (Caires & Van Gent, 2012).
-
-## Model Applicability, Limitations, and Broader Context
-
-### Domain of Validity Based on Calibration Data
-
-The Battjes and Groenendijk model was developed, calibrated, and validated using an extensive set of laboratory wave flume data. The experimental setup consisted of waves propagating over gently sloping, plane beaches with slopes ranging from 1:20 to 1:250 (Battjes & Groenendijk, 2000). The software's predictions are most reliable and accurate when applied to physical environments that closely match these conditions.
-
-### Identified Constraints: Underperformance on Flat Seabeds
-
-While effective within its intended domain, subsequent research has identified important limitations and conditions under which the model's predictions should be used with caution. The most significant limitation identified in the literature is the model's performance on flat or very gently sloping seabeds. **The research of Caires & Van Gent (2012) demonstrated that when the Battjes and Groenendijk model is applied to flat-bottom conditions—an environment outside its original calibration range—it systematically underestimates high wave heights by as much as 15%**.
-
-This underperformance is a direct consequence of the model's physical assumptions. The parameterization of the transitional wave height, $H_{tr}$, is fundamentally tied to the beach slope, $\tan\alpha$. The slope dictates the rate of depth change, which drives the continuous, gradual energy dissipation process assumed by the model.
-
-On a flat bottom, where $\tan\alpha$ is zero, the model predicts a low $H_{tr}$ and consequently a heavily truncated wave height distribution, implying intense wave breaking. However, the physical reality is different; on a flat bottom, the ratio of significant wave height to depth can be higher, and the breaking process is more intermittent rather than continuous (Caires & Van Gent, 2012).
-
-The model's core assumption about the dissipation mechanism does not hold, leading to a predictable and non-conservative underestimation of extreme wave heights. This has critical implications for engineering design on shallow continental shelves or over large shoals, where the risk of extreme waves may be significantly higher than the model predicts (Caires & Van Gent, 2012).
-
-### Comparative Performance with Other Models
-
-More recent, extensive field data analyses have placed the Battjes and Groenendijk's model within the broader context of other shallow-water wave height distributions. Studies have shown that the model provides a good fit for the most severe, depth-limited sea states (typically where the relative wave height $H_s/d > 0.45$) on sloping beaches (Karmpadakis et al., 2020).
-
-However, for moderately energetic conditions or different bathymetries, other models may provide more accurate results. **Users should be aware that no single model has been found to be universally superior across all shallow-water conditions, and the choice of model may depend on the specific characteristics of the sea state being analyzed (Karmpadakis et al., 2020)**.
-
-The **Rayleigh (1885) model** is based on the assumption of a narrow-banded, linear Gaussian sea surface. It performs optimally in deep water conditions where there is no interaction with the seabed. However, this model has significant limitations, as it fails completely in shallow water environments. Its applicability is restricted to deep waters, and it is known to be unbounded, as highlighted by Longuet-Higgins in 1952.
-
-The **Glukhovskiy (1966) model** relies on the Weibull distribution with a depth-dependent shape parameter to characterize wave heights. It is best suited for moderately energetic shallow-water conditions, where the wave dynamics are influenced by the seabed. Nonetheless, it tends to overestimate extreme wave heights, a limitation documented by van Vledder in 1991.
-
-**Battjes and Groenendijk (2000) model** employs a composite Weibull distribution, representing two populations, and is referred to as a "Point model." It is most effective in scenarios involving severely depth-limited sea states, specifically when the ratio of significant wave height to water depth exceeds 0.45, on plane or sloping beaches with slopes ranging from 1:20 to 1:250. However, this model tends to underestimate wave heights on flat bottoms, which can lead to non-conservative predictions. Additionally, it neglects the influence of wave history, as discussed by Caires and Van Gent in 2012.
-
-The **Mendez et al. (2004) model** is based on the concept of wave energy propagation with breaking. It serves as an alternative approach for conditions characterized by moderate energy levels. Despite its usefulness, it has limitations, including a bounded shape parameter for low Iribarren numbers, as described by Mendez et al. in 2004.
-
-Finally, the **Karmpadakis et al. (2022) model** is founded on a continuous distribution that incorporates nonlinearity and wave directionality. It is particularly suitable for intermediate and shallow waters over flat or horizontal seabeds. Nonetheless, this model was developed for short-crested seas and may require upscaling from laboratory scales to real-world applications, which could introduce additional uncertainties.
-
-# Building and Running
-
-This guide details how to compile and use the various programs in the shallow water wave model suite.
+The implementation includes the deep-water convergence treatment discussed by Caires and Van Gent (2012): the Battjes-Groenendijk result is not permitted to exceed the corresponding Rayleigh value, and the program switches directly to Rayleigh statistics when the normalized transitional wave height is sufficiently large.
 
 ---
 
-### Command-Line Interface (CLI)
+## Scope of the calculator
 
-The CLI application calculates shallow-foreshore wave-height distribution parameters. It's available in both C++ and Fortran.
+The calculator predicts the **local short-term distribution of individual zero-crossing wave heights** at a point on a shallow, gently sloping foreshore. It returns:
 
-#### C++ Version (`shallow-water-waves_cli.cpp`)
+- free-surface variance $m_0$;
+- root-mean-square individual wave height $H_{rms}$;
+- transitional wave height $H_{tr}$;
+- normalized transition $\widetilde H_{tr}=H_{tr}/H_{rms}$;
+- Composite Weibull scale parameters $H_1$ and $H_2$ when the Battjes-Groenendijk branch is active;
+- means of the highest $1/3$, $1/10$, $1/50$, $1/100$, $1/250$, and $1/1000$ fractions of the individual waves;
+- diagnostic ratios relative to $H_{1/3}$;
+- the selected distribution branch: `B&G` or `Rayleigh`.
 
-**Compilation Instructions (g++):**
-```bash
-g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -Wconversion \
--Wsign-conversion -static -static-libgcc -static-libstdc++ -o \
-shallow-water-waves_cli shallow-water-waves_cli.cpp
-```
-
-**Usage:**
-You can run the application by providing parameters as command-line arguments or by entering them interactively.
-
-* **With command-line arguments (e.g., Hm0=2.5, d=5, slopeM=100):**
-    ```bash
-    ./shallow-water-waves_cli 2.5 5 100
-    ```
-
-* **Interactive input:**
-    ```bash
-    ./shallow-water-waves_cli
-    ```
-    The program will then prompt you for the required values.
-
-#### Fortran Version (`shallow-water-waves_cli.f90`)
-
-**Compilation Instructions (gfortran):**
-```bash
-gfortran -O3 -march=native -std=f2018 -Wall -Wextra -pedantic \
--fno-underscoring -o shallow-water-waves_cli_f shallow-water-waves_cli.f90
-```
-
-**Usage:**
-The Fortran version runs identically to the C++ version.
-
-* **With command-line arguments (e.g., Hm0=2.5, d=5, slopeM=100):**
-    ```bash
-    ./shallow-water-waves_cli_f 2.5 5 100
-    ```
-
-* **Interactive input:**
-    ```bash
-    ./shallow-water-waves_cli_f
-    ```
+The program is a **point model**. It does not propagate a spectrum, solve wave transformation along a profile, calculate wave setup, calculate breaking dissipation, or resolve individual waves in time. The local $H_{m0}$, depth, and slope must already be known from measurements or from an appropriate wave-transformation model.
 
 ---
 
-### Graphical User Interface (GUI)
+## Historical development
 
-The GUI application provides a native Windows interface for the same calculations.
+### Chronological overview
 
-**Compilation Instructions (g++ for Windows):**
+| Period | Development | Relevance to this software |
+|---|---|---|
+| 1880s | Rayleigh developed the probability distribution now bearing his name in the context of random vibrations and wave-like phenomena. | Provides the one-parameter reference distribution for linear random-wave heights. |
+| 1952 | Longuet-Higgins connected Gaussian narrow-band sea-surface theory to the Rayleigh distribution of crest-to-trough wave heights. | Establishes the deep-water statistical baseline and the standard exceedance formulas. |
+| 1978 | Battjes and Janssen formulated a random-wave breaking dissipation model based on an energy balance and bore-type dissipation. | Clarified that depth-induced breaking acts statistically on a population of random waves and selectively removes energy from the largest waves. |
+| 1979–1980 | Goda and Longuet-Higgins documented finite-bandwidth and nonlinearity effects in measured wind-wave statistics. | Explains why the empirical deep-water value of $H_{rms}/\sqrt{m_0}$ used by Battjes and Groenendijk differs from the ideal narrow-band value. |
+| 1980s–1990s | Several shallow-water distributions were proposed, including transformed-Rayleigh, Glukhovskiy-type, modified Glukhovskiy, and Weibull formulations. | Demonstrated the need for depth-dependent upper-tail models, but single-shape distributions did not fully reproduce the observed change between low and high waves. |
+| 1998 | Groenendijk's MSc thesis and the WL \| Delft Hydraulics H3351 report developed and validated the Composed Weibull point model. | Established the two-branch distribution, its calibration database, the slope-dependent transition, and the calculation recipe. |
+| 2000 | Battjes and Groenendijk published the Composite Weibull Distribution in *Coastal Engineering*. | Provides the principal scientific model implemented by this repository. |
+| 2012 | Caires and Van Gent examined finite-depth and constant-depth behaviour and clarified deep-water convergence and flat-bottom limitations. | Motivates the Rayleigh switch, Rayleigh caps, and explicit warnings for constant-depth applications. |
+| Present implementation | The same equations are implemented in C++, Fortran, MATLAB, and Python/Jupyter. | Provides reproducible cross-language calculations and engineering reporting. |
+
+### From Gaussian surface elevation to individual wave heights
+
+The historical transition from linear deep-water statistics to the Composite Weibull model is best understood as a sequence of increasingly realistic descriptions.
+
+A linear, stationary, narrow-band random sea may be represented by a Gaussian surface-elevation process. Under those assumptions, the slowly varying envelope amplitude is Rayleigh-distributed, and the corresponding zero-crossing wave heights are also described by a Rayleigh law. This result is not merely an empirical curve fit: it follows from the statistics of two independent Gaussian quadrature components.
+
+Finite spectral bandwidth, nonlinear crest-trough asymmetry, triad interactions, wave breaking, and dissipation progressively weaken that theoretical foundation. On a shallow foreshore, the principal distortion is not uniform across all wave heights. Smaller waves remain comparatively close to the Rayleigh population, whereas the largest waves are preferentially limited by breaking. The observed distribution therefore changes curvature in the upper tail. This is the central empirical observation behind the two-branch Composite Weibull representation.
+
+### Relation to random-wave transformation models
+
+The calculator is intentionally narrower in scope than a spectral wave-transformation model. Historical models such as Battjes-Janssen calculate the spatial evolution of wave energy and breaking dissipation. The present software starts after that transformation problem has been solved: it accepts the **local** $H_{m0}$, local depth, and local slope and reconstructs the corresponding local distribution of individual wave heights.
+
+The distinction is fundamental:
+
+- a transformation model determines how $m_0$ changes along a profile;
+- the Composite Weibull point model determines how the local energy is distributed among individual wave heights at one selected point;
+- a structural, run-up, or overtopping method subsequently uses one or more of those local wave-height statistics.
+
+The three stages should not be conflated.
+
+
+### Rayleigh distribution and early random-wave statistics
+
+The Rayleigh distribution originated in nineteenth-century probability and vibration theory. Longuet-Higgins (1952) established its central role in ocean-wave statistics by showing that crest-to-trough wave heights in a narrow-banded linear Gaussian sea follow a Rayleigh distribution.
+
+For deep-water or weakly depth-limited conditions, the Rayleigh cumulative distribution is
+
+$$
+F_R(H)=1-\exp\left[-\left(H/H_{rms}\right)^2\right]
+$$
+
+The corresponding exceedance probability is
+
+$$
+P(H>h)=\exp\left[-\left(h/H_{rms}\right)^2\right]
+$$
+
+This distribution is completely defined by one scale parameter. Consequently, all characteristic wave heights are related by fixed ratios.
+
+### Random-wave breaking models
+
+Battjes and Janssen (1978) introduced a physically based energy-dissipation model for random waves breaking on a beach. Their work combined an energy balance, bore-type dissipation, and a depth-limited representation of the breaking-wave population. Although that model is not the Composite Weibull model implemented here, it established essential concepts used in later shallow-water random-wave modelling:
+
+- depth-induced breaking selectively affects the largest waves;
+- the local depth limits the upper part of the wave-height distribution;
+- wave-energy dissipation and wave setup can be treated through averaged conservation equations;
+- random breaking requires a statistical description rather than a single deterministic breaker height.
+
+### Modified shallow-water distributions
+
+During the following decades, several alternatives to the Rayleigh distribution were proposed for finite and shallow depths, including Glukhovskiy-type, modified Glukhovskiy, Weibull, and transformed-Rayleigh models. Klopman (1996) developed a modified Glukhovskiy formulation intended to account for depth limitation using local wave energy and depth.
+
+These single-form distributions improved some shallow-water predictions but did not reproduce the observed abrupt change in slope between the lower and upper portions of measured wave-height distributions on Rayleigh probability paper.
+
+### Groenendijk thesis and Delft Hydraulics report, 1998
+
+Groenendijk's 1998 Delft University of Technology thesis, followed by the WL | Delft Hydraulics report H3351 by Groenendijk and Van Gent, developed the **Composed Weibull Distribution**. The terminology in the thesis and report is commonly written *Composed Weibull*; the later journal paper uses *Composite Weibull*. Both names refer to the same two-branch concept.
+
+The model was calibrated and validated using laboratory data for plane foreshores with slopes from approximately $1:20$ to $1:250$. The principal observation was that measured distributions contain:
+
+- a lower-wave region that remains approximately Rayleigh-shaped;
+- an upper-wave region in which breaking suppresses the tail much more strongly;
+- a distinct transitional height separating the two regions.
+
+### Battjes and Groenendijk, 2000
+
+Battjes and Groenendijk (2000) published the model in *Coastal Engineering*. The paper fixed the Weibull exponents at
+
+$$
+k_1=2.0
+$$
+
+$$
+k_2=3.6
+$$
+
+and parameterized the transitional height using local depth and foreshore slope. With a continuity condition and a second-moment constraint, the entire normalized distribution is controlled by the single parameter $\widetilde H_{tr}$.
+
+### Caires and Van Gent, 2012
+
+Caires and Van Gent (2012) examined implementation details and the use of the Battjes-Groenendijk distribution in constant and finite depths. Two conclusions are directly relevant to this software:
+
+1. When dimensional wave heights are recovered using the Battjes-Groenendijk $H_{rms}$ parameterization, the calculated values can overshoot the Rayleigh limit before approaching an incorrect lower asymptote in deep water.
+2. On shallow **flat bottoms**, which are outside the original calibration domain, the Battjes-Groenendijk distribution with a nominal $1:250$ slope underestimated measured high-wave quantiles by approximately 7% to 15% on average.
+
+The present implementation therefore applies a Rayleigh switch and Rayleigh caps, and it explicitly treats constant-depth flat-bottom applications as outside the recommended model domain.
+
+---
+
+## Physical basis
+
+### Why Rayleigh statistics change on a shallow foreshore
+
+The Rayleigh model relies on an approximately linear, Gaussian, narrow-banded sea surface. These assumptions progressively deteriorate as waves propagate into shallow water.
+
+**Shoaling and nonlinear interactions.** Interaction with the seabed increases nonlinearity. Triad interactions transfer energy between harmonics, producing sharper crests, flatter troughs, and non-Gaussian surface elevations.
+
+**Selective depth-induced breaking.** The highest waves break first. Breaking removes energy preferentially from the upper tail of the individual-wave distribution, while smaller waves may continue to propagate with less modification.
+
+**Spatial adaptation.** Breaking and statistical reshaping do not occur instantaneously at the depth where a breaker criterion is first reached. The wave field requires a finite propagation distance to adapt. This spatial lag explains why the foreshore slope appears in the transitional-height parameterization.
+
+### Two statistical populations
+
+The Composite Weibull model represents the observed distribution using two Weibull branches:
+
+- the first branch represents lower, substantially non-breaking waves;
+- the second branch represents higher, breaking or recently broken waves.
+
+The branches meet at $H_{tr}$, the transitional wave height.
+
+---
+
+## Notation
+
+| Symbol | Meaning | Units |
+|---|---|---:|
+| $H$ | individual zero-crossing wave height | m |
+| $H_{m0}$ | spectral significant wave height, $4\sqrt{m_0}$ | m |
+| $m_0$ | zero-order spectral moment or free-surface variance | m² |
+| $H_{rms}$ | root-mean-square individual wave height | m |
+| $d$ | local still-water depth | m |
+| $M$ | denominator of a $1:M$ foreshore slope | - |
+| $\tan\alpha$ | local foreshore slope, $1/M$ | - |
+| $H_{tr}$ | transitional wave height | m |
+| $H_1$, $H_2$ | Weibull scale parameters | m |
+| $k_1$, $k_2$ | Weibull shape exponents | - |
+| $\widetilde H$ | wave height normalized by $H_{rms}$ | - |
+| $H_N$ | height exceeded with probability $1/N$ | m |
+| $H_{1/N}$ | mean height of the highest $1/N$ fraction of waves | m |
+| $\gamma(a,x)$ | unnormalized lower incomplete gamma function | - |
+| $\Gamma(a,x)$ | unnormalized upper incomplete gamma function | - |
+
+A tilde denotes normalization with $H_{rms}$:
+
+$$
+\widetilde H=H/H_{rms}
+$$
+
+The notation $H_N$ and $H_{1/N}$ must not be confused:
+
+- $H_N$ is an exceedance threshold;
+- $H_{1/N}$ is the mean of all waves above that threshold.
+
+The software reports $H_{1/3}$, $H_{1/10}$, $H_{1/50}$, $H_{1/100}$, $H_{1/250}$, and $H_{1/1000}$. It does not report a deterministic maximum wave height.
+
+---
+
+## Probability definitions and statistical conventions
+
+### Cumulative distribution, exceedance probability, and density
+
+For a non-negative individual wave height $H$, the cumulative distribution function is
+
+$$
+F_H(h)=P(H\leq h), \qquad h\geq0.
+$$
+
+The survival or exceedance function is
+
+$$
+Q_H(h)=P(H>h)=1-F_H(h).
+$$
+
+Where the distribution is differentiable, the probability density is
+
+$$
+f_H(h)=\frac{dF_H(h)}{dh}.
+$$
+
+The density integrates to unity:
+
+$$
+\int_0^\infty f_H(h)\,dh=1.
+$$
+
+### Exceedance level $H_N$
+
+The level $H_N$ is exceeded, on average, once in every $N$ individual waves. It is defined by
+
+$$
+Q_H(H_N)=\frac{1}{N},
+$$
+
+or equivalently,
+
+$$
+F_H(H_N)=1-\frac{1}{N}.
+$$
+
+$H_N$ is a quantile or threshold. It is **not** the average of the highest waves.
+
+### Mean of the highest $1/N$ fraction, $H_{1/N}$
+
+The mean of the highest $1/N$ fraction is the conditional mean above $H_N$:
+
+$$
+H_{1/N}=E\left[H\mid H>H_N\right].
+$$
+
+Because $P(H>H_N)=1/N$,
+
+$$
+H_{1/N}
+=
+N\int_{H_N}^{\infty}h\,f_H(h)\,dh.
+$$
+
+This definition is used throughout the code. For example:
+
+- $H_{1/3}$ is the arithmetic mean of the highest one-third of the individual waves;
+- $H_{1/100}$ is the arithmetic mean of the highest one percent;
+- $H_{1/1000}$ is the arithmetic mean of the highest 0.1 percent.
+
+Neither $H_N$ nor $H_{1/N}$ is a deterministic storm maximum. A storm maximum additionally depends on the number of waves, dependence between successive waves, sea-state duration, and nonstationarity.
+
+### Spectral and wave-by-wave quantities
+
+The zero-order spectral moment is
+
+$$
+m_0=\int_0^\infty S_\eta(f)\,df,
+$$
+
+where $S_\eta(f)$ is the variance-density spectrum of free-surface elevation. The spectral significant wave height is
+
+$$
+H_{m0}=4\sqrt{m_0}.
+$$
+
+$H_{m0}$ is obtained from the spectrum, while $H_{1/3}$ is obtained from an ordered sample or a probability distribution of individual zero-crossing wave heights. They are close under many deep-water conditions but are not identical by definition and need not remain close in shallow water.
+
+---
+
+## Rayleigh distribution
+
+### Cumulative distribution and density
+
+The Rayleigh cumulative distribution is
+
+$$
+F_R(H)=1-\exp\left[-\left(H/H_{rms}\right)^2\right]
+$$
+
+The probability density is
+
+$$
+f_R(H)=\frac{2H}{H_{rms}^2}\exp\left[-\left(H/H_{rms}\right)^2\right]
+$$
+
+### Exceedance wave height
+
+The wave height exceeded once, on average, in every $N$ waves is obtained from $P(H>H_N)=1/N$:
+
+$$
+H_N=H_{rms}\sqrt{\ln N}
+$$
+
+### Mean of the highest fraction
+
+For a Rayleigh distribution, the mean of the highest $1/N$ fraction is
+
+$$
+H_{1/N}=N H_{rms}\Gamma\left(\frac{3}{2},\ln N\right)
+$$
+
+For the narrow-band relation $H_{rms}=\sqrt{8m_0}$ and $H_{m0}=4\sqrt{m_0}$, the exact ratios used by the software are:
+
+| Statistic | Rayleigh ratio to $H_{m0}$ |
+|---|---:|
+| $H_{1/3}$ | 1.001075736951740 |
+| $H_{1/10}$ | 1.272734273369137 |
+| $H_{1/50}$ | 1.560113379974762 |
+| $H_{1/100}$ | 1.668233372358517 |
+| $H_{1/250}$ | 1.801017222497626 |
+| $H_{1/1000}$ | 1.984835590575388 |
+
+These constants are used both in the direct Rayleigh branch and as upper caps on dimensional Battjes-Groenendijk results.
+
+### Rayleigh moments and scale relations
+
+For the Rayleigh formulation used here,
+
+$$
+F_R(H)=1-\exp\left[-\left(\frac{H}{H_{rms}}\right)^2\right],
+$$
+
+the general non-central moment is
+
+$$
+E\left[H^r\right]
+=
+H_{rms}^{\,r}
+\Gamma\left(1+\frac{r}{2}\right).
+$$
+
+For $r=2$,
+
+$$
+E\left[H^2\right]=H_{rms}^2,
+$$
+
+which confirms that the scale appearing in the selected Rayleigh form is the root-mean-square individual wave height.
+
+Under ideal narrow-band Gaussian theory,
+
+$$
+H_{rms}=\sqrt{8m_0},
+$$
+
+and therefore
+
+$$
+H_{rms}=\frac{H_{m0}}{\sqrt{2}}.
+$$
+
+The empirical Battjes-Groenendijk relationship used elsewhere in the calculator is intentionally different because it incorporates the observed finite-bandwidth dependence of individual wave heights.
+
+### Derivation of the Rayleigh mean-high-wave expression
+
+The threshold exceeded once in $N$ waves satisfies
+
+$$
+\exp\left[-\left(\frac{H_N}{H_{rms}}\right)^2\right]=\frac{1}{N}.
+$$
+
+Hence,
+
+$$
+\left(\frac{H_N}{H_{rms}}\right)^2=\ln N,
+$$
+
+and
+
+$$
+H_N=H_{rms}\sqrt{\ln N}.
+$$
+
+Substitution into the conditional-mean integral gives
+
+$$
+H_{1/N}
+=
+N\int_{H_N}^{\infty}
+h\,
+\frac{2h}{H_{rms}^2}
+\exp\left[-\left(\frac{h}{H_{rms}}\right)^2\right]dh.
+$$
+
+Using the change of variable
+
+$$
+u=\left(\frac{h}{H_{rms}}\right)^2,
+$$
+
+the result is
+
+$$
+H_{1/N}
+=
+N H_{rms}
+\Gamma\left(\frac{3}{2},\ln N\right).
+$$
+
+This exact expression is the source of the Rayleigh constants tabulated above.
+
+---
+
+## Composite Weibull Distribution
+
+### Normalized variables
+
+The governing equations are solved in terms of wave heights normalized by $H_{rms}$:
+
+$$
+\widetilde H=\frac{H}{H_{rms}},
+\qquad
+\widetilde H_1=\frac{H_1}{H_{rms}},
+\qquad
+\widetilde H_2=\frac{H_2}{H_{rms}},
+\qquad
+\widetilde H_{tr}=\frac{H_{tr}}{H_{rms}}.
+$$
+
+Normalization removes the absolute dimensional scale from the distribution-shape problem. Once the normalized solution is known, dimensional values are recovered by multiplication by $H_{rms}$.
+
+### Survival function
+
+The exceedance form is often more convenient than the CDF:
+
+$$
+Q(H)=1-F(H).
+$$
+
+For the Composite Weibull Distribution,
+
+$$
+Q(H)=
+\begin{cases}
+\exp\left[-\left(\dfrac{H}{H_1}\right)^{k_1}\right],
+&
+H\leq H_{tr},
+\\[8pt]
+\exp\left[-\left(\dfrac{H}{H_2}\right)^{k_2}\right],
+&
+H>H_{tr}.
+\end{cases}
+$$
+
+Continuity of the CDF automatically implies continuity of the exceedance probability at the transition.
+
+### Probability associated with the transition
+
+Define
+
+$$
+x_1=
+\left(\frac{\widetilde H_{tr}}{\widetilde H_1}\right)^{k_1},
+\qquad
+x_2=
+\left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2}.
+$$
+
+The continuity condition requires $x_1=x_2$. Denoting their common value by $x_{tr}$,
+
+$$
+x_{tr}=x_1=x_2.
+$$
+
+The exceedance probability at the transition is
+
+$$
+P(H>H_{tr})=\exp(-x_{tr}),
+$$
+
+and the nominal recurrence count associated with the transition is
+
+$$
+N_{tr}=\exp(x_{tr}).
+$$
+
+For $N<N_{tr}$, the exceedance threshold lies below the transition and the mean-high-wave integral includes both branches. For $N\geq N_{tr}$, the threshold lies in the upper branch.
+
+### Scale-parameter relation implied by continuity
+
+The two scale parameters are not independent. From
+
+$$
+\left(\frac{H_{tr}}{H_1}\right)^{k_1}
+=
+\left(\frac{H_{tr}}{H_2}\right)^{k_2},
+$$
+
+one may write
+
+$$
+H_2
+=
+H_{tr}
+\left(\frac{H_1}{H_{tr}}\right)^{k_1/k_2}.
+$$
+
+The implementation nevertheless solves for both normalized scales simultaneously. This preserves the direct two-equation formulation and provides an explicit continuity residual for convergence checking.
+
+### General moment of the Composite Weibull Distribution
+
+For any real moment order $r>-k_1$, the normalized piecewise moment can be expressed as
+
+$$
+E\left[\widetilde H^r\right]
+=
+\widetilde H_1^{\,r}
+\gamma\left(1+\frac{r}{k_1},x_1\right)
++
+\widetilde H_2^{\,r}
+\Gamma\left(1+\frac{r}{k_2},x_2\right).
+$$
+
+The first term integrates the lower branch from zero to the transition. The second term integrates the upper branch from the transition to infinity.
+
+For $r=0$, the expression represents total probability and equals one when continuity is satisfied. For $r=1$, it gives the normalized mean individual wave height. For $r=2$, it gives the second moment used to impose the $H_{rms}$ normalization.
+
+### Piecewise cumulative distribution
+
+The dimensional cumulative distribution is
+
+$$
+F(H)=\begin{cases}1-\exp\left[-\left(H/H_1\right)^{k_1}\right],&H\leq H_{tr},\\1-\exp\left[-\left(H/H_2\right)^{k_2}\right],&H>H_{tr}.\end{cases}
+$$
+
+The fixed shape exponents are
+
+$$
+k_1=2.0
+$$
+
+$$
+k_2=3.6
+$$
+
+Because $k_1=2$, the lower branch has Rayleigh form. The larger exponent $k_2=3.6$ produces a more rapidly decaying upper tail.
+
+### Piecewise probability density
+
+The corresponding density is
+
+$$
+f(H)=\begin{cases}\frac{k_1}{H_1}\left(H/H_1\right)^{k_1-1}\exp\left[-\left(H/H_1\right)^{k_1}\right],&H\leq H_{tr},\\\frac{k_2}{H_2}\left(H/H_2\right)^{k_2-1}\exp\left[-\left(H/H_2\right)^{k_2}\right],&H>H_{tr}.\end{cases}
+$$
+
+The CDF is continuous at $H_{tr}$, but the density is generally discontinuous because $k_1\neq k_2$. This is an accepted empirical simplification: the integral statistics required for engineering calculations remain well behaved.
+
+### Continuity condition
+
+Continuity at the transition requires
+
+$$
+F_1(H_{tr})=F_2(H_{tr})
+$$
+
+which is equivalent to
+
+$$
+\left(H_{tr}/H_1\right)^{k_1}=\left(H_{tr}/H_2\right)^{k_2}
+$$
+
+In normalized form,
+
+$$
+\left(\widetilde H_{tr}/\widetilde H_1\right)^{k_1}=\left(\widetilde H_{tr}/\widetilde H_2\right)^{k_2}
+$$
+
+### Second-moment normalization
+
+The normalized distribution must satisfy
+
+$$
+E\left[\widetilde H^2\right]=1
+$$
+
+Defining
+
+$$
+x_1=\left(\widetilde H_{tr}/\widetilde H_1\right)^{k_1}
+$$
+
+$$
+x_2=\left(\widetilde H_{tr}/\widetilde H_2\right)^{k_2}
+$$
+
+the second-moment condition is
+
+$$
+\widetilde H_1^2\gamma\left(1+\frac{2}{k_1},x_1\right)+\widetilde H_2^2\Gamma\left(1+\frac{2}{k_2},x_2\right)=1
+$$
+
+The code solves the equivalent residual equation
+
+$$
+F_1=\sqrt{\widetilde H_1^2\gamma\left(1+\frac{2}{k_1},x_1\right)+\widetilde H_2^2\Gamma\left(1+\frac{2}{k_2},x_2\right)}-1=0
+$$
+
+The continuity residual is
+
+$$
+F_2=x_1-x_2=0
+$$
+
+Once $\widetilde H_{tr}$ is known, these two equations determine $\widetilde H_1$ and $\widetilde H_2$.
+
+---
+
+## Local physical parameterization
+
+### Spectral variance
+
+The input spectral significant wave height is converted to free-surface variance using
+
+$$
+m_0=\left(H_{m0}/4\right)^2
+$$
+
+### Root-mean-square individual wave height
+
+The implementation uses the Battjes-Groenendijk empirical relation
+
+$$
+H_{rms}=\left(2.69+3.24\frac{\sqrt{m_0}}{d}\right)\sqrt{m_0}
+$$
+
+Equivalently,
+
+$$
+\frac{H_{rms}}{\sqrt{m_0}}=2.69+3.24\frac{\sqrt{m_0}}{d}
+$$
+
+The coefficient 2.69 represents the broad-banded deep-water limit adopted by Battjes and Groenendijk following Goda's analysis of wind-wave data. It differs from the narrow-band Rayleigh relation $H_{rms}/\sqrt{m_0}=\sqrt{8}\approx2.828427$.
+
+This distinction is the reason dimensional Battjes-Groenendijk values require the deep-water convergence treatment described later.
+
+### Foreshore slope
+
+For an input slope $1:M$,
+
+$$
+\tan\alpha=1/M
+$$
+
+The program expects the positive denominator $M$, not the tangent itself.
+
+### Transitional wave height
+
+The dimensional transitional wave height is
+
+$$
+H_{tr}=\left(0.35+5.8\tan\alpha\right)d
+$$
+
+For a slope entered as $1:M$,
+
+$$
+H_{tr}=\left(0.35+5.8/M\right)d
+$$
+
+The normalized transition controlling the CWD shape is
+
+$$
+\widetilde H_{tr}=H_{tr}/H_{rms}
+$$
+
+A relatively small $\widetilde H_{tr}$ places more of the distribution in the breaking-controlled upper branch. A large $\widetilde H_{tr}$ moves the transition into the far tail and causes the normalized CWD to approach Rayleigh statistics.
+
+### Degree of saturation
+
+A useful dimensionless measure of local wave energy relative to depth is
+
+$$
+\mu=\frac{\sqrt{m_0}}{d}.
+$$
+
+Because $H_{m0}=4\sqrt{m_0}$,
+
+$$
+\mu=\frac{H_{m0}}{4d}.
+$$
+
+The empirical $H_{rms}$ relation can then be written as
+
+$$
+\frac{H_{rms}}{d}
+=
+\left(2.69+3.24\mu\right)\mu.
+$$
+
+Combining this expression with the transition-height formula gives a direct dimensionless expression for the governing transition:
+
+$$
+\widetilde H_{tr}
+=
+\frac{0.35+5.8/M}
+{\left(2.69+3.24\mu\right)\mu}.
+$$
+
+This equation shows explicitly that the normalized distribution shape is governed by two local dimensionless descriptors:
+
+1. the energy-to-depth ratio $\mu$;
+2. the foreshore slope denominator $M$.
+
+For fixed slope, increasing $H_{m0}/d$ decreases $\widetilde H_{tr}$ and places more probability in the breaking-controlled upper branch. For fixed local energy and depth, a steeper foreshore increases $H_{tr}$ and therefore increases $\widetilde H_{tr}$, reflecting the finite spatial distance required for the wave population to adapt to breaking.
+
+---
+
+## Statistical wave-height calculations
+
+### Wave height exceeded once in every $N$ waves
+
+The candidate threshold from the lower branch is
+
+$$
+\widetilde H_{N,1}=\widetilde H_1\left(\ln N\right)^{1/k_1}
+$$
+
+The final exceedance height is
+
+$$
+\widetilde H_N=\begin{cases}\widetilde H_1\left(\ln N\right)^{1/k_1},&\widetilde H_{N,1}<\widetilde H_{tr},\\\widetilde H_2\left(\ln N\right)^{1/k_2},&\widetilde H_{N,1}\geq\widetilde H_{tr}.\end{cases}
+$$
+
+### Mean of the highest $1/N$ fraction
+
+When $\widetilde H_N<\widetilde H_{tr}$, the averaging integral crosses both Weibull branches:
+
+$$
+\widetilde H_{1/N}=N\widetilde H_1\left[\Gamma\left(1+\frac{1}{k_1},\ln N\right)-\Gamma\left(1+\frac{1}{k_1},x_1\right)\right]+N\widetilde H_2\Gamma\left(1+\frac{1}{k_2},x_2\right)
+$$
+
+When $\widetilde H_N\geq\widetilde H_{tr}$, the averaging integral lies entirely in the upper branch:
+
+$$
+\widetilde H_{1/N}=N\widetilde H_2\Gamma\left(1+\frac{1}{k_2},\ln N\right)
+$$
+
+The dimensional result is
+
+$$
+H_{1/N}=\widetilde H_{1/N}H_{rms}
+$$
+
+The implementation evaluates these expressions for $N=3$, $10$, $50$, $100$, $250$, and $1000$.
+
+---
+
+### Unified branch criterion
+
+The lower-branch candidate threshold is
+
+$$
+\widetilde H_{N,1}
+=
+\widetilde H_1(\ln N)^{1/k_1}.
+$$
+
+The same decision may be written using $x_{tr}$:
+
+$$
+\ln N < x_{tr}
+\quad\Longleftrightarrow\quad
+\widetilde H_N<\widetilde H_{tr}.
+$$
+
+Thus the branch is selected from a comparison between the requested exceedance level $\ln N$ and the transition exponent $x_{tr}$.
+
+### Derivation of the mean-high-wave integral
+
+For a Weibull branch with scale $H_s$ and exponent $k$,
+
+$$
+f(H)
+=
+\frac{k}{H_s}
+\left(\frac{H}{H_s}\right)^{k-1}
+\exp\left[-\left(\frac{H}{H_s}\right)^k\right].
+$$
+
+The substitution
+
+$$
+u=\left(\frac{H}{H_s}\right)^k
+$$
+
+gives
+
+$$
+H=H_su^{1/k},
+\qquad
+dH=\frac{H_s}{k}u^{1/k-1}du.
+$$
+
+Consequently,
+
+$$
+\int Hf(H)\,dH
+=
+H_s\int u^{1/k}e^{-u}\,du.
+$$
+
+This integral is expressed by incomplete gamma functions. The two formulas used by the program follow by splitting the conditional-mean integral at $H_{tr}$ whenever the exceedance threshold is below the transition.
+
+---
+
+## Incomplete gamma functions
+
+The complete gamma function is
+
+$$
+\Gamma(a)=\int_0^\infty t^{a-1}e^{-t}\,dt
+$$
+
+The unnormalized lower incomplete gamma function is
+
+$$
+\gamma(a,x)=\int_0^x t^{a-1}e^{-t}\,dt
+$$
+
+The unnormalized upper incomplete gamma function is
+
+$$
+\Gamma(a,x)=\int_x^\infty t^{a-1}e^{-t}\,dt
+$$
+
+They satisfy
+
+$$
+\Gamma(a,x)=\Gamma(a)-\gamma(a,x)
+$$
+
+The C++ and Fortran implementations evaluate the lower incomplete gamma function using:
+
+- a convergent series for $x<a+1$;
+- a continued fraction for larger $x$;
+- `tgamma` or its language equivalent for the complete gamma function;
+- logarithmic gamma evaluation where useful for numerical stability.
+
+The MATLAB implementation follows the same algorithmic structure. The notebook uses SciPy special functions.
+
+### Normalized and unnormalized definitions
+
+Some libraries return the regularized functions
+
+$$
+P(a,x)=\frac{\gamma(a,x)}{\Gamma(a)},
+\qquad
+Q(a,x)=\frac{\Gamma(a,x)}{\Gamma(a)}.
+$$
+
+The governing equations in this repository use the **unnormalized** incomplete gamma functions. An implementation that substitutes $P$ or $Q$ without multiplying by $\Gamma(a)$ will produce incorrect moments and scale parameters.
+
+### Numerical evaluation strategy
+
+The compiled implementations use a hybrid algorithm:
+
+1. For smaller arguments, a power-series representation is used for the lower incomplete gamma function.
+2. For larger arguments, a continued-fraction representation is used for the upper tail.
+3. The complementary identity
+
+$$
+\Gamma(a,x)=\Gamma(a)-\gamma(a,x)
+$$
+
+connects the two forms.
+4. Iteration stops when the relative increment is below the local tolerance.
+5. Invalid arguments or failure to converge are propagated as calculation errors rather than silently accepted.
+
+This split avoids the severe cancellation and slow convergence that would occur if one numerical representation were used over the entire argument range.
+
+---
+
+## Nonlinear solution for $\widetilde H_1$ and $\widetilde H_2$
+
+### Newton-Raphson system
+
+Let
+
+$$
+\mathbf{F}(\mathbf{x})=\begin{bmatrix}F_1(\widetilde H_1,\widetilde H_2)\\F_2(\widetilde H_1,\widetilde H_2)\end{bmatrix}
+$$
+
+with
+
+$$
+\mathbf{x}=\begin{bmatrix}\widetilde H_1\\\widetilde H_2\end{bmatrix}
+$$
+
+At iteration $i$, the Newton correction is obtained from
+
+$$
+\mathbf{J}(\mathbf{x}^{(i)})\Delta\mathbf{x}=-\mathbf{F}(\mathbf{x}^{(i)})
+$$
+
+followed by
+
+$$
+\mathbf{x}^{(i+1)}=\mathbf{x}^{(i)}+\Delta\mathbf{x}
+$$
+
+The Jacobian is approximated by centered finite differences. For example,
+
+$$
+\frac{\partial F_i}{\partial x_j}\approx\frac{F_i(x_j+\delta)-F_i(x_j-\delta)}{2\delta}
+$$
+
+The production constants are:
+
+| Parameter | Value |
+|---|---:|
+| residual tolerance | $10^{-12}$ |
+| Jacobian increment $\delta$ | $10^{-8}$ |
+| local gamma tolerance | $10^{-16}$ |
+| maximum Newton iterations | 100 |
+
+The C++ and Fortran versions solve the $2\times2$ Newton system directly. The MATLAB function implements the same Newton approach. The Jupyter notebook uses `scipy.optimize.fsolve` with the same residual equations and the same empirical starting values.
+
+### Explicit $2\times2$ Newton correction
+
+With
+
+$$
+\mathbf J
+=
+\begin{bmatrix}
+J_{11} & J_{12}\\
+J_{21} & J_{22}
+\end{bmatrix},
+\qquad
+\mathbf F
+=
+\begin{bmatrix}
+F_1\\
+F_2
+\end{bmatrix},
+$$
+
+the determinant is
+
+$$
+D=J_{11}J_{22}-J_{12}J_{21}.
+$$
+
+The correction solving $\mathbf J\Delta\mathbf x=-\mathbf F$ is
+
+$$
+\Delta \widetilde H_1
+=
+\frac{-F_1J_{22}+F_2J_{12}}{D},
+$$
+
+$$
+\Delta \widetilde H_2
+=
+\frac{-J_{11}F_2+J_{21}F_1}{D}.
+$$
+
+A nearly singular Jacobian is rejected when $|D|$ is extremely small. After each correction, non-positive scale parameters are replaced by a small positive tolerance before the next residual evaluation.
+
+### Convergence criterion
+
+The nonlinear solution is accepted only when both governing residuals satisfy
+
+$$
+|F_1|<10^{-12}
+$$
+
+and
+
+$$
+|F_2|<10^{-12}.
+$$
+
+Requiring both conditions is important. A small moment residual alone does not guarantee continuity, and a small continuity residual alone does not guarantee the prescribed $H_{rms}$ normalization.
+
+### Approximate initialization formulas
+
+Good initial estimates materially improve convergence of the coupled nonlinear system. Let
+
+$$
+x=\widetilde H_{tr}=H_{tr}/H_{rms}
+$$
+
+The first initial estimate is
+
+$$
+\widetilde H_1^{(0)}=\frac{\tanh\left(6.739139344110821x-0.01265095590917251\right)^{-0.6551633251836707}}{\tanh\left[\sinh\left(0.6947756601426412x+0.7908718490781483\right)\right]^{5.484052848550241}}
+$$
+
+The second initial estimate is
+
+$$
+\widetilde H_2^{(0)}=1.059259665431797+\frac{0.2059286860468916x}{1+3.865701948059343x^{-3.479682433107255}}
+$$
+
+These equations are **numerical initialization approximations**, not additional physical equations in the Battjes-Groenendijk model. They provide starting values only; the final values are obtained by satisfying the continuity and second-moment residuals.
+
+After initialization, non-positive trial values are replaced by a small positive number before the next residual evaluation.
+
+The approximations are smooth regressions of previously solved scale parameters as functions of $\widetilde H_{tr}$. Their purpose is numerical rather than physical:
+
+- they place the initial iterate close to the solution branch;
+- they reduce the number of Newton iterations;
+- they reduce the risk of crossing into non-positive scale parameters;
+- they improve consistency between the compiled and notebook implementations.
+
+The approximations must not be substituted for the final solution. The converged values are always those satisfying the exact continuity and second-moment equations.
+
+---
+
+## Deep-water convergence and overshoot prevention
+
+### Origin of the dimensional inconsistency
+
+The normalized Composite Weibull solution approaches the normalized Rayleigh distribution as $\widetilde H_{tr}$ becomes large. However, dimensional results are obtained by multiplying by the empirical Battjes-Groenendijk $H_{rms}$.
+
+In the deep-water limit, that parameterization tends to
+
+$$
+H_{rms}=2.69\sqrt{m_0}
+$$
+
+whereas the narrow-band Rayleigh relation used to derive the exact $H_{1/N}/H_{m0}$ limits is
+
+$$
+H_{rms}=\sqrt{8m_0}\approx2.828427\sqrt{m_0}
+$$
+
+Caires and Van Gent showed that direct dimensionalization can therefore overshoot the Rayleigh prediction and later converge to a value below it. The program prevents this non-physical behavior with two safeguards.
+
+### Safeguard 1: Rayleigh branch
+
+When
+
+$$
+\widetilde H_{tr}>2.75
+$$
+
+the program bypasses the nonlinear Composite Weibull solution and directly assigns the exact Rayleigh $H_{1/N}/H_{m0}$ values listed above.
+
+In this branch, $H_1$ and $H_2$ are not required and should be treated as not applicable, even if a particular language implementation displays zero or `NaN` placeholders.
+
+### Safeguard 2: dimensional caps
+
+When the Battjes-Groenendijk branch is active, every dimensional mean-high-wave statistic is capped as
+
+$$
+H_{1/N}=\min\left(H_{1/N}^{BG},C_NH_{m0}\right)
+$$
+
+where $C_N$ is the corresponding exact Rayleigh ratio.
+
+After capping, the software back-calculates the reported normalized values:
+
+$$
+\widetilde H_{1/N}=H_{1/N}/H_{rms}
+$$
+
+This ensures that dimensional values, normalized values, and diagnostic ratios remain mutually consistent in the report.
+
+### Why a normalized Rayleigh limit is not sufficient
+
+The CWD shape does approach Rayleigh as $\widetilde H_{tr}\rightarrow\infty$. That statement concerns normalized ratios based on the $H_{rms}$ used inside the CWD. It does not by itself guarantee that dimensional values obtained from the empirical finite-bandwidth $H_{rms}$ parameterization approach the exact Rayleigh values based on $H_{m0}$.
+
+The correction is therefore applied in dimensional space. This distinction prevents an apparently converged normalized distribution from producing an inconsistent dimensional upper tail.
+
+### Behaviour at the switch
+
+The threshold
+
+$$
+\widetilde H_{tr}=2.75
+$$
+
+is an implementation criterion for deep-water convergence, not a physical breaker index. Immediately above the threshold, the direct Rayleigh constants are used. At or below the threshold, the CWD is solved and each final dimensional statistic is capped individually.
+
+Because the caps are applied statistic by statistic, the selected CWD tail may coincide with the Rayleigh limit for one $N$ while remaining below it for another. The final reported normalized values are recalculated from the capped dimensional values so that all output columns remain internally consistent.
+
+---
+
+## Calculation sequence
+
+For each valid input set, the software performs the following operations:
+
+1. Validate that $H_{m0}$, $d$, and $M$ are finite and positive.
+2. Calculate $m_0=(H_{m0}/4)^2$.
+3. Calculate $H_{rms}$ from the Battjes-Groenendijk empirical relation.
+4. Calculate $\tan\alpha=1/M$.
+5. Calculate $H_{tr}=(0.35+5.8\tan\alpha)d$.
+6. Calculate $\widetilde H_{tr}=H_{tr}/H_{rms}$.
+7. Select the Rayleigh branch when $\widetilde H_{tr}>2.75$.
+8. Otherwise, initialize and solve for $\widetilde H_1$ and $\widetilde H_2$.
+9. Calculate $\widetilde H_N$ and $\widetilde H_{1/N}$ for each requested $N$.
+10. Convert the normalized results to metres.
+11. Apply the Rayleigh dimensional caps.
+12. Recalculate normalized values from the final capped dimensional results.
+13. Calculate diagnostic ratios relative to $H_{1/3}$.
+14. Display the results and write `report.txt` where supported.
+
+### Reference pseudocode
+
+```text
+read Hm0, d, M
+validate Hm0 > 0, d > 0, M > 0 and all values finite
+
+m0        = (Hm0 / 4)^2
+sqrt_m0   = sqrt(m0)
+Hrms      = (2.69 + 3.24 * sqrt_m0 / d) * sqrt_m0
+tan_alpha = 1 / M
+Htr       = (0.35 + 5.8 * tan_alpha) * d
+Htr_tilde = Htr / Hrms
+
+if Htr_tilde > 2.75:
+    distribution = Rayleigh
+    assign exact Rayleigh H1/N = C_N * Hm0
+else:
+    distribution = B&G
+    evaluate empirical initial guesses
+    solve continuity and second-moment residuals
+    for N in {3, 10, 50, 100, 250, 1000}:
+        determine the branch containing H_N
+        integrate the corresponding upper tail
+        dimensionalize with Hrms
+        cap the result at C_N * Hm0
+        recalculate the normalized final value
+
+calculate ratios H1/N / H1/3
+format the report
+write report.txt
+```
+
+### Computational complexity
+
+The calculation is small. Each case requires only a two-variable nonlinear solve and a limited number of incomplete-gamma evaluations. Runtime is normally negligible compared with spectral wave propagation, CFD, Boussinesq, or phase-resolving models. The primary implementation concern is numerical correctness and cross-language consistency rather than computational cost.
+
+---
+
+## Inputs
+
+### $H_{m0}$: spectral significant wave height
+
+Enter the local spectral significant wave height in metres. The value should correspond to the same location and water level as the input depth.
+
+### $d$: local water depth
+
+Enter the positive local still-water depth in metres. The model does not add tides, storm surge, wave setup, or sea-level rise automatically.
+
+### $M$: slope denominator
+
+Enter the denominator of the local foreshore slope $1:M$.
+
+Examples:
+
+| Foreshore slope | Input $M$ | $\tan\alpha$ |
+|---|---:|---:|
+| $1:20$ | 20 | 0.050000 |
+| $1:50$ | 50 | 0.020000 |
+| $1:100$ | 100 | 0.010000 |
+| $1:250$ | 250 | 0.004000 |
+
+Use a representative local or averaged foreshore slope consistent with the point-model assumptions. Do not enter a slope angle in degrees.
+
+---
+
+## Outputs
+
+### Distribution type
+
+- `B&G`: the Composite Weibull equations were solved.
+- `Rayleigh`: the normalized transition exceeded 2.75 and the direct Rayleigh branch was used.
+
+### Scale parameters
+
+$H_1$ and $H_2$ are mathematical scale parameters of the two Weibull branches. They are not breaker heights and should not be interpreted as independent physical wave statistics.
+
+### Mean-high-wave statistics
+
+The program reports:
+
+- $H_{1/3}$: mean of the highest one-third;
+- $H_{1/10}$: mean of the highest one-tenth;
+- $H_{1/50}$: mean of the highest one-fiftieth;
+- $H_{1/100}$: mean of the highest one-hundredth;
+- $H_{1/250}$: mean of the highest one-two-hundred-and-fiftieth;
+- $H_{1/1000}$: mean of the highest one-thousandth.
+
+Both normalized values $H/H_{rms}$ and dimensional values in metres are reported.
+
+### Diagnostic ratios
+
+The report includes
+
+$$
+H_{1/10}/H_{1/3}
+$$
+
+$$
+H_{1/50}/H_{1/3}
+$$
+
+$$
+H_{1/100}/H_{1/3}
+$$
+
+$$
+H_{1/250}/H_{1/3}
+$$
+
+$$
+H_{1/1000}/H_{1/3}
+$$
+
+These ratios describe the upper-tail shape independently of the absolute wave-height scale.
+
+---
+
+## Worked example
+
+For
+
+- $H_{m0}=2.5$ m;
+- $d=5.0$ m;
+- slope $1:100$;
+
+then
+
+$$
+m_0=(2.5/4)^2=0.390625\ \text{m}^2
+$$
+
+$$
+H_{rms}=1.9344\ \text{m}
+$$
+
+$$
+H_{tr}=(0.35+5.8/100)\times5=2.0400\ \text{m}
+$$
+
+$$
+\widetilde H_{tr}=2.0400/1.9344=1.0546
+$$
+
+Because $\widetilde H_{tr}<2.75$, the `B&G` branch is used. The C++ implementation gives approximately:
+
+| Quantity | Result |
+|---|---:|
+| $\widetilde H_1$ | 1.1567 |
+| $\widetilde H_2$ | 1.1102 |
+| $H_{1/3}$ | 2.5027 m |
+| $H_{1/10}$ | 2.9701 m |
+| $H_{1/50}$ | 3.3296 m |
+| $H_{1/100}$ | 3.4567 m |
+| $H_{1/250}$ | 3.6077 m |
+| $H_{1/1000}$ | 3.8086 m |
+| $H_{1/1000}/H_{1/3}$ | 1.5218 |
+
+Small differences in the last displayed digit can occur between language implementations because of formatting and special-function evaluation.
+
+### Rayleigh-branch example
+
+For
+
+- $H_{m0}=2.5$ m;
+- $d=20.0$ m;
+- slope $1:100$;
+
+the intermediate values are
+
+$$
+m_0=\left(\frac{2.5}{4}\right)^2=0.390625\ \mathrm{m}^2,
+$$
+
+$$
+H_{rms}
+=
+\left(2.69+3.24\frac{0.625}{20}\right)0.625
+=
+1.74453125\ \mathrm{m},
+$$
+
+$$
+H_{tr}
+=
+\left(0.35+\frac{5.8}{100}\right)20
+=
+8.16\ \mathrm{m},
+$$
+
+and
+
+$$
+\widetilde H_{tr}
+=
+\frac{8.16}{1.74453125}
+\approx4.6772.
+$$
+
+Because $\widetilde H_{tr}>2.75$, the direct Rayleigh branch is selected. The corresponding dimensional statistics are:
+
+| Quantity | Result |
+|---|---:|
+| $H_{1/3}$ | 2.502689 m |
+| $H_{1/10}$ | 3.181836 m |
+| $H_{1/50}$ | 3.900283 m |
+| $H_{1/100}$ | 4.170583 m |
+| $H_{1/250}$ | 4.502543 m |
+| $H_{1/1000}$ | 4.962089 m |
+
+This example also demonstrates that the direct Rayleigh branch uses exact ratios to $H_{m0}$ rather than dimensionalizing the empirical Battjes-Groenendijk $H_{rms}$.
+
+---
+
+## Sensitivity and dimensional interpretation
+
+### Dependence on $H_{m0}/d$
+
+The degree of saturation is proportional to $H_{m0}/d$. Increasing local wave height at fixed depth, or reducing depth at fixed wave height, moves the distribution farther from Rayleigh. The largest changes generally occur in the high-$N$ statistics because breaking primarily suppresses the upper tail.
+
+### Dependence on slope
+
+At fixed $H_{m0}$ and $d$, decreasing $M$ means a steeper foreshore. The transition formula then gives a larger $H_{tr}$ and a larger $\widetilde H_{tr}$. In the point-model parameterization, this leaves more of the distribution in the lower Rayleigh-shaped branch. The slope dependence should be interpreted as an empirical representation of spatial adaptation, not as a universal statement that steeper seabeds always produce larger physical waves.
+
+### Dimensional scaling
+
+For fixed dimensionless conditions, the normalized quantities remain unchanged and dimensional wave heights scale with $H_{rms}$. However, changing $H_{m0}$ at fixed depth also changes the degree of saturation, so practical scaling is not exactly linear unless the ratios $H_{m0}/d$ and the slope are preserved.
+
+### Upper-tail sensitivity
+
+As $N$ increases, $H_{1/N}$ samples progressively rarer waves. These values are more sensitive to:
+
+- the selected distribution;
+- numerical precision in incomplete gamma functions;
+- the deep-water cap;
+- model-domain violations;
+- measurement sampling uncertainty;
+- the number of waves available for empirical validation.
+
+Consequently, $H_{1/1000}$ should not be treated as equally well constrained as $H_{1/3}$ merely because both are produced by the same deterministic formula.
+
+---
+
+## Model applicability
+
+### Original calibration domain
+
+The underlying laboratory database included plane shallow foreshores with slopes approximately between
+
+$$
+1:20\ \text{and}\ 1:250
+$$
+
+The 1998 validation report identified the main validated conditions as:
+
+- degree of saturation approximately $0<\sqrt{m_0}/d<0.15$;
+- equivalently, approximately $0<H_{m0}/d<0.6$ because $H_{m0}=4\sqrt{m_0}$;
+- straight, parallel depth contours;
+- simple, gradually varying foreshore geometry;
+- local wave conditions that have had sufficient propagation distance to adapt to the depth.
+
+The source database included slopes $1:20$, $1:30$, $1:50$, $1:100$, and $1:250$ and predominantly JONSWAP-type laboratory spectra.
+
+### Point-model assumption
+
+The distribution is assumed to depend primarily on the local $m_0$, $d$, and $\tan\alpha$, rather than on the full transformation history. This assumption is most defensible on a long, simple, monotonic foreshore.
+
+### Steep foreshores
+
+For slopes steeper than approximately $1:20$, the transitional-height relation becomes less well supported and the spatial lag of breaking becomes increasingly important. A Rayleigh estimate may provide a conservative alternative, but project-specific data or a more suitable model should be preferred.
+
+### Very mild and flat bottoms
+
+A flat bottom is not equivalent to a $1:250$ foreshore. On a constant-depth bed:
+
+- waves are not continuously forced to break by a shoreward depth reduction;
+- local wind input may be important;
+- the wave-height distribution may remain closer to Rayleigh than the B&G model predicts;
+- applying $M=250$ can underestimate high-wave statistics.
+
+Caires and Van Gent found mean underestimation of approximately 7% to 15% for high-wave quantities on shallow flat bottoms. For such cases, a Rayleigh distribution is generally the safer default unless a validated constant-depth model or site-specific measurements are available.
+
+### Bars, troughs, and rapidly varying bathymetry
+
+The point model does not explicitly retain wave-field memory. On barred profiles, the distribution shoreward of a bar may gradually reform toward Rayleigh as waves enter deeper water, then depart from Rayleigh again if depth-induced breaking resumes. The simple local formula cannot fully represent this non-local evolution.
+
+Use caution for:
+
+- offshore bars and troughs;
+- abrupt dredged channels;
+- reef edges;
+- submerged structures;
+- rapidly changing slopes;
+- strongly two-dimensional bathymetry;
+- locations dominated by refraction, diffraction, or wave-current interaction.
+
+### Other limitations
+
+The calculator does not explicitly include:
+
+- wave period or spectral shape as an input;
+- directional spreading;
+- wave-current interaction;
+- reflected waves;
+- infragravity-wave separation;
+- local wind growth;
+- wave grouping;
+- nonstationarity;
+- individual-wave maximum statistics based on storm duration;
+- uncertainty propagation.
+
+The model should not be used outside its calibration domain without engineering judgement, sensitivity analysis, and comparison against alternative models or measurements.
+
+### Calibration evidence and interpretation of the stated range
+
+The calibration range is not a rigid mathematical boundary at which the equations suddenly become invalid. It identifies the experimental region in which the parameters were fitted and checked. Predictions near the edge of the range should receive more scrutiny than predictions near the central portion of the database.
+
+The original data represent controlled laboratory conditions. Field applications may include directional spreading, currents, irregular bathymetry, wind input, reflection, and mixed sea-swell systems that were not independently parameterized. Agreement of the input ratios with the laboratory range is therefore necessary but not sufficient evidence of applicability.
+
+### Recommended engineering checks
+
+Before adopting a result, verify:
+
+1. that $H_{m0}$ and $d$ refer to the same location and water level;
+2. that the slope represents the adapting foreshore rather than an isolated local cell;
+3. that the bathymetry is sufficiently monotonic for a point-model interpretation;
+4. that the selected statistic is the one required by the downstream design method;
+5. that Rayleigh, CWD, and any project-specific measured or modelled distributions have been compared;
+6. that the result is not being interpreted as a deterministic maximum;
+7. that sensitivity to water level, wave height, slope, and the 2.75 switch has been examined.
+
+---
+
+## Engineering interpretation
+
+Accurate upper-tail wave statistics are relevant to:
+
+- armour stability and wave loading;
+- revetment and dike design;
+- run-up and overtopping assessments;
+- crest-level studies;
+- reliability analysis;
+- interpretation of shallow-water physical-model data.
+
+The calculator supplies wave-height statistics only. It does not replace the hydraulic formula, numerical model, physical model, design standard, or partial-safety framework required for the final engineering application.
+
+For overtopping or structural calculations, verify which wave-height definition the selected design method requires. $H_{m0}$, $H_{1/3}$, an exceedance quantile, and the mean of the highest fraction are not interchangeable in shallow water.
+
+---
+
+## Project files
+
+| File | Purpose |
+|---|---|
+| `shallow-water-waves_cli.cpp` | portable C++ command-line implementation |
+| `shallow-water-waves_gui.cpp` | native Windows C++ graphical interface |
+| `shallow-water-waves_cli.f90` | Fortran command-line implementation |
+| `shallow_water_waves.m` | MATLAB function returning a results structure |
+| `shallow-water-waves.ipynb` | Python/Jupyter implementation, tables, and plots |
+| `README.md` | theory, equations, limitations, build instructions, and usage |
+
+All implementations use the same physical parameterization, target statistics, Rayleigh limits, and nonlinear governing equations.
+
+---
+
+## C++ command-line program
+
+### Compile with GCC or MinGW-w64
+
+Portable build:
+
+```bash
+g++ -O3 -std=c++17 -Wall -Wextra -pedantic \
+    -Wconversion -Wsign-conversion \
+    shallow-water-waves_cli.cpp \
+    -o shallow-water-waves_cli
+```
+
+Optimized static Windows build, where the required static libraries are available:
+
 ```bash
 g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic \
--Wconversion -Wsign-conversion -municode shallow-water-waves_gui.cpp -o \
-shallow-water-waves_gui -mwindows -static -static-libgcc -static-libstdc++
+    -Wconversion -Wsign-conversion \
+    -static -static-libgcc -static-libstdc++ \
+    shallow-water-waves_cli.cpp \
+    -o shallow-water-waves_cli.exe
 ```
 
-**Usage:**
-Run the compiled executable (`shallow-water-waves_gui.exe`). A window will appear where you can input the $H_{m0}$, $d$, and beach-slope denominator $m$ in the text fields and click "Compute" to see the results. The report is also saved to `report.txt`.
+### Run with command-line arguments
+
+Linux or macOS:
+
+```bash
+./shallow-water-waves_cli 2.5 5.0 100
+```
+
+Windows:
+
+```bat
+shallow-water-waves_cli.exe 2.5 5.0 100
+```
+
+The argument order is:
+
+```text
+Hm0  depth  slope_denominator
+```
+
+### Run interactively
+
+```bash
+./shallow-water-waves_cli
+```
+
+When the three arguments are omitted, the program prompts for each input.
+
+### Output
+
+The formatted report is printed to the terminal and written to
+
+```text
+report.txt
+```
+
+in the current working directory.
 
 ---
 
-### Jupyter Notebook Interface (shallow-water-waves.ipynb)
+## Native Windows C++ GUI
 
-This notebook provides a detailed implementation and explanation of the wave height distribution model. It is structured to be both an interactive computational tool and an educational document.
-
-#### Prerequisites
-
-Before running the notebook, ensure you have the required Python libraries installed by running the following command in your terminal or command prompt:
+### Compile with MinGW-w64
 
 ```bash
-pip install numpy scipy pandas notebook matplotlib
+g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic \
+    -Wconversion -Wsign-conversion -municode \
+    shallow-water-waves_gui.cpp \
+    -o shallow-water-waves_gui.exe \
+    -mwindows -static -static-libgcc -static-libstdc++
 ```
 
-#### Usage
+### Run
 
-1.  **Follow the Notebook Sequentially**: Each section builds upon the last, explaining the theory and then providing the code that implements it.
-2.  **Run the Code Cells**: Execute the code cells in order as you progress through the notebook.
-3.  **Modify Inputs**: In the final section, change the input parameters to match your scenario and run the last cell to see the results.
+```bat
+shallow-water-waves_gui.exe
+```
+
+Enter:
+
+- `Hm0 (m)`;
+- `d (m)`;
+- `Beach slope m` for a slope $1:m$;
+
+then press **Compute**. The report is displayed in the window and written to `report.txt`.
 
 ---
 
-### Carvalho (2025) Table Generator
+## Fortran command-line program
 
-This program computes and tabulates normalized wave height parameters over a range of conditions ($H_{tr}/H_{rms}$), generating the file `carvalho2025_table.txt`. It does not require user input.
+### Compile with GNU Fortran
 
-#### C++ Version (`carvalho2025_table.cpp`)
-
-**Compilation Instructions (g++):**
 ```bash
-g++ -O3 -march=native -std=c++17 -Wall -Wextra -pedantic -static \
--o carvalho2025_table carvalho2025_table.cpp
+gfortran -O3 -march=native -std=f2018 -Wall -Wextra -pedantic \
+    -Wconversion -static -fno-underscoring \
+    shallow-water-waves_cli.f90 \
+    -o shallow-water-waves_cli_f
 ```
 
-**Usage:**
+When static linking is unavailable, remove `-static`.
+
+### Run
+
 ```bash
-./carvalho2025_table
+./shallow-water-waves_cli_f 2.5 5.0 100
 ```
 
-#### Fortran Version (`carvalho2025_table.f90`)
+or interactively:
 
-**Compilation Instructions (gfortran):**
 ```bash
-gfortran -O3 -march=native -std=f2008 -Wall -Wextra -pedantic \
--fno-underscoring -o carvalho2025_table_f carvalho2025_table.f90
+./shallow-water-waves_cli_f
 ```
 
-**Usage:**
-```bash
-./carvalho2025_table_f
+The program prints the report and writes `report.txt`.
+
+---
+
+## MATLAB function
+
+Place `shallow_water_waves.m` on the MATLAB path or in the current working directory.
+
+### Return the result structure
+
+```matlab
+results = shallow_water_waves(2.5, 5.0, 100);
 ```
 
-## Software Usage and Output Interpretation
+### Print the report without assigning an output
 
-### Required Input Parameters
+```matlab
+shallow_water_waves(2.5, 5.0, 100);
+```
 
-The software requires three input parameters to define the local environmental conditions. The first parameter is the significant wave height, denoted by $H_{m0}$, which represents the spectral significant wave height and is defined as $4\sqrt{m_0}$. Its units are metres (m). The second parameter is the water depth, denoted by $d$, indicating the local still-water depth at the point of interest, also measured in metres (m). The third parameter is the beach-slope denominator, denoted by $m$, so that the slope is written as $1:m$; it is dimensionless.
+The function validates all three inputs, returns the full results structure, and writes `report.txt`.
 
-### Execution via Command-Line and Graphical Interfaces
+Key structure fields include:
 
-The software can be run from the command line or through a graphical user interface.
+```text
+Hm0
+d
+slopeM
+distribution_type
+m0
+Hrms
+tanAlpha
+Htr_dim
+Htr_tilde
+H1_Hrms
+H2_Hrms
+H1_3_Hrms ... H1_1000_Hrms
+H1_dim
+H2_dim
+H1_3_dim ... H1_1000_dim
+ratio_1_10_div_1_3 ... ratio_1_1000_div_1_3
+```
 
-#### Command-Line Interface (CLI)
+---
 
-The CLI application (`shallow-water-waves_cli`) can be executed in two modes:
+## Jupyter notebook
 
--   **Argument-based execution**: Provide the three input parameters as command-line arguments in the order $H_{m0}$, $d$, $m$.
-    ```bash
-    ./shallow-water-waves_cli 2.0 5.0 100
-    ```
--   **Interactive execution**: Run the executable without arguments. The program will then prompt the user to enter each value interactively.
-    ```bash
-    ./shallow-water-waves_cli
-    ```
+### Create a virtual environment
 
-#### Graphical User Interface (GUI)
+Windows:
 
-The GUI application (`shallow-water-waves_gui`) provides a user-friendly window with input fields for the three parameters. After entering the values, clicking the "Calculate" button will perform the computation and display the results directly in the interface.
+```bat
+py -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install numpy scipy pandas matplotlib notebook
+jupyter notebook shallow-water-waves.ipynb
+```
 
-### Analysis of the Generated Report File
+Linux or macOS:
 
-Both the CLI and GUI applications generate a detailed text file named `report.txt` in the execution directory. This file contains a comprehensive summary of the calculation.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install numpy scipy pandas matplotlib notebook
+jupyter notebook shallow-water-waves.ipynb
+```
 
-The report is organized into several sections. The **Inputs** section lists the parameters $H_{m0}$, $d$, and the slope, echoing the user-provided values for verification. The **Intermediate Values** section presents key physical and dimensionless parameters such as $H_{m0}$, $H_{rms}$, $H_{tr}$, and $\tilde{H}_{tr}$, with $\tilde{H}_{tr}$ being the most critical value that determines the shape of the wave height distribution.
+The notebook contains:
 
-The **Dimensionless Ratios** section includes ratios such as $\tilde{H}_{1/3}$ and $\tilde{H}_{1/10}$, which represent the normalized shape of the wave-height distribution. The **Final Wave Heights** section provides the corresponding dimensional outputs such as $H_{1/3}$ and $H_{1/10}$, measured in metres for engineering applications.
+- theoretical background;
+- incomplete-gamma functions;
+- nonlinear solution with `fsolve`;
+- the empirical initialization formulas;
+- the main analysis workflow;
+- formatted result tables;
+- graphical analysis of the distribution and characteristic wave heights.
 
-The **Diagnostic Ratios** section features ratios which are used to compare the model output against theoretical Rayleigh values.
+Run the cells sequentially and modify the input cell before executing the final analysis cells.
 
-## References
+---
 
-* **Battjes, J. A., & Groenendijk, H. W. (2000).** Wave height distributions on shallow foreshores. *Coastal Engineering*, 40(3), 161-182. [Link](https://data-ww3.ifremer.fr/BIB/Battjes_Groenendijk_CE2000.pdf)
-* **Caires, S., & Van Gent, M. R. A. (2012).** Wave height distribution in constant and finite depths. *Coastal Engineering Proceedings*, 1(33), 15. [Link](https://doi.org/10.9753/icce.v33.waves.15)
-* **Goda, Y. (1979).** A review on statistical interpretation of wave data. *Report of the Port and Harbour Research Institute, Japan*, 18(1), 5-32. [Link](https://www.pari.go.jp/PDF/vol018-no01-01.pdf)
-* **Groenendijk, H. W. (1998).** *Shallow foreshore wave height statistics*. M.Sc.-thesis, Delft University of Technology, Department of Civil Engineering, Section Fluid Mechanics, The Netherlands. [Link](http://resolver.tudelft.nl/uuid:fe03dda9-40d9-4046-87fb-459f01fcd3d3)
-* **Groenendijk, H. W., & Van Gent, M. R. A. (1998).** *Shallow foreshore wave height statistics; A predictive model for the probability of exceedance of wave heights*. Technical Report H3351, WL | delft hydraulics, The Netherlands. [Link](http://dx.doi.org/10.13140/RG.2.2.14180.68486)
-* **Hasselmann, K., Barnett, T. P., Bouws, E., Carlson, H., Cartwright, D. D. E., Enke, K.,... & Walden, H. (1973).** *Measurements of Wind-Wave Growth and Swell Decay during the Joint North Sea Wave Project (JONSWAP)*. Ergnzungsheft zur Deutschen Hydrographischen Zeitschrift Reihe, A (8), 95. [Link](https://www.researchgate.net/publication/256197895_Measurements_of_wind-wave_growth_and_swell_decay_during_the_Joint_North_Sea_Wave_Project_JONSWAP)
-* **James, J. P., & Panchang, V. (2022).** Investigation of Wave Height Distributions and Characteristic Wave Periods in Coastal Environments. *Journal of Geophysical Research: Oceans*, 127, e2021JC018144. [Link](https://doi.org/10.1029/2021JC018144)
-* **Karmpadakis, I., Swan, C., & Christou, M. (2020).** Assessment of wave height distributions using an extensive field database. *Coastal Engineering*, 157, 103630. [Link](https://doi.org/10.1016/j.coastaleng.2019.103630)
-* **Karmpadakis, I., Swan, C., & Christou, M. (2022).** A new wave height distribution for intermediate and shallow water depths. *Coastal Engineering*, 175, 104130. [Link](https://doi.org/10.1016/j.coastaleng.2022.104130)
-* **Klopman, G. (1996).** *Extreme wave heights in shallow water*. WL | delft hydraulics, Report H2486, The Netherlands.
-* **Klopman, G., & Stive, M. J. F. (1989).** *Extreme waves and wave loading in shallow water*. Paper presented at the E&P Forum Workshop in Paris, Delft Hydraulics, The Netherlands. [Link](https://repository.tudelft.nl/record/uuid:84ef8201-1130-418f-954a-79a80c626173)
-* **Longuet-Higgins, M. S. (1952).** On the statistical distribution of heights of sea waves. *Journal of Marine Research*, 11(3), 245-266. [Link](https://elischolar.library.yale.edu/journal_of_marine_research/774/)
-* **Longuet-Higgins, M. S. (1980).** On the distribution of the heights of sea waves: Some effects of nonlinearity and finite band width. *Journal of Geophysical Research*, 85(C3), 1519-1523. [Link](https://doi.org/10.1029/JC085iC03p01519)
-* **Naess, A. (1985).** On the distribution of crest to trough wave heights. *Ocean Engineering*, 12(3), 221-234. [Link](https://doi.org/10.1016/0029-8018(85)90014-9)
-* **Tayfun, M. A. (1990).** Distribution of large wave heights. *Journal of Waterway, Port, Coastal, and Ocean Engineering*, 116(6), 686-707. [Link](https://doi.org/10.1061/(ASCE)0733-950X(1990)116:6(686))
-* **Thornton, E. B., & Guza, R. T. (1982).** Energy saturation and phase speeds measured on a natural beach. *Journal of Geophysical Research*, 87(C12), 9499-9508. [Link](https://doi.org/10.1029/JC087iC12p09499)
-* **Thornton, E. B., & Guza, R. T. (1983).** Transformation of wave height distribution. *Journal of Geophysical Research*, 88(C10), 5925-5938. [Link](https://doi.org/10.1029/JC088iC10p05925)
+## Numerical verification
+
+Recommended cross-language verification steps:
+
+1. Use the same $H_{m0}$, $d$, and $M$ in every implementation.
+2. Confirm the same `distribution_type`.
+3. Compare $m_0$, $H_{rms}$, $H_{tr}$, and $\widetilde H_{tr}$.
+4. In the `B&G` branch, compare $\widetilde H_1$ and $\widetilde H_2$.
+5. Compare all final dimensional $H_{1/N}$ values after capping.
+6. Compare diagnostic ratios using the final capped values.
+7. Confirm both nonlinear residuals are below the specified tolerance.
+
+Minor floating-point differences are expected, but engineering outputs should agree to the displayed precision.
+
+### Residual and identity checks
+
+For a converged B&G solution, the following identities should be checked.
+
+Continuity:
+
+$$
+\left(\frac{\widetilde H_{tr}}{\widetilde H_1}\right)^{k_1}
+-
+\left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2}
+\approx0.
+$$
+
+Second moment:
+
+$$
+\widetilde H_1^2
+\gamma\left(1+\frac{2}{k_1},x_1\right)
++
+\widetilde H_2^2
+\Gamma\left(1+\frac{2}{k_2},x_2\right)
+\approx1.
+$$
+
+Monotonicity:
+
+$$
+H_{1/3}<H_{1/10}<H_{1/50}<H_{1/100}<H_{1/250}<H_{1/1000}.
+$$
+
+Rayleigh cap:
+
+$$
+H_{1/N}\leq C_NH_{m0}.
+$$
+
+Dimensional-normalized consistency:
+
+$$
+H_{1/N}
+=
+\widetilde H_{1/N}H_{rms}.
+$$
+
+The same checks should be applied automatically in regression tests wherever practical.
+
+### Reproducibility tolerance
+
+For identical inputs and the same distribution branch, cross-language values should generally agree much more closely than the engineering precision of the final result. Differences in the final few binary or printed digits may arise from:
+
+- the standard-library gamma implementation;
+- compiler floating-point optimization;
+- `fsolve` versus the explicit Newton iteration;
+- decimal output formatting;
+- intermediate rounding in notebook tables.
+
+A branch mismatch or a difference that changes engineering conclusions is not a normal floating-point effect and should be investigated.
+
+Useful regression cases should include:
+
+- a strongly depth-limited case with small $\widetilde H_{tr}$;
+- a typical shallow-foreshore case;
+- a case close to $\widetilde H_{tr}=2.75$;
+- a Rayleigh-branch case above the threshold;
+- invalid zero, negative, non-numeric, and non-finite inputs.
+
+---
+
+## Common interpretation errors
+
+**Confusing $H_{m0}$ and $H_{1/3}$.** They are approximately equal in deep water but not generally identical on a shallow foreshore.
+
+**Confusing $H_N$ and $H_{1/N}$.** One is a threshold; the other is a conditional mean above that threshold.
+
+**Entering the tangent instead of the slope denominator.** For $1:100$, enter `100`, not `0.01`.
+
+**Using the model on a flat bottom by entering an arbitrarily large $M$.** The flat-bottom process is outside the original formulation and can produce non-conservative high-wave estimates.
+
+**Using offshore $H_{m0}$ with local depth.** The input $H_{m0}$ must be local to the point being analysed.
+
+**Interpreting $H_1$ or $H_2$ as physical breaker heights.** They are Weibull scale parameters.
+
+**Treating $H_{1/1000}$ as the maximum wave in a storm.** Storm maximum statistics also depend on the number of waves and the duration of the sea state.
+
+---
+
+## Core references
+
+1. Battjes, J. A. (1972). *Set-up due to irregular waves*. Proceedings of the 13th International Conference on Coastal Engineering.
+2. Battjes, J. A., and Janssen, J. P. F. M. (1978). *Energy loss and set-up due to breaking of random waves*. Proceedings of the 16th International Conference on Coastal Engineering, 569–587.
+3. Battjes, J. A., and Groenendijk, H. W. (2000). *Wave height distributions on shallow foreshores*. Coastal Engineering, 40, 161–182.
+4. Caires, S., and Van Gent, M. R. A. (2012). *Wave height distribution in constant and finite depths*. Proceedings of the 33rd International Conference on Coastal Engineering.
+5. Goda, Y. (1975). *Irregular wave deformation in the surf zone*. Coastal Engineering in Japan, 18, 13–26.
+6. Goda, Y. (1979). *A review on statistical interpretation of wave data*. Report of the Port and Harbour Research Institute, 18(1), 5–32.
+7. Groenendijk, H. W. (1998). *Shallow foreshore wave height statistics*. MSc thesis, Delft University of Technology.
+8. Groenendijk, H. W., and Van Gent, M. R. A. (1998). *Shallow foreshore wave height statistics: A predictive model for the probability of exceedance of wave heights*. WL | Delft Hydraulics Report H3351.
+9. Hasselmann, K., Barnett, T. P., Bouws, E., Carlson, H., Cartwright, D. E., Enke, K., Ewing, J. A., Gienapp, H., Hasselmann, D. E., Kruseman, P., Meerburg, A., Müller, P., Olbers, D. J., Richter, K., Sell, W., and Walden, H. (1973). *Measurements of wind-wave growth and swell decay during the Joint North Sea Wave Project (JONSWAP)*.
+10. Klopman, G. (1996). *Extreme wave heights in shallow water*. WL | Delft Hydraulics Report H2486.
+11. Longuet-Higgins, M. S. (1952). *On the statistical distribution of the heights of sea waves*. Journal of Marine Research, 11(3), 245–266.
+12. Longuet-Higgins, M. S. (1980). *On the distribution of the heights of sea waves: Some effects of nonlinearity and finite bandwidth*. Journal of Geophysical Research, 85(C3), 1519–1523.
+13. Naess, A. (1985). *On the distribution of crest-to-trough wave heights*. Ocean Engineering, 12(3), 221–234.
+14. Ochi, M. K. (1998). *Ocean Waves: The Stochastic Approach*. Cambridge University Press.
+15. Tayfun, M. A. (1990). *Distribution of large wave heights*. Journal of Waterway, Port, Coastal, and Ocean Engineering, 116(6), 686–707.
+16. Thornton, E. B., and Guza, R. T. (1982). *Energy saturation and phase speeds measured on a natural beach*. Journal of Geophysical Research, 87(C12), 9499–9508.
+17. Thornton, E. B., and Guza, R. T. (1983). *Transformation of wave height distribution*. Journal of Geophysical Research, 88(C10), 5925–5938.
