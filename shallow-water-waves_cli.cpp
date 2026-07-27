@@ -62,8 +62,6 @@
 #include <iomanip>
 #include <stdexcept>
 #include <fstream>
-#include <locale>
-#include <codecvt>
 #include <string>
 #include <algorithm>
 #include <iterator>
@@ -291,7 +289,7 @@ static inline void solve_linear_system_2x2(double J11, double J12, double J21, d
  * @brief Provides empirical initial guesses for H1_Hrms and H2_Hrms.
  */
 static void get_initial_guesses(double Htr_Hrms, double &H1_initial, double &H2_initial) {
-    H1_initial = 2.244660800090239E-03 + std::pow(std::tanh(1.918610494219390E+00 * Htr_Hrms), 1.780892753373355E-01) / std::pow(std::tanh(std::sinh(1.009497360864962E+00 * Htr_Hrms)), 9.777939607559606E-01);
+    H1_initial = std::pow(std::tanh(6.739139344110821 * Htr_Hrms - 0.01265095590917251), -0.6551633251836707) / std::pow(std::tanh(std::sinh(0.6947756601426412 * Htr_Hrms + 0.7908718490781483)), 5.484052848550241);
     H2_initial = 1.059259665431797 + (0.2059286860468916 * Htr_Hrms) / (1.0 + 3.865701948059343 * std::pow(Htr_Hrms, -3.479682433107255));
     if (H1_initial <= 0.0) H1_initial = LOCAL_EPS;
     if (H2_initial <= 0.0) H2_initial = LOCAL_EPS;
@@ -327,7 +325,7 @@ bool newtonRaphsonSystemSolver(double Htr_Hrms, double &H1_Hrms, double &H2_Hrms
         if (H2_Hrms <= 0.0) H2_Hrms = LOCAL_EPS;
     }
 
-    std::wcerr << L"Newton-Raphson solver failed to converge for Htr_Hrms = " << Htr_Hrms << L".\n";
+    std::cerr << "Newton-Raphson solver failed to converge for Htr_Hrms = " << Htr_Hrms << ".\n";
     return false;
 }
 
@@ -431,7 +429,7 @@ bool perform_wave_analysis(WaveAnalysisResults& results) {
         }
 
     } catch (const std::exception& e) {
-        std::wcerr << L"ERROR during analysis: " << e.what() << L"\n";
+        std::cerr << "ERROR during analysis: " << e.what() << "\n";
         return false;
     }
     return true;
@@ -443,79 +441,77 @@ bool perform_wave_analysis(WaveAnalysisResults& results) {
 /**
  * @brief Formats the analysis results into a detailed report string.
  * @param results The structure containing all calculated data.
- * @return A formatted std::wstring report.
+ * @return A formatted report string.
  */
-std::wstring format_report(const WaveAnalysisResults& r) {
-    std::wstringstream ss;
+std::string format_report(const WaveAnalysisResults& r) {
+    std::ostringstream ss;
     ss << std::fixed << std::setprecision(4);
 
-    ss << L"======================\n"
-       << L"   INPUT PARAMETERS\n"
-       << L"======================\n"
-       << L"Hm0 (m)         : " << r.Hm0 << L"\n"
-       << L"d (m)           : " << r.d << L"\n"
-       << L"Beach slope (m) : " << r.slopeM << L"   (tan(alpha) = " << r.tanAlpha << L")\n\n"
+    ss << "======================\n"
+       << "   INPUT PARAMETERS\n"
+       << "======================\n"
+       << "Hm0 (m)         : " << r.Hm0 << "\n"
+       << "d (m)           : " << r.d << "\n"
+       << "Beach slope (m) : " << r.slopeM << "   (tan(alpha) = " << r.tanAlpha << ")\n\n"
 
        // OVERSHOOT-PREVENTION: Report which distribution was used.
-       << L"Distribution Used : " << std::wstring(r.distribution_type.begin(), r.distribution_type.end()) << L"\n\n"
+       << "Distribution Used : " << r.distribution_type << "\n\n"
 
-       << L"===========================\n"
-       << L"   CALCULATED PARAMETERS\n"
-       << L"===========================\n"
-       << L"Free-surface variance m0 (m^2)   : " << r.m0 << L"\n"
-       << L"Mean square wave height Hrms (m) : " << r.Hrms << L"\n"
-       << L"Transitional wave height Htr (m) : " << r.Htr_dim << L"\n"
-       << L"Dimensionless H~_tr (Htr/Hrms)   : " << r.Htr_tilde << L"\n\n"
+       << "===========================\n"
+       << "   CALCULATED PARAMETERS\n"
+       << "===========================\n"
+       << "Free-surface variance m0 (m^2)   : " << r.m0 << "\n"
+       << "Mean square wave height Hrms (m) : " << r.Hrms << "\n"
+       << "Transitional wave height Htr (m) : " << r.Htr_dim << "\n"
+       << "Dimensionless H~_tr (Htr/Hrms)   : " << r.Htr_tilde << "\n\n"
 
-       << L"=========================================\n"
-       << L"   DIMENSIONLESS WAVE HEIGHTS (H/Hrms)\n"
-       << L"=========================================\n"
-       << L"H1/Hrms       : " << r.H1_Hrms << L"\n"
-       << L"H2/Hrms       : " << r.H2_Hrms << L"\n"
-       << L"H1/3 / Hrms   : " << r.H1_3_Hrms << L"\n"
-       << L"H1/10 / Hrms  : " << r.H1_10_Hrms << L"\n"
-       << L"H1/50 / Hrms  : " << r.H1_50_Hrms << L"\n"
-       << L"H1/100 / Hrms : " << r.H1_100_Hrms << L"\n"
-       << L"H1/250 / Hrms : " << r.H1_250_Hrms << L"\n"
-       << L"H1/1000 /Hrms : " << r.H1_1000_Hrms << L"\n\n"
+       << "=========================================\n"
+       << "   DIMENSIONLESS WAVE HEIGHTS (H/Hrms)\n"
+       << "=========================================\n"
+       << "H1/Hrms       : " << r.H1_Hrms << "\n"
+       << "H2/Hrms       : " << r.H2_Hrms << "\n"
+       << "H1/3 / Hrms   : " << r.H1_3_Hrms << "\n"
+       << "H1/10 / Hrms  : " << r.H1_10_Hrms << "\n"
+       << "H1/50 / Hrms  : " << r.H1_50_Hrms << "\n"
+       << "H1/100 / Hrms : " << r.H1_100_Hrms << "\n"
+       << "H1/250 / Hrms : " << r.H1_250_Hrms << "\n"
+       << "H1/1000 /Hrms : " << r.H1_1000_Hrms << "\n\n"
 
-       << L"==================================\n"
-       << L"   DIMENSIONAL WAVE HEIGHTS (m)\n"
-       << L"==================================\n"
-       << L"H1 (m)        : " << r.H1_dim << L"\n"
-       << L"H2 (m)        : " << r.H2_dim << L"\n"
-       << L"H1/3 (m)      : " << r.H1_3_dim << L"\n"
-       << L"H1/10 (m)     : " << r.H1_10_dim << L"\n"
-       << L"H1/50 (m)     : " << r.H1_50_dim << L"\n"
-       << L"H1/100 (m)    : " << r.H1_100_dim << L"\n"
-       << L"H1/250 (m)    : " << r.H1_250_dim << L"\n"
-       << L"H1/1000 (m)   : " << r.H1_1000_dim << L"\n\n"
+       << "==================================\n"
+       << "   DIMENSIONAL WAVE HEIGHTS (m)\n"
+       << "==================================\n"
+       << "H1 (m)        : " << r.H1_dim << "\n"
+       << "H2 (m)        : " << r.H2_dim << "\n"
+       << "H1/3 (m)      : " << r.H1_3_dim << "\n"
+       << "H1/10 (m)     : " << r.H1_10_dim << "\n"
+       << "H1/50 (m)     : " << r.H1_50_dim << "\n"
+       << "H1/100 (m)    : " << r.H1_100_dim << "\n"
+       << "H1/250 (m)    : " << r.H1_250_dim << "\n"
+       << "H1/1000 (m)   : " << r.H1_1000_dim << "\n\n"
 
-       << L"=======================\n"
-       << L"   DIAGNOSTIC RATIOS\n"
-       << L"=======================\n"
-       << L"(H1/10)/(H1/3)   : " << r.ratio_1_10_div_1_3 << L"\n"
-       << L"(H1/50)/(H1/3)   : " << r.ratio_1_50_div_1_3 << L"\n"
-       << L"(H1/100)/(H1/3)  : " << r.ratio_1_100_div_1_3 << L"\n"
-       << L"(H1/250)/(H1/3)  : " << r.ratio_1_250_div_1_3 << L"\n"
-       << L"(H1/1000)/(H1/3) : " << r.ratio_1_1000_div_1_3 << L"\n\n"
+       << "=======================\n"
+       << "   DIAGNOSTIC RATIOS\n"
+       << "=======================\n"
+       << "(H1/10)/(H1/3)   : " << r.ratio_1_10_div_1_3 << "\n"
+       << "(H1/50)/(H1/3)   : " << r.ratio_1_50_div_1_3 << "\n"
+       << "(H1/100)/(H1/3)  : " << r.ratio_1_100_div_1_3 << "\n"
+       << "(H1/250)/(H1/3)  : " << r.ratio_1_250_div_1_3 << "\n"
+       << "(H1/1000)/(H1/3) : " << r.ratio_1_1000_div_1_3 << "\n\n"
 
-       << L"End of Report\n";
+       << "End of Report\n";
 
     return ss.str();
 }
 
 /**
- * @brief Writes the report string to "report.txt" with UTF-8 encoding.
+ * @brief Writes the report string to "report.txt" using locale-independent ASCII text output.
  */
-static void write_report_to_file(const std::wstring &report) {
-    std::wofstream ofs("report.txt");
+static void write_report_to_file(const std::string &report) {
+    std::ofstream ofs("report.txt");
     if (!ofs) {
-        std::wcerr << L"Error: Could not open report.txt for writing.\n";
+        std::cerr << "Error: Could not open report.txt for writing.\n";
         return;
     }
-    // Set locale for UTF-8 output
-    ofs.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>));
     ofs << report;
 }
 
@@ -530,20 +526,20 @@ bool get_user_input(int argc, char* argv[], WaveAnalysisResults& results) {
             results.d = std::stod(argv[2]);
             results.slopeM = std::stod(argv[3]);
         } catch (const std::exception& e) {
-            std::wcerr << L"Invalid or out-of-range argument: " << e.what() << L"\n";
+            std::cerr << "Invalid or out-of-range argument: " << e.what() << "\n";
             return false;
         }
     } else { // Interactive mode
-        std::wcout << L"Enter Hm0 (m): ";
-        std::wcin >> results.Hm0;
-        std::wcout << L"Enter water depth d (m): ";
-        std::wcin >> results.d;
-        std::wcout << L"Enter beach slope (m): ";
-        std::wcin >> results.slopeM;
+        std::cout << "Enter Hm0 (m): ";
+        std::cin >> results.Hm0;
+        std::cout << "Enter water depth d (m): ";
+        std::cin >> results.d;
+        std::cout << "Enter beach slope (m): ";
+        std::cin >> results.slopeM;
     }
 
     if (results.Hm0 <= 0.0 || results.d <= 0.0 || results.slopeM <= 0.0) {
-        std::wcerr << L"Error: All input values must be positive.\n";
+        std::cerr << "Error: All input values must be positive.\n";
         return false;
     }
     return true;
@@ -552,10 +548,6 @@ bool get_user_input(int argc, char* argv[], WaveAnalysisResults& results) {
 // --- Main Entry Point ---
 
 int main(int argc, char* argv[]) {
-    // Set locale for proper wide character I/O
-    std::wcout.imbue(std::locale(""));
-    std::wcin.imbue(std::locale(""));
-
     WaveAnalysisResults results = {};
 
     if (!get_user_input(argc, argv, results)) {
@@ -563,11 +555,11 @@ int main(int argc, char* argv[]) {
     }
 
     if (perform_wave_analysis(results)) {
-        std::wstring report = format_report(results);
+        std::string report = format_report(results);
         write_report_to_file(report);
-        std::wcout << L"\n" << report << std::endl;
+        std::cout << "\n" << report << std::endl;
     } else {
-        std::wcerr << L"Failed to generate report due to calculation errors.\n";
+        std::cerr << "Failed to generate report due to calculation errors.\n";
         return 1;
     }
 
