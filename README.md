@@ -78,11 +78,13 @@ $$
 F_R(H)=1-\exp\left[-\left(H/H_{rms}\right)^2\right]
 $$
 
+
 The corresponding exceedance probability is
 
 $$
 P(H>h)=\exp\left[-\left(h/H_{rms}\right)^2\right]
 $$
+
 
 This distribution is completely defined by one scale parameter. Consequently, all characteristic wave heights are related by fixed ratios.
 
@@ -119,9 +121,11 @@ $$
 k_1=2.0
 $$
 
+
 $$
 k_2=3.6
 $$
+
 
 and parameterized the transitional height using local depth and foreshore slope. With a continuity condition and a second-moment constraint, the entire normalized distribution is controlled by the single parameter $\widetilde H_{tr}$.
 
@@ -185,6 +189,7 @@ $$
 \widetilde H=H/H_{rms}
 $$
 
+
 The notation $H_N$ and $H_{1/N}$ must not be confused:
 
 - $H_N$ is an exceedance threshold;
@@ -204,11 +209,13 @@ $$
 F_H(h)=P(H\leq h), \qquad h\geq0.
 $$
 
+
 The survival or exceedance function is
 
 $$
 Q_H(h)=P(H>h)=1-F_H(h).
 $$
+
 
 Where the distribution is differentiable, the probability density is
 
@@ -216,11 +223,13 @@ $$
 f_H(h)=\frac{dF_H(h)}{dh}.
 $$
 
+
 The density integrates to unity:
 
 $$
 \int_0^\infty f_H(h)\,dh=1.
 $$
+
 
 ### Exceedance level $H_N$
 
@@ -230,11 +239,13 @@ $$
 Q_H(H_N)=\frac{1}{N},
 $$
 
+
 or equivalently,
 
 $$
 F_H(H_N)=1-\frac{1}{N}.
 $$
+
 
 $H_N$ is a quantile or threshold. It is **not** the average of the highest waves.
 
@@ -246,6 +257,7 @@ $$
 H_{1/N}=E\left[H\mid H>H_N\right].
 $$
 
+
 Because $P(H>H_N)=1/N$,
 
 $$
@@ -253,6 +265,7 @@ H_{1/N}
 =
 N\int_{H_N}^{\infty}h\,f_H(h)\,dh.
 $$
+
 
 This definition is used throughout the code. For example:
 
@@ -270,11 +283,13 @@ $$
 m_0=\int_0^\infty S_\eta(f)\,df,
 $$
 
+
 where $S_\eta(f)$ is the variance-density spectrum of free-surface elevation. The spectral significant wave height is
 
 $$
 H_{m0}=4\sqrt{m_0}.
 $$
+
 
 $H_{m0}$ is obtained from the spectrum, while $H_{1/3}$ is obtained from an ordered sample or a probability distribution of individual zero-crossing wave heights. They are close under many deep-water conditions but are not identical by definition and need not remain close in shallow water.
 
@@ -290,11 +305,13 @@ $$
 F_R(H)=1-\exp\left[-\left(H/H_{rms}\right)^2\right]
 $$
 
+
 The probability density is
 
 $$
 f_R(H)=\frac{2H}{H_{rms}^2}\exp\left[-\left(H/H_{rms}\right)^2\right]
 $$
+
 
 ### Exceedance wave height
 
@@ -304,6 +321,7 @@ $$
 H_N=H_{rms}\sqrt{\ln N}
 $$
 
+
 ### Mean of the highest fraction
 
 For a Rayleigh distribution, the mean of the highest $1/N$ fraction is
@@ -311,6 +329,7 @@ For a Rayleigh distribution, the mean of the highest $1/N$ fraction is
 $$
 H_{1/N}=N H_{rms}\Gamma\left(\frac{3}{2},\ln N\right)
 $$
+
 
 For the narrow-band relation $H_{rms}=\sqrt{8m_0}$ and $H_{m0}=4\sqrt{m_0}$, the exact ratios used by the software are:
 
@@ -333,6 +352,7 @@ $$
 F_R(H)=1-\exp\left[-\left(\frac{H}{H_{rms}}\right)^2\right],
 $$
 
+
 the general non-central moment is
 
 $$
@@ -342,11 +362,13 @@ H_{rms}^{\,r}
 \Gamma\left(1+\frac{r}{2}\right).
 $$
 
+
 For $r=2$,
 
 $$
 E\left[H^2\right]=H_{rms}^2,
 $$
+
 
 which confirms that the scale appearing in the selected Rayleigh form is the root-mean-square individual wave height.
 
@@ -356,11 +378,13 @@ $$
 H_{rms}=\sqrt{8m_0},
 $$
 
+
 and therefore
 
 $$
 H_{rms}=\frac{H_{m0}}{\sqrt{2}}.
 $$
+
 
 The empirical Battjes-Groenendijk relationship used elsewhere in the calculator is intentionally different because it incorporates the observed finite-bandwidth dependence of individual wave heights.
 
@@ -372,17 +396,20 @@ $$
 \exp\left[-\left(\frac{H_N}{H_{rms}}\right)^2\right]=\frac{1}{N}.
 $$
 
+
 Hence,
 
 $$
 \left(\frac{H_N}{H_{rms}}\right)^2=\ln N,
 $$
 
+
 and
 
 $$
 H_N=H_{rms}\sqrt{\ln N}.
 $$
+
 
 Substitution into the conditional-mean integral gives
 
@@ -395,11 +422,13 @@ h\,
 \exp\left[-\left(\frac{h}{H_{rms}}\right)^2\right]dh.
 $$
 
+
 Using the change of variable
 
 $$
 u=\left(\frac{h}{H_{rms}}\right)^2,
 $$
+
 
 the result is
 
@@ -409,6 +438,7 @@ H_{1/N}
 N H_{rms}
 \Gamma\left(\frac{3}{2},\ln N\right).
 $$
+
 
 This exact expression is the source of the Rayleigh constants tabulated above.
 
@@ -430,6 +460,7 @@ $$
 \widetilde H_{tr}=\frac{H_{tr}}{H_{rms}}.
 $$
 
+
 Normalization removes the absolute dimensional scale from the distribution-shape problem. Once the normalized solution is known, dimensional values are recovered by multiplication by $H_{rms}$.
 
 ### Survival function
@@ -439,6 +470,7 @@ The exceedance form is often more convenient than the CDF:
 $$
 Q(H)=1-F(H).
 $$
+
 
 For the Composite Weibull Distribution,
 
@@ -455,6 +487,7 @@ H>H_{tr}.
 \end{cases}
 $$
 
+
 Continuity of the CDF automatically implies continuity of the exceedance probability at the transition.
 
 ### Probability associated with the transition
@@ -469,11 +502,13 @@ x_2=
 \left(\frac{\widetilde H_{tr}}{\widetilde H_2}\right)^{k_2}.
 $$
 
+
 The continuity condition requires $x_1=x_2$. Denoting their common value by $x_{tr}$,
 
 $$
 x_{tr}=x_1=x_2.
 $$
+
 
 The exceedance probability at the transition is
 
@@ -481,11 +516,13 @@ $$
 P(H>H_{tr})=\exp(-x_{tr}),
 $$
 
+
 and the nominal recurrence count associated with the transition is
 
 $$
 N_{tr}=\exp(x_{tr}).
 $$
+
 
 For $N<N_{tr}$, the exceedance threshold lies below the transition and the mean-high-wave integral includes both branches. For $N\geq N_{tr}$, the threshold lies in the upper branch.
 
@@ -499,6 +536,7 @@ $$
 \left(\frac{H_{tr}}{H_2}\right)^{k_2},
 $$
 
+
 one may write
 
 $$
@@ -507,6 +545,7 @@ H_2
 H_{tr}
 \left(\frac{H_1}{H_{tr}}\right)^{k_1/k_2}.
 $$
+
 
 The implementation nevertheless solves for both normalized scales simultaneously. This preserves the direct two-equation formulation and provides an explicit continuity residual for convergence checking.
 
@@ -524,6 +563,7 @@ E\left[\widetilde H^r\right]
 \Gamma\left(1+\frac{r}{k_2},x_2\right).
 $$
 
+
 The first term integrates the lower branch from zero to the transition. The second term integrates the upper branch from the transition to infinity.
 
 For $r=0$, the expression represents total probability and equals one when continuity is satisfied. For $r=1$, it gives the normalized mean individual wave height. For $r=2$, it gives the second moment used to impose the $H_{rms}$ normalization.
@@ -536,15 +576,18 @@ $$
 F(H)=\begin{cases}1-\exp\left[-\left(H/H_1\right)^{k_1}\right],&H\leq H_{tr},\\1-\exp\left[-\left(H/H_2\right)^{k_2}\right],&H>H_{tr}.\end{cases}
 $$
 
+
 The fixed shape exponents are
 
 $$
 k_1=2.0
 $$
 
+
 $$
 k_2=3.6
 $$
+
 
 Because $k_1=2$, the lower branch has Rayleigh form. The larger exponent $k_2=3.6$ produces a more rapidly decaying upper tail.
 
@@ -556,6 +599,7 @@ $$
 f(H)=\begin{cases}\frac{k_1}{H_1}\left(H/H_1\right)^{k_1-1}\exp\left[-\left(H/H_1\right)^{k_1}\right],&H\leq H_{tr},\\\frac{k_2}{H_2}\left(H/H_2\right)^{k_2-1}\exp\left[-\left(H/H_2\right)^{k_2}\right],&H>H_{tr}.\end{cases}
 $$
 
+
 The CDF is continuous at $H_{tr}$, but the density is generally discontinuous because $k_1\neq k_2$. This is an accepted empirical simplification: the integral statistics required for engineering calculations remain well behaved.
 
 ### Continuity condition
@@ -566,17 +610,20 @@ $$
 F_1(H_{tr})=F_2(H_{tr})
 $$
 
+
 which is equivalent to
 
 $$
 \left(H_{tr}/H_1\right)^{k_1}=\left(H_{tr}/H_2\right)^{k_2}
 $$
 
+
 In normalized form,
 
 $$
 \left(\widetilde H_{tr}/\widetilde H_1\right)^{k_1}=\left(\widetilde H_{tr}/\widetilde H_2\right)^{k_2}
 $$
+
 
 ### Second-moment normalization
 
@@ -586,15 +633,18 @@ $$
 E\left[\widetilde H^2\right]=1
 $$
 
+
 Defining
 
 $$
 x_1=\left(\widetilde H_{tr}/\widetilde H_1\right)^{k_1}
 $$
 
+
 $$
 x_2=\left(\widetilde H_{tr}/\widetilde H_2\right)^{k_2}
 $$
+
 
 the second-moment condition is
 
@@ -602,17 +652,20 @@ $$
 \widetilde H_1^2\gamma\left(1+\frac{2}{k_1},x_1\right)+\widetilde H_2^2\Gamma\left(1+\frac{2}{k_2},x_2\right)=1
 $$
 
+
 The code solves the equivalent residual equation
 
 $$
 F_1=\sqrt{\widetilde H_1^2\gamma\left(1+\frac{2}{k_1},x_1\right)+\widetilde H_2^2\Gamma\left(1+\frac{2}{k_2},x_2\right)}-1=0
 $$
 
+
 The continuity residual is
 
 $$
 F_2=x_1-x_2=0
 $$
+
 
 Once $\widetilde H_{tr}$ is known, these two equations determine $\widetilde H_1$ and $\widetilde H_2$.
 
@@ -628,6 +681,7 @@ $$
 m_0=\left(H_{m0}/4\right)^2
 $$
 
+
 ### Root-mean-square individual wave height
 
 The implementation uses the Battjes-Groenendijk empirical relation
@@ -636,11 +690,13 @@ $$
 H_{rms}=\left(2.69+3.24\frac{\sqrt{m_0}}{d}\right)\sqrt{m_0}
 $$
 
+
 Equivalently,
 
 $$
 \frac{H_{rms}}{\sqrt{m_0}}=2.69+3.24\frac{\sqrt{m_0}}{d}
 $$
+
 
 The coefficient 2.69 represents the broad-banded deep-water limit adopted by Battjes and Groenendijk following Goda's analysis of wind-wave data. It differs from the narrow-band Rayleigh relation $H_{rms}/\sqrt{m_0}=\sqrt{8}\approx2.828427$.
 
@@ -654,6 +710,7 @@ $$
 \tan\alpha=1/M
 $$
 
+
 The program expects the positive denominator $M$, not the tangent itself.
 
 ### Transitional wave height
@@ -664,17 +721,20 @@ $$
 H_{tr}=\left(0.35+5.8\tan\alpha\right)d
 $$
 
+
 For a slope entered as $1:M$,
 
 $$
 H_{tr}=\left(0.35+5.8/M\right)d
 $$
 
+
 The normalized transition controlling the CWD shape is
 
 $$
 \widetilde H_{tr}=H_{tr}/H_{rms}
 $$
+
 
 A relatively small $\widetilde H_{tr}$ places more of the distribution in the breaking-controlled upper branch. A large $\widetilde H_{tr}$ moves the transition into the far tail and causes the normalized CWD to approach Rayleigh statistics.
 
@@ -686,11 +746,13 @@ $$
 \mu=\frac{\sqrt{m_0}}{d}.
 $$
 
+
 Because $H_{m0}=4\sqrt{m_0}$,
 
 $$
 \mu=\frac{H_{m0}}{4d}.
 $$
+
 
 The empirical $H_{rms}$ relation can then be written as
 
@@ -700,6 +762,7 @@ $$
 \left(2.69+3.24\mu\right)\mu.
 $$
 
+
 Combining this expression with the transition-height formula gives a direct dimensionless expression for the governing transition:
 
 $$
@@ -708,6 +771,7 @@ $$
 \frac{0.35+5.8/M}
 {\left(2.69+3.24\mu\right)\mu}.
 $$
+
 
 This equation shows explicitly that the normalized distribution shape is governed by two local dimensionless descriptors:
 
@@ -728,11 +792,13 @@ $$
 \widetilde H_{N,1}=\widetilde H_1\left(\ln N\right)^{1/k_1}
 $$
 
+
 The final exceedance height is
 
 $$
 \widetilde H_N=\begin{cases}\widetilde H_1\left(\ln N\right)^{1/k_1},&\widetilde H_{N,1}<\widetilde H_{tr},\\\widetilde H_2\left(\ln N\right)^{1/k_2},&\widetilde H_{N,1}\geq\widetilde H_{tr}.\end{cases}
 $$
+
 
 ### Mean of the highest $1/N$ fraction
 
@@ -742,17 +808,20 @@ $$
 \widetilde H_{1/N}=N\widetilde H_1\left[\Gamma\left(1+\frac{1}{k_1},\ln N\right)-\Gamma\left(1+\frac{1}{k_1},x_1\right)\right]+N\widetilde H_2\Gamma\left(1+\frac{1}{k_2},x_2\right)
 $$
 
+
 When $\widetilde H_N\geq\widetilde H_{tr}$, the averaging integral lies entirely in the upper branch:
 
 $$
 \widetilde H_{1/N}=N\widetilde H_2\Gamma\left(1+\frac{1}{k_2},\ln N\right)
 $$
 
+
 The dimensional result is
 
 $$
 H_{1/N}=\widetilde H_{1/N}H_{rms}
 $$
+
 
 The implementation evaluates these expressions for $N=3$, $10$, $50$, $100$, $250$, and $1000$.
 
@@ -768,6 +837,7 @@ $$
 \widetilde H_1(\ln N)^{1/k_1}.
 $$
 
+
 The same decision may be written using $x_{tr}$:
 
 $$
@@ -775,6 +845,7 @@ $$
 \quad\Longleftrightarrow\quad
 \widetilde H_N<\widetilde H_{tr}.
 $$
+
 
 Thus the branch is selected from a comparison between the requested exceedance level $\ln N$ and the transition exponent $x_{tr}$.
 
@@ -790,11 +861,13 @@ f(H)
 \exp\left[-\left(\frac{H}{H_s}\right)^k\right].
 $$
 
+
 The substitution
 
 $$
 u=\left(\frac{H}{H_s}\right)^k
 $$
+
 
 gives
 
@@ -804,6 +877,7 @@ H=H_su^{1/k},
 dH=\frac{H_s}{k}u^{1/k-1}du.
 $$
 
+
 Consequently,
 
 $$
@@ -811,6 +885,7 @@ $$
 =
 H_s\int u^{1/k}e^{-u}\,du.
 $$
+
 
 This integral is expressed by incomplete gamma functions. The two formulas used by the program follow by splitting the conditional-mean integral at $H_{tr}$ whenever the exceedance threshold is below the transition.
 
@@ -824,11 +899,13 @@ $$
 \Gamma(a)=\int_0^\infty t^{a-1}e^{-t}\,dt
 $$
 
+
 The unnormalized lower incomplete gamma function is
 
 $$
 \gamma(a,x)=\int_0^x t^{a-1}e^{-t}\,dt
 $$
+
 
 The unnormalized upper incomplete gamma function is
 
@@ -836,11 +913,13 @@ $$
 \Gamma(a,x)=\int_x^\infty t^{a-1}e^{-t}\,dt
 $$
 
+
 They satisfy
 
 $$
 \Gamma(a,x)=\Gamma(a)-\gamma(a,x)
 $$
+
 
 The C++ and Fortran implementations evaluate the lower incomplete gamma function using:
 
@@ -861,6 +940,7 @@ P(a,x)=\frac{\gamma(a,x)}{\Gamma(a)},
 Q(a,x)=\frac{\Gamma(a,x)}{\Gamma(a)}.
 $$
 
+
 The governing equations in this repository use the **unnormalized** incomplete gamma functions. An implementation that substitutes $P$ or $Q$ without multiplying by $\Gamma(a)$ will produce incorrect moments and scale parameters.
 
 ### Numerical evaluation strategy
@@ -874,6 +954,7 @@ The compiled implementations use a hybrid algorithm:
 $$
 \Gamma(a,x)=\Gamma(a)-\gamma(a,x)
 $$
+
 
 connects the two forms.
 4. Iteration stops when the relative increment is below the local tolerance.
@@ -893,11 +974,13 @@ $$
 \mathbf{F}(\mathbf{x})=\begin{bmatrix}F_1(\widetilde H_1,\widetilde H_2)\\F_2(\widetilde H_1,\widetilde H_2)\end{bmatrix}
 $$
 
+
 with
 
 $$
 \mathbf{x}=\begin{bmatrix}\widetilde H_1\\\widetilde H_2\end{bmatrix}
 $$
+
 
 At iteration $i$, the Newton correction is obtained from
 
@@ -905,17 +988,20 @@ $$
 \mathbf{J}(\mathbf{x}^{(i)})\Delta\mathbf{x}=-\mathbf{F}(\mathbf{x}^{(i)})
 $$
 
+
 followed by
 
 $$
 \mathbf{x}^{(i+1)}=\mathbf{x}^{(i)}+\Delta\mathbf{x}
 $$
 
+
 The Jacobian is approximated by centered finite differences. For example,
 
 $$
 \frac{\partial F_i}{\partial x_j}\approx\frac{F_i(x_j+\delta)-F_i(x_j-\delta)}{2\delta}
 $$
+
 
 The production constants are:
 
@@ -948,11 +1034,13 @@ F_2
 \end{bmatrix},
 $$
 
+
 the determinant is
 
 $$
 D=J_{11}J_{22}-J_{12}J_{21}.
 $$
+
 
 The correction solving $\mathbf J\Delta\mathbf x=-\mathbf F$ is
 
@@ -962,11 +1050,13 @@ $$
 \frac{-F_1J_{22}+F_2J_{12}}{D},
 $$
 
+
 $$
 \Delta \widetilde H_2
 =
 \frac{-J_{11}F_2+J_{21}F_1}{D}.
 $$
+
 
 A nearly singular Jacobian is rejected when $|D|$ is extremely small. After each correction, non-positive scale parameters are replaced by a small positive tolerance before the next residual evaluation.
 
@@ -978,11 +1068,13 @@ $$
 |F_1|<10^{-12}
 $$
 
+
 and
 
 $$
 |F_2|<10^{-12}.
 $$
+
 
 Requiring both conditions is important. A small moment residual alone does not guarantee continuity, and a small continuity residual alone does not guarantee the prescribed $H_{rms}$ normalization.
 
@@ -994,17 +1086,20 @@ $$
 x=\widetilde H_{tr}=H_{tr}/H_{rms}
 $$
 
+
 The first initial estimate is
 
 $$
 \widetilde H_1^{(0)}=\frac{\tanh\left(6.739139344110821x-0.01265095590917251\right)^{-0.6551633251836707}}{\tanh\left[\sinh\left(0.6947756601426412x+0.7908718490781483\right)\right]^{5.484052848550241}}
 $$
 
+
 The second initial estimate is
 
 $$
 \widetilde H_2^{(0)}=1.059259665431797+\frac{0.2059286860468916x}{1+3.865701948059343x^{-3.479682433107255}}
 $$
+
 
 These equations are **numerical initialization approximations**, not additional physical equations in the Battjes-Groenendijk model. They provide starting values only; the final values are obtained by satisfying the continuity and second-moment residuals.
 
@@ -1033,11 +1128,13 @@ $$
 H_{rms}=2.69\sqrt{m_0}
 $$
 
+
 whereas the narrow-band Rayleigh relation used to derive the exact $H_{1/N}/H_{m0}$ limits is
 
 $$
 H_{rms}=\sqrt{8m_0}\approx2.828427\sqrt{m_0}
 $$
+
 
 Caires and Van Gent showed that direct dimensionalization can therefore overshoot the Rayleigh prediction and later converge to a value below it. The program prevents this non-physical behavior with two safeguards.
 
@@ -1048,6 +1145,7 @@ When
 $$
 \widetilde H_{tr}>2.75
 $$
+
 
 the program bypasses the nonlinear Composite Weibull solution and directly assigns the exact Rayleigh $H_{1/N}/H_{m0}$ values listed above.
 
@@ -1061,6 +1159,7 @@ $$
 H_{1/N}=\min\left(H_{1/N}^{BG},C_NH_{m0}\right)
 $$
 
+
 where $C_N$ is the corresponding exact Rayleigh ratio.
 
 After capping, the software back-calculates the reported normalized values:
@@ -1068,6 +1167,7 @@ After capping, the software back-calculates the reported normalized values:
 $$
 \widetilde H_{1/N}=H_{1/N}/H_{rms}
 $$
+
 
 This ensures that dimensional values, normalized values, and diagnostic ratios remain mutually consistent in the report.
 
@@ -1084,6 +1184,7 @@ The threshold
 $$
 \widetilde H_{tr}=2.75
 $$
+
 
 is an implementation criterion for deep-water convergence, not a physical breaker index. Immediately above the threshold, the direct Rayleigh constants are used. At or below the threshold, the CWD is solved and each final dimensional statistic is capped individually.
 
@@ -1207,21 +1308,26 @@ $$
 H_{1/10}/H_{1/3}
 $$
 
+
 $$
 H_{1/50}/H_{1/3}
 $$
+
 
 $$
 H_{1/100}/H_{1/3}
 $$
 
+
 $$
 H_{1/250}/H_{1/3}
 $$
 
+
 $$
 H_{1/1000}/H_{1/3}
 $$
+
 
 These ratios describe the upper-tail shape independently of the absolute wave-height scale.
 
@@ -1241,17 +1347,21 @@ $$
 m_0=(2.5/4)^2=0.390625\ \text{m}^2
 $$
 
+
 $$
 H_{rms}=1.9344\ \text{m}
 $$
+
 
 $$
 H_{tr}=(0.35+5.8/100)\times5=2.0400\ \text{m}
 $$
 
+
 $$
 \widetilde H_{tr}=2.0400/1.9344=1.0546
 $$
+
 
 Because $\widetilde H_{tr}<2.75$, the `B&G` branch is used. The C++ implementation gives approximately:
 
@@ -1283,6 +1393,7 @@ $$
 m_0=\left(\frac{2.5}{4}\right)^2=0.390625\ \mathrm{m}^2,
 $$
 
+
 $$
 H_{rms}
 =
@@ -1290,6 +1401,7 @@ H_{rms}
 =
 1.74453125\ \mathrm{m},
 $$
+
 
 $$
 H_{tr}
@@ -1299,6 +1411,7 @@ H_{tr}
 8.16\ \mathrm{m},
 $$
 
+
 and
 
 $$
@@ -1307,6 +1420,7 @@ $$
 \frac{8.16}{1.74453125}
 \approx4.6772.
 $$
+
 
 Because $\widetilde H_{tr}>2.75$, the direct Rayleigh branch is selected. The corresponding dimensional statistics are:
 
@@ -1361,6 +1475,7 @@ The underlying laboratory database included plane shallow foreshores with slopes
 $$
 1:20\ \text{and}\ 1:250
 $$
+
 
 The 1998 validation report identified the main validated conditions as:
 
@@ -1700,6 +1815,7 @@ $$
 \approx0.
 $$
 
+
 Second moment:
 
 $$
@@ -1711,17 +1827,20 @@ $$
 \approx1.
 $$
 
+
 Monotonicity:
 
 $$
 H_{1/3}<H_{1/10}<H_{1/50}<H_{1/100}<H_{1/250}<H_{1/1000}.
 $$
 
+
 Rayleigh cap:
 
 $$
 H_{1/N}\leq C_NH_{m0}.
 $$
+
 
 Dimensional-normalized consistency:
 
@@ -1730,6 +1849,7 @@ H_{1/N}
 =
 \widetilde H_{1/N}H_{rms}.
 $$
+
 
 The same checks should be applied automatically in regression tests wherever practical.
 
